@@ -68,7 +68,7 @@ assert!(cartan.is_simply_laced());
 assert_eq!(cartan.determinant(), 3);
 
 // Verify Dynkin diagram structure
-let dynkin = cartan.dynkin_diagram();
+let dynkin = cartan.to_dynkin_diagram("E₆");
 assert_eq!(dynkin.branch_nodes().len(), 1); // E₆ has 1 branch point
 assert_eq!(dynkin.endpoints().len(), 3);     // 3 arms
 ```

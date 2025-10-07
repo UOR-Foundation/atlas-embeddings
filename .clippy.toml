@@ -19,14 +19,14 @@ struct-field-name-threshold = 20
 # Literal precision
 literal-representation-threshold = 16
 
-# Array size limits
-array-size-threshold = 32
+# Array size limits (64 bytes for Vector8 which is 8 × 8-byte HalfIntegers)
+array-size-threshold = 64
 
 # Maximum line length for literals
 doc-valid-idents = ["Atlas", "E6", "E7", "E8", "F4", "G2", "Dynkin", "Cartan", "Weyl"]
 
-# Blacklisted names to avoid
-blacklisted-names = ["foo", "bar", "baz", "tmp", "temp"]
+# Disallowed names to avoid
+disallowed-names = ["foo", "bar", "baz", "tmp", "temp"]
 
-# Single char binding names allowed in mathematical contexts
-single-char-binding-names-threshold = 2
+# Single char binding names allowed in mathematical contexts (matrix entries, etc.)
+single-char-binding-names-threshold = 10

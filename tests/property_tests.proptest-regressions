@@ -1,0 +1,7 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc 4c42964ad16be30527f2696280ff5c02f568370fad631af5a52a96dcedf32e5b # shrinks to root = Vector8 { coords: [HalfInteger { numerator: 0 }, HalfInteger { numerator: 0 }, HalfInteger { numerator: 0 }, HalfInteger { numerator: 0 }, HalfInteger { numerator: 0 }, HalfInteger { numerator: 0 }, HalfInteger { numerator: 2 }, HalfInteger { numerator: -1 }] }, v = Vector8 { coords: [HalfInteger { numerator: 0 }, HalfInteger { numerator: 0 }, HalfInteger { numerator: 0 }, HalfInteger { numerator: 0 }, HalfInteger { numerator: 0 }, HalfInteger { numerator: 0 }, HalfInteger { numerator: -14 }, HalfInteger { numerator: 3 }] }

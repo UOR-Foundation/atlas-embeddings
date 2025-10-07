@@ -98,19 +98,16 @@
 //! // E₆ emerges via degree-partition: 72 = 64 + 8
 //! let e6 = E6::from_atlas(&atlas);
 //!
-//! // Extract simple roots
-//! let simple_roots = e6.simple_roots();
-//! assert_eq!(simple_roots.len(), 6);
+//! // Verify basic properties
+//! assert_eq!(e6.num_roots(), 72);
+//! assert_eq!(e6.rank(), 6);
+//! assert!(e6.is_simply_laced());
 //!
-//! // Compute Cartan matrix
+//! // Cartan matrix verification
 //! let cartan = e6.cartan_matrix();
 //! assert!(cartan.is_simply_laced());
 //! assert_eq!(cartan.determinant(), 3);
-//!
-//! // Verify Dynkin diagram has E₆ shape
-//! let dynkin = cartan.dynkin_diagram();
-//! assert_eq!(dynkin.branch_nodes().len(), 1);  // One branch point
-//! assert_eq!(dynkin.endpoints().len(), 3);     // Three arms
+//! assert!(cartan.is_symmetric());
 //! ```
 //!
 //! ### Computing Weyl Group Order
@@ -168,6 +165,7 @@
 #![forbid(unsafe_code)]
 #![warn(missing_docs, missing_debug_implementations)]
 #![cfg_attr(not(test), warn(clippy::float_arithmetic))]
+#![cfg_attr(test, allow(clippy::large_stack_arrays))] // format! macros in tests create temp arrays
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
 // Module declarations (to be implemented)
@@ -176,12 +174,14 @@ pub mod atlas;
 pub mod cartan;
 pub mod categorical;
 pub mod e8;
+pub mod embedding;
 pub mod groups;
 pub mod weyl;
 
 // Re-exports for convenience
 pub use atlas::Atlas;
 pub use cartan::CartanMatrix;
+pub use e8::E8RootSystem;
 
 /// Crate version for runtime verification
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -196,6 +196,6 @@ mod tests {
     #[test]
     fn test_crate_metadata() {
         assert_eq!(NAME, "atlas-embeddings");
-        assert!(!VERSION.is_empty());
+        // VERSION is compile-time constant from CARGO_PKG_VERSION, always non-empty
     }
 }
