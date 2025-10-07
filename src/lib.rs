@@ -158,9 +158,34 @@
 //! 3. Wilson, R. A. (2009). *The Finite Simple Groups*
 //! 4. Carter, R. W. (2005). *Lie Algebras of Finite and Affine Type*
 //!
+//! ## About UOR Foundation
+//!
+//! This work is published by the [UOR Foundation](https://uor.foundation), dedicated to
+//! advancing universal object reference systems and foundational research in mathematics,
+//! physics, and computation.
+//!
+//! ## Citation
+//!
+//! If you use this crate in academic work, please cite:
+//!
+//! ```bibtex
+//! @software{atlas_embeddings,
+//!   title = {atlas-embeddings: First-principles construction of exceptional Lie groups},
+//!   author = {{UOR Foundation}},
+//!   year = {2025},
+//!   url = {https://github.com/UOR-Foundation/atlas-embeddings},
+//! }
+//! ```
+//!
+//! ## Contact
+//!
+//! - Homepage: <https://uor.foundation>
+//! - Issues: <https://github.com/UOR-Foundation/atlas-embeddings/issues>
+//! - Discussions: <https://github.com/UOR-Foundation/atlas-embeddings/discussions>
+//!
 //! ## License
 //!
-//! Licensed under either of Apache License, Version 2.0 or MIT license at your option.
+//! This project is licensed under the [MIT License](https://github.com/UOR-Foundation/atlas-embeddings/blob/main/LICENSE-MIT).
 
 #![forbid(unsafe_code)]
 #![warn(missing_docs, missing_debug_implementations)]
