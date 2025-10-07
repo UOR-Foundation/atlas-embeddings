@@ -81,7 +81,7 @@ format:
 	cargo fmt --all
 
 format-check:
-	cargo fmt --all -- --check
+	@cargo fmt --all -- --check 2>/dev/null
 
 # Verification (for CI)
 verify: format-check check lint test docs
