@@ -174,12 +174,9 @@
 //!   author = {{UOR Foundation}},
 //!   year = {2025},
 //!   url = {https://github.com/UOR-Foundation/atlas-embeddings},
-//!   doi = {10.5281/zenodo.XXXXXXX}, % Update after first release
+//!   doi = {10.5281/zenodo.17289540},
 //! }
 //! ```
-//!
-//! **Note**: The DOI will be generated automatically when the first release is created on `GitHub`.
-//! Update the placeholder `XXXXXXX` with the actual DOI from `Zenodo`.
 //!
 //! ## Contact
 //!
