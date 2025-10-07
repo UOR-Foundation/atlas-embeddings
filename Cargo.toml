@@ -1,0 +1,105 @@
+[package]
+name = "atlas-embeddings"
+version = "0.1.0"
+edition = "2021"
+authors = ["UOR Foundation <contact@uor.foundation>"]
+license = "MIT OR Apache-2.0"
+description = "First-principles construction of exceptional Lie groups from the Atlas of Resonance Classes"
+homepage = "https://uor.foundation"
+repository = "https://github.com/UOR-Foundation/atlas-embeddings"
+documentation = "https://docs.rs/atlas-embeddings"
+readme = "README.md"
+keywords = ["mathematics", "lie-groups", "exceptional-groups", "category-theory", "exact-arithmetic"]
+categories = ["mathematics", "science"]
+rust-version = "1.75"
+
+[lib]
+name = "atlas_embeddings"
+path = "src/lib.rs"
+
+[dependencies]
+# Exact arithmetic - NO floating point
+num-rational = { version = "0.4", default-features = false }
+num-integer = { version = "0.1", default-features = false }
+num-traits = { version = "0.2", default-features = false }
+
+# Error handling
+thiserror = { version = "1.0", default-features = false }
+
+# Serialization (optional, for certificates)
+serde = { version = "1.0", default-features = false, features = ["derive"], optional = true }
+serde_json = { version = "1.0", default-features = false, features = ["alloc"], optional = true }
+
+[dev-dependencies]
+# Testing framework
+criterion = { version = "0.5", features = ["html_reports"] }
+proptest = "1.4"
+quickcheck = "1.0"
+quickcheck_macros = "1.0"
+
+# Additional test utilities
+pretty_assertions = "1.4"
+test-case = "3.3"
+
+[features]
+default = ["std"]
+std = [
+    "num-rational/std",
+    "num-integer/std",
+    "num-traits/std",
+]
+serde = ["dep:serde", "dep:serde_json", "num-rational/serde"]
+
+# Strict compilation for peer review
+[profile.dev]
+overflow-checks = true
+debug-assertions = true
+
+[profile.release]
+overflow-checks = true
+debug-assertions = true
+lto = true
+codegen-units = 1
+opt-level = 3
+
+[profile.bench]
+inherits = "release"
+
+[[bench]]
+name = "atlas_construction"
+harness = false
+
+[[bench]]
+name = "exact_arithmetic"
+harness = false
+
+[[bench]]
+name = "cartan_computation"
+harness = false
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--html-in-header", "docs/katex-header.html", "--cfg", "docsrs"]
+
+# Workspace-level lints (these will be enforced)
+[lints.rust]
+unsafe_code = "forbid"
+missing_docs = "warn"
+missing_debug_implementations = "warn"
+trivial_casts = "warn"
+trivial_numeric_casts = "warn"
+unused_import_braces = "warn"
+unused_qualifications = "warn"
+
+[lints.clippy]
+all = "warn"
+pedantic = "warn"
+nursery = "warn"
+cargo = "warn"
+# Specific restrictions for mathematical correctness
+float_arithmetic = "deny"
+float_cmp = "deny"
+float_cmp_const = "deny"
+# Require explicit implementations
+missing_errors_doc = "warn"
+missing_panics_doc = "warn"

@@ -1,0 +1,85 @@
+# Rustfmt configuration for atlas-embeddings
+# Documentation: https://rust-lang.github.io/rustfmt/
+
+# Edition
+edition = "2021"
+
+# Maximum line width
+max_width = 100
+
+# Indentation
+tab_spaces = 4
+hard_tabs = false
+
+# Imports
+imports_granularity = "Crate"
+group_imports = "StdExternalCrate"
+imports_layout = "Vertical"
+
+# Function formatting
+fn_single_line = false
+fn_args_layout = "Tall"
+fn_call_width = 80
+
+# Where clause formatting
+where_single_line = false
+
+# Comments
+comment_width = 100
+wrap_comments = true
+normalize_comments = true
+normalize_doc_attributes = true
+
+# Documentation
+format_code_in_doc_comments = true
+doc_comment_code_block_width = 100
+
+# Struct/Enum formatting
+struct_field_align_threshold = 20
+enum_discrim_align_threshold = 20
+
+# Use formatting
+use_field_init_shorthand = true
+use_try_shorthand = true
+
+# Type formatting
+format_strings = true
+format_macro_matchers = true
+format_macro_bodies = true
+
+# Reordering
+reorder_imports = true
+reorder_modules = true
+
+# Style preferences for mathematical clarity
+space_before_colon = false
+space_after_colon = true
+spaces_around_ranges = false
+
+# Chain formatting (for method calls)
+chain_width = 80
+indent_style = "Block"
+
+# Array/Vec formatting
+array_width = 80
+struct_lit_width = 80
+
+# Blank lines
+blank_lines_upper_bound = 2
+blank_lines_lower_bound = 0
+
+# Misc
+trailing_comma = "Vertical"
+trailing_semicolon = true
+match_arm_leading_pipes = "Never"
+match_arm_blocks = true
+match_block_trailing_comma = true
+overflow_delimited_expr = true
+
+# Attributes
+force_multiline_blocks = false
+newline_style = "Unix"
+
+# Reporting
+error_on_line_overflow = true
+error_on_unformatted = true
