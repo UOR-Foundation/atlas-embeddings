@@ -178,8 +178,8 @@
 //! }
 //! ```
 //!
-//! **Note**: The DOI will be generated automatically when the first release is created on GitHub.
-//! Update the placeholder `XXXXXXX` with the actual DOI from Zenodo.
+//! **Note**: The DOI will be generated automatically when the first release is created on `GitHub`.
+//! Update the placeholder `XXXXXXX` with the actual DOI from `Zenodo`.
 //!
 //! ## Contact
 //!
