@@ -1,0 +1,27 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "atlas-embeddings: First-principles construction of exceptional Lie groups"
+date-released: 2025-10-07
+url: "https://github.com/UOR-Foundation/atlas-embeddings"
+repository-code: "https://github.com/UOR-Foundation/atlas-embeddings"
+type: software
+license: MIT
+authors:
+  - name: "UOR Foundation"
+    email: contact@uor.foundation
+    website: "https://uor.foundation"
+keywords:
+  - mathematics
+  - lie-groups
+  - exceptional-groups
+  - e8
+  - category-theory
+  - exact-arithmetic
+  - rust
+  - formal-verification
+  - computational-mathematics
+abstract: >
+  A mathematically rigorous Rust crate implementing the first-principles
+  construction of exceptional Lie groups (G₂, F₄, E₆, E₇, E₈) from the
+  Atlas of Resonance Classes. Uses exact rational arithmetic with no
+  floating point, designed for peer review and formal verification.

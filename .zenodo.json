@@ -1,0 +1,38 @@
+{
+  "title": "atlas-embeddings: First-principles construction of exceptional Lie groups",
+  "description": "A mathematically rigorous Rust crate implementing the first-principles construction of exceptional Lie groups (G₂, F₄, E₆, E₇, E₈) from the Atlas of Resonance Classes using exact rational arithmetic.",
+  "creators": [
+    {
+      "name": "UOR Foundation",
+      "affiliation": "UOR Foundation"
+    }
+  ],
+  "keywords": [
+    "mathematics",
+    "lie-groups",
+    "exceptional-groups",
+    "e8",
+    "category-theory",
+    "exact-arithmetic",
+    "rust",
+    "formal-verification",
+    "computational-mathematics"
+  ],
+  "license": "MIT",
+  "upload_type": "software",
+  "access_right": "open",
+  "language": "eng",
+  "communities": [
+    {
+      "identifier": "zenodo"
+    }
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/UOR-Foundation/atlas-embeddings",
+      "relation": "isSupplementTo",
+      "scheme": "url"
+    }
+  ],
+  "publication_date": "2025-10-07"
+}

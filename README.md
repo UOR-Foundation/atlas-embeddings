@@ -3,7 +3,9 @@
 [![CI](https://github.com/UOR-Foundation/atlas-embeddings/workflows/CI/badge.svg)](https://github.com/UOR-Foundation/atlas-embeddings/actions)
 [![Documentation](https://docs.rs/atlas-embeddings/badge.svg)](https://docs.rs/atlas-embeddings)
 [![Crates.io](https://img.shields.io/crates/v/atlas-embeddings.svg)](https://crates.io/crates/atlas-embeddings)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.XXXXXXX.svg)](https://doi.org/10.5281/zenodo.XXXXXXX)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/UOR-Foundation/atlas-embeddings#license)
+[![Rust Version](https://img.shields.io/badge/rust-1.75%2B-blue.svg)](https://www.rust-lang.org)
 
 > First-principles construction of exceptional Lie groups from the Atlas of Resonance Classes
 
