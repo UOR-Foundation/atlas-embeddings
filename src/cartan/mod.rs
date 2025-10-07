@@ -524,7 +524,7 @@ pub struct DynkinDiagram<const N: usize> {
     rank: usize,
     /// Cartan matrix (exact integers)
     cartan: CartanMatrix<N>,
-    /// Bonds: (from_node, to_node, multiplicity)
+    /// Bonds: (`from_node`, `to_node`, multiplicity)
     /// Multiplicity: 1=single, 2=double, 3=triple
     bonds: Vec<(usize, usize, u8)>,
     /// Node degrees (connectivity in Dynkin diagram)
@@ -535,6 +535,10 @@ impl<const N: usize> DynkinDiagram<N> {
     /// Create Dynkin diagram from Cartan matrix
     ///
     /// Extracts bond structure using exact formula: multiplicity = |Cᵢⱼ × Cⱼᵢ|
+    ///
+    /// # Panics
+    ///
+    /// Panics if the computed multiplicity doesn't fit in `u8` (should never happen for valid Cartan matrices).
     #[must_use]
     pub fn from_cartan(cartan: &CartanMatrix<N>, group_name: &str) -> Self {
         let mut bonds = Vec::new();
@@ -550,8 +554,9 @@ impl<const N: usize> DynkinDiagram<N> {
                 // Bond exists if both entries are non-zero
                 if c_ij != 0 && c_ji != 0 {
                     // Multiplicity = |Cᵢⱼ × Cⱼᵢ| (exact integer arithmetic)
-                    let product = (c_ij as i32) * (c_ji as i32);
-                    let multiplicity = product.unsigned_abs() as u8;
+                    let product = i32::from(c_ij) * i32::from(c_ji);
+                    let multiplicity = u8::try_from(product.unsigned_abs())
+                        .expect("multiplicity should fit in u8");
 
                     bonds.push((i, j, multiplicity));
 
@@ -562,13 +567,7 @@ impl<const N: usize> DynkinDiagram<N> {
             }
         }
 
-        Self {
-            group_name: group_name.to_string(),
-            rank: N,
-            cartan: *cartan,
-            bonds,
-            degrees,
-        }
+        Self { group_name: group_name.to_string(), rank: N, cartan: *cartan, bonds, degrees }
     }
 
     /// Get rank (number of simple roots)
@@ -583,7 +582,7 @@ impl<const N: usize> DynkinDiagram<N> {
         &self.group_name
     }
 
-    /// Get bonds: (from_node, to_node, multiplicity)
+    /// Get bonds: (`from_node`, `to_node`, multiplicity)
     #[must_use]
     pub fn bonds(&self) -> &[(usize, usize, u8)] {
         &self.bonds
@@ -732,76 +731,72 @@ impl<const N: usize> DynkinDiagram<N> {
         // Generate ASCII based on group structure
         // This matches the certified Python implementation's diagram format
         match self.group_name.as_str() {
-            "G₂" => self.ascii_g2(),
-            "F₄" => self.ascii_f4(),
-            "E₆" => self.ascii_e6(),
-            "E₇" => self.ascii_e7(),
-            "E₈" => self.ascii_e8(),
+            "G₂" => Self::ascii_g2(),
+            "F₄" => Self::ascii_f4(),
+            "E₆" => Self::ascii_e6(),
+            "E₇" => Self::ascii_e7(),
+            "E₈" => Self::ascii_e8(),
             _ => self.ascii_generic(),
         }
     }
 
     /// Generate G₂ ASCII diagram
-    fn ascii_g2(&self) -> String {
-        format!(
-            "\nG₂ Dynkin Diagram (rank 2):\n\n  α₁ o≡≡≡o α₂\n\nTriple bond: |C₁₂ × C₂₁| = 3\n\
+    fn ascii_g2() -> String {
+        "\nG₂ Dynkin Diagram (rank 2):\n\n  α₁ o≡≡≡o α₂\n\nTriple bond: |C₁₂ × C₂₁| = 3\n\
              Short root (α₁) connected to long root (α₂)\n"
-        )
+            .to_string()
     }
 
     /// Generate F₄ ASCII diagram
-    fn ascii_f4(&self) -> String {
-        format!(
-            "\nF₄ Dynkin Diagram (rank 4):\n\n  α₁ o---o α₂ ⇒ α₃ o---o α₄\n\n\
+    fn ascii_f4() -> String {
+        "\nF₄ Dynkin Diagram (rank 4):\n\n  α₁ o---o α₂ ⇒ α₃ o---o α₄\n\n\
              Double bond (⇒): |C₂₃ × C₃₂| = 2\n\
              Arrow points from short to long roots\n"
-        )
+            .to_string()
     }
 
     /// Generate E₆ ASCII diagram
-    fn ascii_e6(&self) -> String {
-        format!(
-            "\nE₆ Dynkin Diagram (rank 6):\n\n          α₂\n          o\n          |\n  \
+    fn ascii_e6() -> String {
+        "\nE₆ Dynkin Diagram (rank 6):\n\n          α₂\n          o\n          |\n  \
              α₁ o---o α₀ ---o α₃ ---o α₄ ---o α₅\n\n\
              Branching structure: central node (α₀) has degree 3\n\
              Simply-laced: all single bonds\n"
-        )
+            .to_string()
     }
 
     /// Generate E₇ ASCII diagram
-    fn ascii_e7(&self) -> String {
-        format!(
-            "\nE₇ Dynkin Diagram (rank 7):\n\n              α₆\n              o\n              |\n  \
+    fn ascii_e7() -> String {
+        "\nE₇ Dynkin Diagram (rank 7):\n\n              α₆\n              o\n              |\n  \
              α₀ o---o α₁ ---o α₂ ---o α₃ ---o α₄ ---o α₅\n\n\
              Extended E₆ structure\n\
              Simply-laced: all single bonds\n"
-        )
+            .to_string()
     }
 
     /// Generate E₈ ASCII diagram
-    fn ascii_e8(&self) -> String {
-        format!(
-            "\nE₈ Dynkin Diagram (rank 8):\n\n                  α₇\n                  o\n                  |\n  \
+    fn ascii_e8() -> String {
+        "\nE₈ Dynkin Diagram (rank 8):\n\n                  α₇\n                  o\n                  |\n  \
              α₀ o---o α₁ ---o α₂ ---o α₃ ---o α₄ ---o α₅ ---o α₆\n\n\
              Largest exceptional group\n\
-             Simply-laced: all single bonds\n"
-        )
+             Simply-laced: all single bonds\n".to_string()
     }
 
     /// Generate generic ASCII diagram (for unknown groups)
     fn ascii_generic(&self) -> String {
+        use std::fmt::Write as _;
         let mut diagram = format!("\n{} Dynkin Diagram (rank {}):\n\n", self.group_name, N);
 
         // Simple linear representation
         diagram.push_str("  ");
         for i in 0..N {
-            diagram.push_str(&format!("α{i}"));
+            write!(diagram, "α{i}").unwrap();
             if i < N - 1 {
                 diagram.push_str(" o");
                 // Find bond to next node
-                let bond = self.bonds.iter().find(|(a, b, _)| {
-                    (*a == i && *b == i + 1) || (*a == i + 1 && *b == i)
-                });
+                let bond = self
+                    .bonds
+                    .iter()
+                    .find(|(a, b, _)| (*a == i && *b == i + 1) || (*a == i + 1 && *b == i));
                 match bond {
                     Some((_, _, 1)) => diagram.push_str("---"),
                     Some((_, _, 2)) => diagram.push_str("==>"),
@@ -817,7 +812,7 @@ impl<const N: usize> DynkinDiagram<N> {
         if !self.bonds.is_empty() {
             diagram.push_str("\nBonds:\n");
             for (i, j, mult) in &self.bonds {
-                diagram.push_str(&format!("  α{i} ↔ α{j} (multiplicity {})\n", mult));
+                writeln!(diagram, "  α{i} ↔ α{j} (multiplicity {mult})").unwrap();
             }
         }
 
@@ -1085,22 +1080,23 @@ mod tests {
 
         // G₂: C[0,1] = -3, C[1,0] = -1 → |-3 × -1| = 3
         let g2 = CartanMatrix::g2();
-        let dynkin_g2 = g2.to_dynkin_diagram("G₂");
-        assert_eq!(dynkin_g2.bonds()[0].2, 3);
+        let g2_diagram = g2.to_dynkin_diagram("G₂");
+        assert_eq!(g2_diagram.bonds()[0].2, 3);
 
         // F₄: C[1,2] = -2, C[2,1] = -1 → |-2 × -1| = 2
         let f4 = CartanMatrix::f4();
-        let dynkin_f4 = f4.to_dynkin_diagram("F₄");
-        let double = dynkin_f4.bonds().iter().find(|(_, _, m)| *m == 2).unwrap();
+        let f4_diagram = f4.to_dynkin_diagram("F₄");
+        let double = f4_diagram.bonds().iter().find(|(_, _, m)| *m == 2).unwrap();
         assert_eq!(double.2, 2);
 
         // E₆: all C[i,j] × C[j,i] = -1 × -1 = 1 (simply-laced)
         let e6 = CartanMatrix::e6();
-        let dynkin_e6 = e6.to_dynkin_diagram("E₆");
-        for &(i, j, mult) in dynkin_e6.bonds() {
+        let e6_diagram = e6.to_dynkin_diagram("E₆");
+        for &(i, j, mult) in e6_diagram.bonds() {
             let c_ij = e6.get(i, j);
             let c_ji = e6.get(j, i);
-            let expected = ((c_ij as i32) * (c_ji as i32)).unsigned_abs() as u8;
+            let expected = u8::try_from((i32::from(c_ij) * i32::from(c_ji)).unsigned_abs())
+                .expect("multiplicity should fit in u8");
             assert_eq!(mult, expected, "Bond ({i},{j}) multiplicity");
         }
     }

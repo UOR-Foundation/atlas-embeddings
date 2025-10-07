@@ -307,9 +307,8 @@ impl Vector8 {
     /// Scalar multiplication by integer
     #[must_use]
     pub fn scale(&self, scalar: i64) -> Self {
-        let result: [HalfInteger; 8] = std::array::from_fn(|i| {
-            HalfInteger::new(self.coords[i].numerator() * scalar)
-        });
+        let result: [HalfInteger; 8] =
+            std::array::from_fn(|i| HalfInteger::new(self.coords[i].numerator() * scalar));
         Self::new(result)
     }
 

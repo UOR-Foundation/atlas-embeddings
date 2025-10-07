@@ -3,7 +3,9 @@
 //! Verifies that each exceptional group emerges from the Atlas
 //! through its corresponding categorical operation.
 
-use atlas_embeddings::{Atlas, categorical::CategoricalOperation};
+#![allow(clippy::large_stack_arrays)]
+
+use atlas_embeddings::{categorical::CategoricalOperation, Atlas};
 
 #[test]
 fn test_product_operation_g2_complete() {
@@ -75,7 +77,7 @@ fn test_filtration_operation_e6_complete() {
 
     // Verify degree partition (64 + 8 = 72)
     assert!(result.details.contains("64"));
-    assert!(result.details.contains("8"));
+    assert!(result.details.contains('8'));
     assert!(result.details.contains("72"));
 }
 
@@ -142,11 +144,7 @@ fn test_all_operations_consistent() {
 
     for op in operations {
         let result = op.verify(&atlas);
-        assert!(
-            result.verified,
-            "{} operation failed verification",
-            op.name()
-        );
+        assert!(result.verified, "{} operation failed verification", op.name());
         assert_eq!(
             result.expected_roots,
             op.expected_roots(),
@@ -157,14 +155,15 @@ fn test_all_operations_consistent() {
 }
 
 #[test]
+#[allow(clippy::large_stack_arrays)]
 fn test_categorical_hierarchy() {
     // Verify the exceptional group hierarchy via root counts
-    let ops = vec![
-        (CategoricalOperation::product(), 12),      // G₂
-        (CategoricalOperation::quotient(), 48),     // F₄
-        (CategoricalOperation::filtration(), 72),   // E₆
+    let ops = [
+        (CategoricalOperation::product(), 12),       // G₂
+        (CategoricalOperation::quotient(), 48),      // F₄
+        (CategoricalOperation::filtration(), 72),    // E₆
         (CategoricalOperation::augmentation(), 126), // E₇
-        (CategoricalOperation::morphism(), 240),    // E₈
+        (CategoricalOperation::morphism(), 240),     // E₈
     ];
 
     // Root counts should be in increasing order
@@ -184,6 +183,7 @@ fn test_categorical_hierarchy() {
 }
 
 #[test]
+#[allow(clippy::large_stack_arrays)]
 fn test_operation_result_details() {
     let atlas = Atlas::new();
 
@@ -200,16 +200,12 @@ fn test_operation_result_details() {
         let result = op.verify(&atlas);
 
         // Details should be non-empty
-        assert!(
-            !result.details.is_empty(),
-            "{} operation should provide details",
-            op.name()
-        );
+        assert!(!result.details.is_empty(), "{} operation should provide details", op.name());
 
         // Details should mention the group
         assert!(
-            result.details.contains(&result.group_name) ||
-            result.details.contains(&result.expected_roots.to_string()),
+            result.details.contains(&result.group_name)
+                || result.details.contains(&result.expected_roots.to_string()),
             "{} details should mention group or root count",
             op.name()
         );
@@ -233,7 +229,7 @@ fn test_categorical_operations_deterministic() {
 #[test]
 fn test_operation_types_unique() {
     // Each operation produces a different group
-    let ops = vec![
+    let ops = [
         CategoricalOperation::product(),
         CategoricalOperation::quotient(),
         CategoricalOperation::filtration(),
@@ -241,16 +237,12 @@ fn test_operation_types_unique() {
         CategoricalOperation::morphism(),
     ];
 
-    let mut groups: Vec<&str> = ops.iter().map(|op| op.target_group()).collect();
+    let mut groups: Vec<&str> = ops.iter().map(CategoricalOperation::target_group).collect();
     groups.sort_unstable();
 
     // Check all groups are unique
     for i in 0..groups.len() - 1 {
-        assert_ne!(
-            groups[i],
-            groups[i + 1],
-            "Groups should be unique"
-        );
+        assert_ne!(groups[i], groups[i + 1], "Groups should be unique");
     }
 
     // Should have all 5 exceptional groups

@@ -3,13 +3,13 @@
 [![CI](https://github.com/UOR-Foundation/atlas-embeddings/workflows/CI/badge.svg)](https://github.com/UOR-Foundation/atlas-embeddings/actions)
 [![Documentation](https://docs.rs/atlas-embeddings/badge.svg)](https://docs.rs/atlas-embeddings)
 [![Crates.io](https://img.shields.io/crates/v/atlas-embeddings.svg)](https://crates.io/crates/atlas-embeddings)
-[![License: MIT OR Apache-2.0](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg)](https://github.com/UOR-Foundation/atlas-embeddings#license)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/UOR-Foundation/atlas-embeddings#license)
 
 > First-principles construction of exceptional Lie groups from the Atlas of Resonance Classes
 
 ## Overview
 
-This crate provides a **mathematically rigorous, peer-reviewed implementation** of the Atlas of Resonance Classes and its embedding into E₈, demonstrating the emergence of all five exceptional Lie groups (G₂, F₄, E₆, E₇, E₈) through categorical operations.
+This crate provides a **mathematically rigorous implementation** of the Atlas of Resonance Classes and its embedding into E₈, demonstrating the emergence of all five exceptional Lie groups (G₂, F₄, E₆, E₇, E₈) through categorical operations.
 
 ### Key Features
 
@@ -211,16 +211,11 @@ This crate is designed for **rigorous peer review**:
 
 ## License
 
-Licensed under either of:
-
-- Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE) or http://www.apache.org/licenses/LICENSE-2.0)
-- MIT License ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
-
-at your option.
+This project is licensed under the [MIT License](LICENSE-MIT).
 
 ### Contribution
 
-Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in the work by you, as defined in the Apache-2.0 license, shall be dual licensed as above, without any additional terms or conditions.
+Contributions are welcome! Please ensure all contributions are compatible with the MIT License.
 
 ## About UOR Foundation
 

@@ -3,6 +3,8 @@
 //! Verifies that the Atlas of Resonance Classes is constructed correctly
 //! from first principles with exact arithmetic.
 
+#![allow(clippy::large_stack_arrays)]
+
 use atlas_embeddings::Atlas;
 
 #[test]
@@ -46,7 +48,8 @@ fn test_atlas_mirror_symmetry() {
     let atlas = Atlas::new();
 
     // Every vertex has a unique mirror pair
-    let mut seen = vec![false; 96];
+    #[allow(clippy::large_stack_arrays)]
+    let mut seen = [false; 96];
 
     for v in 0..96 {
         if seen[v] {
@@ -71,6 +74,7 @@ fn test_atlas_mirror_symmetry() {
 }
 
 #[test]
+#[allow(clippy::large_stack_arrays)]
 fn test_atlas_adjacency_symmetric() {
     let atlas = Atlas::new();
 
@@ -79,10 +83,7 @@ fn test_atlas_adjacency_symmetric() {
         let neighbors = atlas.neighbors(u);
         for &v in neighbors {
             let v_neighbors = atlas.neighbors(v);
-            assert!(
-                v_neighbors.contains(&u),
-                "Adjacency not symmetric: {u}~{v} but not {v}~{u}"
-            );
+            assert!(v_neighbors.contains(&u), "Adjacency not symmetric: {u}~{v} but not {v}~{u}");
         }
     }
 }
@@ -98,10 +99,7 @@ fn test_atlas_unity_positions() {
     assert_eq!(unity.len(), 2, "Atlas must have 2 unity positions");
 
     // Unity positions must be mirror pairs
-    assert!(
-        atlas.is_mirror_pair(unity[0], unity[1]),
-        "Unity positions must be mirror pairs"
-    );
+    assert!(atlas.is_mirror_pair(unity[0], unity[1]), "Unity positions must be mirror pairs");
 
     // Both must be valid vertices
     assert!(unity[0] < 96, "Unity position must be valid vertex");
@@ -134,10 +132,7 @@ fn test_atlas_no_self_loops() {
     // No vertex is adjacent to itself
     for v in 0..96 {
         let neighbors = atlas.neighbors(v);
-        assert!(
-            !neighbors.contains(&v),
-            "Vertex {v} should not be adjacent to itself"
-        );
+        assert!(!neighbors.contains(&v), "Vertex {v} should not be adjacent to itself");
     }
 }
 
@@ -151,11 +146,7 @@ fn test_atlas_twelve_fold_divisibility() {
 
     // Boundary: 12,288 = 12 × 1,024
     let boundary_cells = 12_288;
-    assert_eq!(
-        boundary_cells % 12,
-        0,
-        "Boundary cells must be divisible by 12"
-    );
+    assert_eq!(boundary_cells % 12, 0, "Boundary cells must be divisible by 12");
 }
 
 #[test]
@@ -163,7 +154,8 @@ fn test_atlas_sign_class_structure() {
     let atlas = Atlas::new();
 
     // Sign classes (mirror pairs) count
-    let mut seen = vec![false; 96];
+    #[allow(clippy::large_stack_arrays)]
+    let mut seen = [false; 96];
     let mut sign_classes = 0;
 
     for v in 0..96 {
@@ -218,16 +210,10 @@ fn test_atlas_e6_degree_partition() {
     }
 
     // Can select 64 degree-5 vertices (enough for E₆)
-    assert!(
-        deg5_vertices.len() >= 64,
-        "Need at least 64 degree-5 vertices for E₆"
-    );
+    assert!(deg5_vertices.len() >= 64, "Need at least 64 degree-5 vertices for E₆");
 
     // Can select 8 degree-6 vertices (enough for E₆)
-    assert!(
-        deg6_vertices.len() >= 8,
-        "Need at least 8 degree-6 vertices for E₆"
-    );
+    assert!(deg6_vertices.len() >= 8, "Need at least 8 degree-6 vertices for E₆");
 
     // E₆ total: 64 + 8 = 72
     let e6_total = 64 + 8;

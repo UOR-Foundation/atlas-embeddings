@@ -335,7 +335,7 @@ impl E6 {
     /// assert_eq!(simple_roots.len(), 6, "E₆ has 6 simple roots");
     /// ```
     #[must_use]
-    #[allow(clippy::missing_const_for_fn)]  // Vec allocation can't be const
+    #[allow(clippy::missing_const_for_fn)] // Vec allocation can't be const
     pub fn simple_roots(&self) -> Vec<usize> {
         use crate::e8::E8RootSystem;
         use crate::embedding::AtlasE8Embedding;
@@ -554,10 +554,8 @@ fn find_extremal_roots(root_coords: &[(usize, Vec<crate::arithmetic::Rational>)]
 
     // For each coordinate dimension (0..8)
     for coord_idx in 0..8 {
-        let mut values: Vec<(usize, &crate::arithmetic::Rational)> = root_coords
-            .iter()
-            .map(|(v, coords)| (*v, &coords[coord_idx]))
-            .collect();
+        let mut values: Vec<(usize, &crate::arithmetic::Rational)> =
+            root_coords.iter().map(|(v, coords)| (*v, &coords[coord_idx])).collect();
 
         // Sort by coordinate value
         values.sort_by(|a, b| a.1.cmp(b.1));
@@ -590,14 +588,12 @@ fn select_simple_roots_e6(
     extremal: &[usize],
     root_coords: &[(usize, Vec<crate::arithmetic::Rational>)],
 ) -> Option<Vec<usize>> {
-    use std::collections::HashMap;
     use crate::arithmetic::Rational;
+    use std::collections::HashMap;
 
     // Build coordinate map for fast lookup
-    let coord_map: HashMap<usize, &Vec<Rational>> = root_coords
-        .iter()
-        .map(|(v, coords)| (*v, coords))
-        .collect();
+    let coord_map: HashMap<usize, &Vec<Rational>> =
+        root_coords.iter().map(|(v, coords)| (*v, coords)).collect();
 
     // Start with first extremal root
     let mut simple_roots = vec![extremal[0]];
@@ -646,7 +642,10 @@ fn select_simple_roots_e6(
 }
 
 /// Compute inner product of two vectors (exact rational arithmetic)
-fn inner_product(v1: &[crate::arithmetic::Rational], v2: &[crate::arithmetic::Rational]) -> crate::arithmetic::Rational {
+fn inner_product(
+    v1: &[crate::arithmetic::Rational],
+    v2: &[crate::arithmetic::Rational],
+) -> crate::arithmetic::Rational {
     v1.iter().zip(v2.iter()).map(|(a, b)| *a * *b).sum()
 }
 

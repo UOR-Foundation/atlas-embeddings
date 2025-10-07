@@ -250,7 +250,7 @@ impl CategoricalOperation {
     }
 
     /// Verify Filtration operation: degree partition → E₆
-    #[allow(clippy::large_stack_arrays)]  // format! macro temporary allocations
+    #[allow(clippy::large_stack_arrays)] // format! macro temporary allocations
     fn verify_filtration(atlas: &Atlas) -> OperationResult {
         // E₆ arises from degree partition: 64 degree-5 + 8 degree-6 = 72
 
@@ -303,7 +303,7 @@ impl CategoricalOperation {
     }
 
     /// Verify Morphism operation: direct embedding → E₈
-    #[allow(clippy::large_stack_arrays)]  // format! macro temporary allocations
+    #[allow(clippy::large_stack_arrays)] // format! macro temporary allocations
     fn verify_morphism(atlas: &Atlas) -> OperationResult {
         // E₈ arises from direct morphism (tier_a_embedding)
         // 96 Atlas vertices → 96 of 240 E₈ roots

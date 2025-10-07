@@ -109,10 +109,11 @@ fn test_e6_weyl_divisibility() {
 }
 
 #[test]
+#[allow(clippy::cognitive_complexity)]
 fn test_e6_simple_roots_extraction() {
+    use atlas_embeddings::arithmetic::Rational;
     use atlas_embeddings::e8::E8RootSystem;
     use atlas_embeddings::embedding::AtlasE8Embedding;
-    use atlas_embeddings::arithmetic::Rational;
 
     let atlas = Atlas::new();
     let e6 = E6::from_atlas(&atlas);
@@ -152,6 +153,7 @@ fn test_e6_simple_roots_extraction() {
     }
 
     // Verify Cartan matrix properties
+    #[allow(clippy::needless_range_loop)]
     for i in 0..6 {
         assert_eq!(cartan[i][i], 2, "Diagonal must be 2");
         for j in 0..6 {

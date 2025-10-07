@@ -230,7 +230,7 @@ impl Atlas {
     /// Canonicalization: -1→0, 0→+1, +1→0
     fn flip_d45_by_e4(d: i8) -> i8 {
         match d {
-            -1 | 1 => 0,  // Both -1 and 1 map to 0
+            -1 | 1 => 0, // Both -1 and 1 map to 0
             0 => 1,
             _ => panic!("d45 must be in {{-1, 0, 1}}"),
         }
@@ -241,7 +241,7 @@ impl Atlas {
     /// Canonicalization: -1→0, 0→-1, +1→0
     fn flip_d45_by_e5(d: i8) -> i8 {
         match d {
-            -1 | 1 => 0,  // Both -1 and 1 map to 0
+            -1 | 1 => 0, // Both -1 and 1 map to 0
             0 => -1,
             _ => panic!("d45 must be in {{-1, 0, 1}}"),
         }

@@ -33,7 +33,7 @@ impl<const N: usize> RationalVector<N> {
 
     /// Get coordinate at index
     #[must_use]
-    pub fn get(&self, i: usize) -> Rational {
+    pub const fn get(&self, i: usize) -> Rational {
         self.coords[i]
     }
 
@@ -63,8 +63,8 @@ impl<const N: usize> RationalVector<N> {
     #[must_use]
     pub fn sub(&self, other: &Self) -> Self {
         let mut result = [Rational::zero(); N];
-        for i in 0..N {
-            result[i] = self.coords[i] - other.coords[i];
+        for (i, item) in result.iter_mut().enumerate().take(N) {
+            *item = self.coords[i] - other.coords[i];
         }
         Self { coords: result }
     }
@@ -73,8 +73,8 @@ impl<const N: usize> RationalVector<N> {
     #[must_use]
     pub fn scale(&self, scalar: Rational) -> Self {
         let mut result = [Rational::zero(); N];
-        for i in 0..N {
-            result[i] = self.coords[i] * scalar;
+        for (i, item) in result.iter_mut().enumerate().take(N) {
+            *item = self.coords[i] * scalar;
         }
         Self { coords: result }
     }
@@ -94,7 +94,7 @@ impl<const N: usize> Hash for RationalVector<N> {
 /// Used to represent Weyl group elements as matrices. All operations
 /// use exact rational arithmetic (no floating point).
 ///
-/// From certified Python implementation: ExactMatrix class
+/// From certified Python implementation: `ExactMatrix` class
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RationalMatrix<const N: usize> {
     /// Matrix data: N×N array of rational numbers
@@ -122,20 +122,20 @@ impl<const N: usize> RationalMatrix<N> {
     #[must_use]
     pub fn identity() -> Self {
         let mut data = [[Rational::zero(); N]; N];
-        for i in 0..N {
-            data[i][i] = Rational::one();
+        for (i, row) in data.iter_mut().enumerate().take(N) {
+            row[i] = Rational::one();
         }
         Self { data }
     }
 
     /// Create reflection matrix from root vector
     ///
-    /// Implements: R_α = I - 2(α ⊗ α)/⟨α,α⟩
+    /// Implements: `R_α = I - 2(α ⊗ α)/⟨α,α⟩`
     ///
     /// This is the matrix representation of the reflection through the
     /// hyperplane perpendicular to α. Uses exact rational arithmetic.
     ///
-    /// From certified Python implementation: simple_reflection() method
+    /// From certified Python implementation: `simple_reflection()` method
     ///
     /// # Panics
     ///
@@ -148,16 +148,21 @@ impl<const N: usize> RationalMatrix<N> {
         let mut data = [[Rational::zero(); N]; N];
 
         // Compute I - 2(α ⊗ α)/⟨α,α⟩
-        for i in 0..N {
+        for (i, row) in data.iter_mut().enumerate().take(N) {
+            #[allow(clippy::needless_range_loop)]
             for j in 0..N {
                 // Identity matrix entry
-                let delta = if i == j { Rational::one() } else { Rational::zero() };
+                let delta = if i == j {
+                    Rational::one()
+                } else {
+                    Rational::zero()
+                };
 
                 // Outer product entry: α_i * α_j
                 let outer_product = root.get(i) * root.get(j);
 
                 // Matrix entry: δ_ij - 2 * α_i * α_j / ⟨α,α⟩
-                data[i][j] = delta - Rational::new(2, 1) * outer_product / root_norm_sq;
+                row[j] = delta - Rational::new(2, 1) * outer_product / root_norm_sq;
             }
         }
 
@@ -166,7 +171,7 @@ impl<const N: usize> RationalMatrix<N> {
 
     /// Get entry at (i, j)
     #[must_use]
-    pub fn get(&self, i: usize, j: usize) -> Rational {
+    pub const fn get(&self, i: usize, j: usize) -> Rational {
         self.data[i][j]
     }
 
@@ -190,13 +195,14 @@ impl<const N: usize> RationalMatrix<N> {
     pub fn multiply(&self, other: &Self) -> Self {
         let mut result = [[Rational::zero(); N]; N];
 
-        for i in 0..N {
+        for (i, row) in result.iter_mut().enumerate().take(N) {
+            #[allow(clippy::needless_range_loop)]
             for j in 0..N {
                 let mut sum = Rational::zero();
                 for k in 0..N {
                     sum += self.data[i][k] * other.data[k][j];
                 }
-                result[i][j] = sum;
+                row[j] = sum;
             }
         }
 
@@ -218,7 +224,11 @@ impl<const N: usize> RationalMatrix<N> {
     pub fn is_identity(&self) -> bool {
         for i in 0..N {
             for j in 0..N {
-                let expected = if i == j { Rational::one() } else { Rational::zero() };
+                let expected = if i == j {
+                    Rational::one()
+                } else {
+                    Rational::zero()
+                };
                 if self.data[i][j] != expected {
                     return false;
                 }

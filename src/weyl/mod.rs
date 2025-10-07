@@ -210,7 +210,7 @@ impl<const N: usize> WeylGroup<N> {
     /// simple reflections at each step. All operations use exact rational
     /// arithmetic - no floating point.
     ///
-    /// From certified Python implementation: generate_weyl_group() method
+    /// From certified Python implementation: `generate_weyl_group()` method
     ///
     /// # Parameters
     ///
@@ -233,18 +233,20 @@ impl<const N: usize> WeylGroup<N> {
     ///
     /// The number of simple roots may be less than N (e.g., G₂ has 2 simple roots
     /// in 3D space). The matrices will be N×N regardless.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `simple_roots` is empty.
     pub fn generate_elements(
         &self,
         simple_roots: &[RationalVector<N>],
         max_length: usize,
     ) -> HashSet<RationalMatrix<N>> {
-        assert!(
-            !simple_roots.is_empty(),
-            "Must provide at least one simple root"
-        );
+        assert!(!simple_roots.is_empty(), "Must provide at least one simple root");
 
         // Generate reflection matrices for simple roots
-        let reflections: Vec<RationalMatrix<N>> = simple_roots.iter().map(RationalMatrix::reflection).collect();
+        let reflections: Vec<RationalMatrix<N>> =
+            simple_roots.iter().map(RationalMatrix::reflection).collect();
 
         // Start with identity
         let identity = RationalMatrix::identity();
@@ -315,7 +317,7 @@ impl WeylGroup<2> {
     /// - α₁ = [1, -1, 0] (short root)
     /// - α₂ = [-2, 1, 1] (long root)
     ///
-    /// From certified Python implementation: generate_simple_roots()
+    /// From certified Python implementation: `generate_simple_roots()`
     #[must_use]
     pub fn simple_roots_3d() -> Vec<RationalVector<3>> {
         use num_rational::Ratio;
@@ -346,7 +348,7 @@ impl WeylGroup<4> {
     /// - α₃ = [0, 0, 0, 1]
     /// - α₄ = [1/2, -1/2, -1/2, -1/2]
     ///
-    /// From certified Python implementation: generate_simple_roots()
+    /// From certified Python implementation: `generate_simple_roots()`
     #[must_use]
     pub fn simple_roots_4d() -> Vec<RationalVector<4>> {
         use num_rational::Ratio;
@@ -617,7 +619,7 @@ mod tests {
     }
 
     #[test]
-    #[ignore] // This test is slow (F₄ has 1,152 elements) - run with --ignored
+    #[ignore = "This test is slow (F₄ has 1,152 elements) - run with --ignored"]
     fn test_f4_weyl_generation() {
         use crate::arithmetic::RationalMatrix;
 
@@ -634,11 +636,7 @@ mod tests {
         println!("Generated {} elements in {:.2?}", elements.len(), duration);
 
         // F₄ Weyl group has order 1,152
-        assert_eq!(
-            elements.len(),
-            1152,
-            "F₄ Weyl group must have 1,152 elements"
-        );
+        assert_eq!(elements.len(), 1152, "F₄ Weyl group must have 1,152 elements");
 
         // Check identity is present
         let identity = RationalMatrix::<4>::identity();
@@ -663,7 +661,7 @@ mod tests {
         assert_eq!(a, b);
 
         let c = RationalMatrix::new([
-            [Rational::new(1, 1), Rational::new(1, 1000000)],
+            [Rational::new(1, 1), Rational::new(1, 1_000_000)],
             [Rational::new(0, 1), Rational::new(1, 1)],
         ]);
 
