@@ -375,9 +375,9 @@
 //!
 //! ---
 //!
-//! # Chapter 9: The Main Theorem (Atlas Initiality)
+//! ## Chapter 9: The Main Theorem (Atlas Initiality)
 //!
-//! ## 9.1 The Category `ResGraph`
+//! ### 9.1 The Category `ResGraph`
 //!
 //! **Definition 9.1.1 (Resonance Graph)**: A **resonance graph** is a graph G equipped with:
 //! 1. A labeling function `λ: V(G) → E₈` mapping vertices to E₈ roots
@@ -397,7 +397,7 @@
 //! - F₄ root system (48 roots)
 //! - E₆, E₇, E₈ root systems
 //!
-//! ## 9.2 The Initiality Theorem
+//! ### 9.2 The Initiality Theorem
 //!
 //! **Theorem 9.2.1 (Atlas is Initial)**: The Atlas of Resonance Classes is an
 //! **initial object** in the category **`ResGraph`**. That is, for every resonance
@@ -418,7 +418,7 @@
 //! from the Atlas. Since the Atlas structure admits exactly these five morphisms,
 //! **these are the only exceptional groups**.
 //!
-//! ## 9.3 Proof Strategy
+//! ### 9.3 Proof Strategy
 //!
 //! The proof of Theorem 9.2.1 proceeds by verifying the universal property:
 //!
@@ -444,7 +444,7 @@
 //! 2. Verifying composition of morphisms respects initiality
 //! 3. Confirming the identity morphism Atlas → Atlas is the only endomorphism
 //!
-//! ## 9.4 Uniqueness and Universal Morphisms
+//! ### 9.4 Uniqueness and Universal Morphisms
 //!
 //! **Theorem 9.4.1 (Morphism Uniqueness)**: For each exceptional group G,
 //! the morphism φ: Atlas → G is unique up to automorphisms of G.
@@ -463,7 +463,7 @@
 //! **Proof**: The inclusion chain G₂ ⊂ F₄ ⊂ E₆ ⊂ E₇ ⊂ E₈ means each morphism
 //! from Atlas extends the previous one. Verified in `tests/inclusion_chain.rs`.
 //!
-//! ## 9.5 Implications for Exceptional Groups
+//! ### 9.5 Implications for Exceptional Groups
 //!
 //! The initiality of the Atlas has profound consequences:
 //!
@@ -493,7 +493,7 @@
 //! - E₈ emerges as the maximal symmetry preserving Atlas structure
 //! - Smaller exceptional groups are symmetry-breaking phases
 //!
-//! ## 9.6 Computational Verification of Initiality
+//! ### 9.6 Computational Verification of Initiality
 //!
 //! The initiality property is verified computationally:
 //!
@@ -531,9 +531,9 @@
 //!
 //! ---
 //!
-//! # Conclusion & Perspectives
+//! ## Conclusion & Perspectives
 //!
-//! ## Summary of Main Results
+//! ### Summary of Main Results
 //!
 //! This work establishes the following:
 //!
@@ -566,7 +566,7 @@
 //! These are the **only** exceptional Lie groups. The Atlas initiality implies
 //! no sixth exceptional group exists—the five morphisms exhaust all possibilities.
 //!
-//! ## Implications
+//! ### Implications
 //!
 //! ### For Mathematics
 //!
@@ -611,7 +611,7 @@
 //! **Tests as Proofs**: The 210+ tests exhaustively verify all claims. Unlike
 //! traditional mathematical proofs, these can be run, debugged, and extended.
 //!
-//! ## Open Questions
+//! ### Open Questions
 //!
 //! ### Mathematical Questions
 //!
@@ -649,7 +649,7 @@
 //! 3. **Algorithms**: Are there efficient algorithms for working with Atlas-based
 //!    representations of exceptional groups? Applications to symbolic computation?
 //!
-//! ## Future Directions
+//! ### Future Directions
 //!
 //! ### Short Term
 //!
@@ -665,7 +665,7 @@
 //! - Apply to other areas: algebraic topology, number theory, cryptography
 //! - Explore connections to categorical homotopy theory and higher category theory
 //!
-//! ## Acknowledgments
+//! ### Acknowledgments
 //!
 //! This work was conducted by the UOR Foundation as part of research into
 //! universal object reference systems and foundational mathematics. The discovery
@@ -676,7 +676,7 @@
 //! exceptional Lie groups (1888-1894), and the extensive modern literature on
 //! E₈ and its applications in mathematics and physics.
 //!
-//! ## Final Remarks
+//! ### Final Remarks
 //!
 //! The Atlas of Resonance Classes demonstrates that profound mathematical
 //! structures can **emerge** from simple principles rather than being constructed
@@ -692,7 +692,7 @@
 //!
 //! ---
 //!
-//! ## Standards and Verification
+//! ### Standards and Verification
 //!
 //! This crate is designed for **peer review** with:
 //!
@@ -709,20 +709,20 @@
 //! make verify  # format-check + clippy + tests + docs
 //! ```
 //!
-//! ## References
+//! ### References
 //!
 //! 1. Conway, J. H., & Sloane, N. J. A. (1988). *Sphere Packings, Lattices and Groups*
 //! 2. Baez, J. C. (2002). *The Octonions*
 //! 3. Wilson, R. A. (2009). *The Finite Simple Groups*
 //! 4. Carter, R. W. (2005). *Lie Algebras of Finite and Affine Type*
 //!
-//! ## About UOR Foundation
+//! ### About UOR Foundation
 //!
 //! This work is published by the [UOR Foundation](https://uor.foundation), dedicated to
 //! advancing universal object reference systems and foundational research in mathematics,
 //! physics, and computation.
 //!
-//! ## Citation
+//! ### Citation
 //!
 //! If you use this crate in academic work, please cite it using the DOI:
 //!
@@ -736,19 +736,19 @@
 //! }
 //! ```
 //!
-//! ## Contact
+//! ### Contact
 //!
 //! - Homepage: <https://uor.foundation>
 //! - Issues: <https://github.com/UOR-Foundation/atlas-embeddings/issues>
 //! - Discussions: <https://github.com/UOR-Foundation/atlas-embeddings/discussions>
 //!
-//! ## License
+//! ### License
 //!
 //! This project is licensed under the [MIT License](https://github.com/UOR-Foundation/atlas-embeddings/blob/main/LICENSE-MIT).
 //!
 //! ---
 //!
-//! ## Module Organization
+//! ### Module Organization
 //!
 //! - [`atlas`] - Atlas graph construction from action functional
 //! - [`arithmetic`] - Exact rational arithmetic (no floats!)
