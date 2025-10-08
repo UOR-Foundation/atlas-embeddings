@@ -619,7 +619,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "This test is slow (F₄ has 1,152 elements) - run with --ignored"]
     fn test_f4_weyl_generation() {
         use crate::arithmetic::RationalMatrix;
 

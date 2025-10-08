@@ -136,6 +136,32 @@ Strictest settings (`.clippy.toml`):
 - `proptest`, `quickcheck` - Property-based testing
 - `pretty_assertions`, `test-case` - Test utilities
 
+## Work Guidelines (CRITICAL)
+
+### DO NOT Create Intermediate Artifacts
+
+**NEVER** create the following types of files:
+- Status reports (e.g., `IMPLEMENTATION_STATUS.md`)
+- Fix plans (e.g., `FOUNDATIONS_DOC_FIX.md`)
+- Verification summaries
+- Progress tracking documents
+- TODO lists in separate files
+
+**INSTEAD**:
+- Fix issues directly in the actual source files
+- Use the TodoWrite tool for tracking (not files)
+- Verify by running actual commands (`cargo test`, `cargo doc`)
+- Report results directly to the user
+
+### When Errors Occur
+
+1. **Identify the root cause** from compiler output
+2. **Fix the actual source files** immediately
+3. **Verify the fix** by running the appropriate command
+4. **Report concisely** what was wrong and what was fixed
+
+Do NOT create analysis documents or fix plans - just fix it.
+
 ## Common Development Tasks
 
 ### Adding a New Exceptional Group Construction

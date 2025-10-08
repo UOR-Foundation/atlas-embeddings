@@ -23,3 +23,10 @@ coverage/
 
 # Benchmark results
 criterion/
+
+# Temporary files and directories
+temp/
+
+# Compiled binaries (development artifacts)
+check_e7
+check_*
