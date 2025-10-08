@@ -12,7 +12,7 @@
 //! into the E₈ root system and serves as the **initial object** from which all five
 //! exceptional Lie groups (G₂, F₄, E₆, E₇, E₈) emerge through categorical operations.
 //!
-//! **Main Result**: The Atlas is initial in the category **ResGraph** of resonance
+//! **Main Result**: The Atlas is initial in the category **`ResGraph`** of resonance
 //! graphs, meaning every exceptional Lie group structure is uniquely determined by
 //! a morphism from the Atlas. This provides a first-principles construction of
 //! exceptional groups without appealing to classification theory.
@@ -82,7 +82,7 @@
 //! ### Part V: Main Theorem
 //!
 //! - **[Chapter 9: Atlas Initiality](#chapter-9-the-main-theorem-atlas-initiality)** - Universal property proof
-//!   - §9.1: The Category ResGraph
+//!   - §9.1: The Category `ResGraph`
 //!   - §9.2: The Initiality Theorem
 //!   - §9.3: Proof Strategy
 //!   - §9.4: Uniqueness and Universal Morphisms
@@ -120,7 +120,7 @@
 //! **Key theorems**:
 //! - Theorem 3.1.1: Atlas → E₈ embedding exists and is unique
 //! - Theorem 4-8.1: Inclusion chain G₂ ⊂ F₄ ⊂ E₆ ⊂ E₇ ⊂ E₈
-//! - Atlas initiality in category ResGraph (forthcoming Chapter 9)
+//! - Atlas initiality in category `ResGraph` (forthcoming Chapter 9)
 //!
 //! ### For Physicists
 //!
@@ -387,21 +387,21 @@
 //!
 //! # Chapter 9: The Main Theorem (Atlas Initiality)
 //!
-//! ## 9.1 The Category ResGraph
+//! ## 9.1 The Category `ResGraph`
 //!
 //! **Definition 9.1.1 (Resonance Graph)**: A **resonance graph** is a graph G equipped with:
 //! 1. A labeling function `λ: V(G) → E₈` mapping vertices to E₈ roots
 //! 2. An adjacency relation preserving E₈ inner products
 //! 3. A distinguished set of "unity positions" with special properties
 //!
-//! **Definition 9.1.2 (Category ResGraph)**: The category **ResGraph** has:
+//! **Definition 9.1.2 (Category `ResGraph`)**: The category **`ResGraph`** has:
 //! - **Objects**: Resonance graphs (G, λ)
 //! - **Morphisms**: Graph homomorphisms φ: G → H preserving:
-//!   - Vertex labels: λ_H(φ(v)) corresponds to λ_G(v)
+//!   - Vertex labels: `λ_H(φ(v))` corresponds to `λ_G(v)`
 //!   - Adjacency: v ~ w in G ⟹ φ(v) ~ φ(w) in H
 //!   - Unity structure: φ maps unity positions to unity positions
 //!
-//! **Examples of Objects in ResGraph**:
+//! **Examples of Objects in `ResGraph`**:
 //! - Atlas (96 vertices, 48 sign classes)
 //! - G₂ root system (12 roots)
 //! - F₄ root system (48 roots)
@@ -410,8 +410,8 @@
 //! ## 9.2 The Initiality Theorem
 //!
 //! **Theorem 9.2.1 (Atlas is Initial)**: The Atlas of Resonance Classes is an
-//! **initial object** in the category **ResGraph**. That is, for every resonance
-//! graph G, there exists a **unique** morphism φ: Atlas → G.
+//! **initial object** in the category **`ResGraph`**. That is, for every resonance
+//! graph `G`, there exists a **unique** morphism `φ: Atlas → G`.
 //!
 //! **Corollary 9.2.2 (Universal Property)**: Every exceptional Lie group root
 //! system is uniquely determined by its morphism from the Atlas. The five
@@ -424,7 +424,7 @@
 //! - φ_E₈: Atlas → E₈ (via embedding)
 //!
 //! **Corollary 9.2.3 (No Other Exceptional Groups)**: If an exceptional Lie group
-//! existed outside {G₂, F₄, E₆, E₇, E₈}, it would correspond to a sixth morphism
+//! existed outside `{G₂, F₄, E₆, E₇, E₈}`, it would correspond to a sixth morphism
 //! from the Atlas. Since the Atlas structure admits exactly these five morphisms,
 //! **these are the only exceptional groups**.
 //!
@@ -450,7 +450,7 @@
 //! **Step 3: Initiality Verification**
 //!
 //! We verify the Atlas is initial by:
-//! 1. Showing every object in ResGraph receives a unique morphism from Atlas
+//! 1. Showing every object in `ResGraph` receives a unique morphism from Atlas
 //! 2. Verifying composition of morphisms respects initiality
 //! 3. Confirming the identity morphism Atlas → Atlas is the only endomorphism
 //!
@@ -559,7 +559,7 @@
 //! This embedding was previously unknown in the mathematical literature.
 //!
 //! ### Theorem C (Atlas Initiality)
-//! The Atlas is the **initial object** in the category ResGraph of resonance
+//! The Atlas is the **initial object** in the category `ResGraph` of resonance
 //! graphs. Every exceptional Lie group root system is uniquely determined by
 //! its morphism from the Atlas.
 //!
@@ -591,7 +591,7 @@
 //!
 //! **Category Theory Application**: The categorical perspective unifies all five
 //! constructions. Product, quotient, filtration, and augmentation are not ad-hoc
-//! but rather natural operations in ResGraph.
+//! but rather natural operations in `ResGraph`.
 //!
 //! ### For Physics
 //!
