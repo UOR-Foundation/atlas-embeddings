@@ -417,11 +417,11 @@
 //! system is uniquely determined by its morphism from the Atlas. The five
 //! exceptional groups correspond to the five canonical morphisms:
 //!
-//! - φ_G₂: Atlas → G₂ (via product)
-//! - φ_F₄: Atlas → F₄ (via quotient)
-//! - φ_E₆: Atlas → E₆ (via filtration)
-//! - φ_E₇: Atlas → E₇ (via augmentation)
-//! - φ_E₈: Atlas → E₈ (via embedding)
+//! - `φ_G₂`: Atlas → G₂ (via product)
+//! - `φ_F₄`: Atlas → F₄ (via quotient)
+//! - `φ_E₆`: Atlas → E₆ (via filtration)
+//! - `φ_E₇`: Atlas → E₇ (via augmentation)
+//! - `φ_E₈`: Atlas → E₈ (via embedding)
 //!
 //! **Corollary 9.2.3 (No Other Exceptional Groups)**: If an exceptional Lie group
 //! existed outside `{G₂, F₄, E₆, E₇, E₈}`, it would correspond to a sixth morphism
@@ -528,11 +528,11 @@
 //!
 //! **Theorem 9.6.1 (Computational Initiality)**: The tests in `tests/` directory
 //! serve as **certifying witnesses** for the initiality theorem:
-//! - `g2_construction.rs` - Verifies φ_G₂: Atlas → G₂
-//! - `f4_construction.rs` - Verifies φ_F₄: Atlas → F₄
-//! - `e6_construction.rs` - Verifies φ_E₆: Atlas → E₆
-//! - `e7_construction.rs` - Verifies φ_E₇: Atlas → E₇
-//! - `e8_embedding.rs` - Verifies φ_E₈: Atlas → E₈
+//! - `g2_construction.rs` - Verifies `φ_G₂`: Atlas → G₂
+//! - `f4_construction.rs` - Verifies `φ_F₄`: Atlas → F₄
+//! - `e6_construction.rs` - Verifies `φ_E₆`: Atlas → E₆
+//! - `e7_construction.rs` - Verifies `φ_E₇`: Atlas → E₇
+//! - `e8_embedding.rs` - Verifies `φ_E₈`: Atlas → E₈
 //! - `inclusion_chain.rs` - Verifies composition property
 //!
 //! **Remark**: This is mathematics in the **computational paradigm**—theorems

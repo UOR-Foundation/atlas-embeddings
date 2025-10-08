@@ -1,3 +1,4 @@
+#![allow(clippy::doc_markdown)] // Allow e_1, e_2, etc. in LaTeX math blocks
 //! # Chapter 1: The Atlas of Resonance Classes
 //!
 //! This chapter presents the construction and properties of the **Atlas**: a 96-vertex

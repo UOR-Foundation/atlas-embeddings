@@ -1,3 +1,4 @@
+#![allow(clippy::doc_markdown)] // Allow e_i, e_j in LaTeX math blocks
 //! # Chapter 2: The E₈ Root System
 //!
 //! This chapter presents the exceptional Lie algebra E₈ through its root system:

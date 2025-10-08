@@ -1,3 +1,4 @@
+#![allow(clippy::doc_markdown)] // Allow e_i, G_n, etc. in LaTeX math blocks
 //! # Chapters 4-8: Exceptional Groups from Categorical Operations
 //!
 //! ## Overview
@@ -619,9 +620,9 @@ impl F4 {
 
     /// Verify F₄ has the correct root count distribution
     ///
-    /// F₄ has 48 roots total: 24 short + 24 long (certified in categorical_operations_certificate.json)
+    /// F₄ has 48 roots total: 24 short + 24 long (certified in `categorical_operations_certificate.json`)
     #[must_use]
-    pub fn verify_root_counts(&self) -> bool {
+    pub const fn verify_root_counts(&self) -> bool {
         // From certificate: "short_roots": 24, "long_roots": 24
         // This is a Lie-algebraic property verified by the Cartan matrix structure
         self.num_roots() == 48
@@ -847,6 +848,9 @@ impl E7 {
     /// The S₄ orbits are computed from E₈ roots that are orthogonal to
     /// the Atlas embedding subspace. These are integer roots of the form
     /// (±1, ±1, 0, 0, 0, 0, 0, 0) with specific sign patterns.
+    ///
+    /// # Panics
+    /// Panics if the Atlas does not have exactly 30 S₄ orbit representatives.
     #[must_use]
     pub fn from_atlas(atlas: &Atlas) -> Self {
         let atlas_vertices: Vec<usize> = (0..atlas.num_vertices()).collect();
@@ -1276,7 +1280,7 @@ mod tests {
     /// are distinct concepts. The quotient operation creates root length differences
     /// through Cartan matrix structure, not through degree counting.
     ///
-    /// **Historical note**: From categorical_operations_certificate.json.
+    /// **Historical note**: From `categorical_operations_certificate.json`.
     #[test]
     fn test_f4_root_structure() {
         let atlas = Atlas::new();
