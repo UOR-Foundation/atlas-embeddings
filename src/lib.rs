@@ -373,16 +373,6 @@
 //! }
 //! ```
 //!
-//! ## Module Organization
-//!
-//! - [`atlas`] - Atlas graph construction from action functional
-//! - [`arithmetic`] - Exact rational arithmetic (no floats!)
-//! - [`e8`] - E₈ root system and Atlas embedding
-//! - [`groups`] - Exceptional group constructions (G₂, F₄, E₆, E₇, E₈)
-//! - [`cartan`] - Cartan matrices and Dynkin diagrams
-//! - [`weyl`] - Weyl groups and simple reflections
-//! - [`categorical`] - Categorical operations (product, quotient, filtration)
-//!
 //! ---
 //!
 //! # Chapter 9: The Main Theorem (Atlas Initiality)
@@ -755,6 +745,18 @@
 //! ## License
 //!
 //! This project is licensed under the [MIT License](https://github.com/UOR-Foundation/atlas-embeddings/blob/main/LICENSE-MIT).
+//!
+//! ---
+//!
+//! ## Module Organization
+//!
+//! - [`atlas`] - Atlas graph construction from action functional
+//! - [`arithmetic`] - Exact rational arithmetic (no floats!)
+//! - [`e8`] - E₈ root system and Atlas embedding
+//! - [`groups`] - Exceptional group constructions (G₂, F₄, E₆, E₇, E₈)
+//! - [`cartan`] - Cartan matrices and Dynkin diagrams
+//! - [`weyl`] - Weyl groups and simple reflections
+//! - [`categorical`] - Categorical operations (product, quotient, filtration)
 
 #![forbid(unsafe_code)]
 #![warn(missing_docs, missing_debug_implementations)]
