@@ -375,9 +375,9 @@
 //!
 //! ---
 //!
-//! ## Chapter 9: The Main Theorem (Atlas Initiality)
+//! **Chapter 9: The Main Theorem (Atlas Initiality)**
 //!
-//! ### 9.1 The Category `ResGraph`
+//! **§9.1 The Category `ResGraph`**
 //!
 //! **Definition 9.1.1 (Resonance Graph)**: A **resonance graph** is a graph G equipped with:
 //! 1. A labeling function `λ: V(G) → E₈` mapping vertices to E₈ roots
@@ -397,7 +397,7 @@
 //! - F₄ root system (48 roots)
 //! - E₆, E₇, E₈ root systems
 //!
-//! ### 9.2 The Initiality Theorem
+//! **§9.2 The Initiality Theorem**
 //!
 //! **Theorem 9.2.1 (Atlas is Initial)**: The Atlas of Resonance Classes is an
 //! **initial object** in the category **`ResGraph`**. That is, for every resonance
@@ -418,7 +418,7 @@
 //! from the Atlas. Since the Atlas structure admits exactly these five morphisms,
 //! **these are the only exceptional groups**.
 //!
-//! ### 9.3 Proof Strategy
+//! **§9.3 Proof Strategy**
 //!
 //! The proof of Theorem 9.2.1 proceeds by verifying the universal property:
 //!
@@ -444,7 +444,7 @@
 //! 2. Verifying composition of morphisms respects initiality
 //! 3. Confirming the identity morphism Atlas → Atlas is the only endomorphism
 //!
-//! ### 9.4 Uniqueness and Universal Morphisms
+//! **§9.4 Uniqueness and Universal Morphisms**
 //!
 //! **Theorem 9.4.1 (Morphism Uniqueness)**: For each exceptional group G,
 //! the morphism φ: Atlas → G is unique up to automorphisms of G.
@@ -463,29 +463,29 @@
 //! **Proof**: The inclusion chain G₂ ⊂ F₄ ⊂ E₆ ⊂ E₇ ⊂ E₈ means each morphism
 //! from Atlas extends the previous one. Verified in `tests/inclusion_chain.rs`.
 //!
-//! ### 9.5 Implications for Exceptional Groups
+//! **§9.5 Implications for Exceptional Groups**
 //!
 //! The initiality of the Atlas has profound consequences:
 //!
-//! ### 9.5.1 Completeness
+//! **§9.5.1 Completeness**
 //!
 //! **No Missing Groups**: Since Atlas is initial, every possible exceptional group
 //! structure must arise from a morphism Atlas → G. The five constructions in
 //! Chapters 4-8 exhaust all such morphisms, proving **no exceptional groups are missing**.
 //!
-//! ### 9.5.2 Canonical Structure
+//! **§9.5.2 Canonical Structure**
 //!
 //! **First-Principles Emergence**: The exceptional groups are not "discovered by
 //! classification" but rather **emerge necessarily** from the Atlas structure.
 //! The action functional determines everything.
 //!
-//! ### 9.5.3 Computational Verification
+//! **§9.5.3 Computational Verification**
 //!
 //! **Certifying Proofs**: Because the Atlas and all morphisms are computable,
 //! the entire theory is **formally verifiable**. Every theorem has a corresponding
 //! test that exhaustively checks all cases.
 //!
-//! ### 9.5.4 Physical Interpretation
+//! **§9.5.4 Physical Interpretation**
 //!
 //! **E₈ Gauge Theory**: The Atlas initiality explains why E₈ appears in physics:
 //! - The action functional encodes physical symmetries
@@ -493,7 +493,7 @@
 //! - E₈ emerges as the maximal symmetry preserving Atlas structure
 //! - Smaller exceptional groups are symmetry-breaking phases
 //!
-//! ### 9.6 Computational Verification of Initiality
+//! **§9.6 Computational Verification of Initiality**
 //!
 //! The initiality property is verified computationally:
 //!
@@ -531,29 +531,29 @@
 //!
 //! ---
 //!
-//! ## Conclusion & Perspectives
+//! **Conclusion & Perspectives**
 //!
-//! ### Summary of Main Results
+//! **Summary of Main Results**
 //!
 //! This work establishes the following:
 //!
-//! ### Theorem A (Atlas Emergence)
+//! **Theorem A (Atlas Emergence)**
 //! The Atlas of Resonance Classes—a 96-vertex graph—emerges uniquely as the
 //! stationary configuration of an action functional on a 12,288-cell complex.
 //! The 96 vertices, their adjacency structure, and mirror symmetry are **not
 //! chosen but discovered** through variational calculus.
 //!
-//! ### Theorem B (Atlas → E₈ Embedding)
+//! **Theorem B (Atlas → E₈ Embedding)**
 //! The Atlas embeds canonically into the E₈ root system via a unique (up to
 //! Weyl group) graph homomorphism preserving adjacency and inner products.
 //! This embedding was previously unknown in the mathematical literature.
 //!
-//! ### Theorem C (Atlas Initiality)
+//! **Theorem C (Atlas Initiality)**
 //! The Atlas is the **initial object** in the category `ResGraph` of resonance
 //! graphs. Every exceptional Lie group root system is uniquely determined by
 //! its morphism from the Atlas.
 //!
-//! ### Theorem D (Exceptional Group Emergence)
+//! **Theorem D (Exceptional Group Emergence)**
 //! The five exceptional Lie groups emerge from the Atlas through five canonical
 //! categorical operations:
 //! - **G₂**: Product (Klein × ℤ/3) → 12 roots, rank 2
@@ -562,13 +562,13 @@
 //! - **E₇**: Augmentation (96+30) → 126 roots, rank 7
 //! - **E₈**: Embedding (full) → 240 roots, rank 8
 //!
-//! ### Theorem E (Completeness)
+//! **Theorem E (Completeness)**
 //! These are the **only** exceptional Lie groups. The Atlas initiality implies
 //! no sixth exceptional group exists—the five morphisms exhaust all possibilities.
 //!
-//! ### Implications
+//! **Implications**
 //!
-//! ### For Mathematics
+//! **For Mathematics**
 //!
 //! **First-Principles Construction**: This work provides the first construction
 //! of exceptional groups from a single universal object without appealing to
@@ -583,7 +583,7 @@
 //! constructions. Product, quotient, filtration, and augmentation are not ad-hoc
 //! but rather natural operations in `ResGraph`.
 //!
-//! ### For Physics
+//! **For Physics**
 //!
 //! **E₈ Gauge Theories**: The Atlas initiality provides physical insight into
 //! why E₈ appears in heterotic string theory and M-theory. The action functional
@@ -598,7 +598,7 @@
 //! The Atlas embedding reveals a 96-dimensional substructure with applications
 //! to error-correcting codes and quantum information.
 //!
-//! ### For Computation
+//! **For Computation**
 //!
 //! **Type Safety**: Rust's type system enforces mathematical invariants. Rank
 //! is encoded at the type level (const generics), making dimension mismatches
@@ -611,9 +611,9 @@
 //! **Tests as Proofs**: The 210+ tests exhaustively verify all claims. Unlike
 //! traditional mathematical proofs, these can be run, debugged, and extended.
 //!
-//! ### Open Questions
+//! **Open Questions**
 //!
-//! ### Mathematical Questions
+//! **Mathematical Questions**
 //!
 //! 1. **Higher Dimensions**: Does the action functional approach generalize to
 //!    higher-dimensional cell complexes? Could it produce other algebraic structures?
@@ -627,7 +627,7 @@
 //! 4. **Geometric Realization**: Can the Atlas be realized as a geometric object
 //!    (polytope, manifold) with the action functional as a natural energy?
 //!
-//! ### Physical Questions
+//! **Physical Questions**
 //!
 //! 1. **String Compactifications**: What role does the Atlas play in heterotic
 //!    string compactifications on E₈ × E₈?
@@ -638,7 +638,7 @@
 //! 3. **Condensed Matter**: Could Atlas-like structures appear in condensed
 //!    matter systems with exceptional symmetries (e.g., G₂ in liquid crystals)?
 //!
-//! ### Computational Questions
+//! **Computational Questions**
 //!
 //! 1. **Proof Assistants**: Can this work be fully formalized in Lean, Coq, or
 //!    Agda? What would a machine-checked proof look like?
@@ -649,23 +649,23 @@
 //! 3. **Algorithms**: Are there efficient algorithms for working with Atlas-based
 //!    representations of exceptional groups? Applications to symbolic computation?
 //!
-//! ### Future Directions
+//! **Future Directions**
 //!
-//! ### Short Term
+//! **Short Term**
 //!
 //! - Formalize in a proof assistant (Lean 4 or Coq)
 //! - Create interactive visualizations of the Atlas and embeddings
 //! - Extend to affine and hyperbolic exceptional groups
 //! - Explore applications to error-correcting codes
 //!
-//! ### Long Term
+//! **Long Term**
 //!
 //! - Develop a comprehensive theory of action functionals on cell complexes
 //! - Investigate physical realizations in condensed matter or quantum systems
 //! - Apply to other areas: algebraic topology, number theory, cryptography
 //! - Explore connections to categorical homotopy theory and higher category theory
 //!
-//! ### Acknowledgments
+//! **Acknowledgments**
 //!
 //! This work was conducted by the UOR Foundation as part of research into
 //! universal object reference systems and foundational mathematics. The discovery
@@ -676,7 +676,7 @@
 //! exceptional Lie groups (1888-1894), and the extensive modern literature on
 //! E₈ and its applications in mathematics and physics.
 //!
-//! ### Final Remarks
+//! **Final Remarks**
 //!
 //! The Atlas of Resonance Classes demonstrates that profound mathematical
 //! structures can **emerge** from simple principles rather than being constructed
@@ -692,7 +692,7 @@
 //!
 //! ---
 //!
-//! ### Standards and Verification
+//! **Standards and Verification**
 //!
 //! This crate is designed for **peer review** with:
 //!
@@ -709,20 +709,20 @@
 //! make verify  # format-check + clippy + tests + docs
 //! ```
 //!
-//! ### References
+//! **References**
 //!
 //! 1. Conway, J. H., & Sloane, N. J. A. (1988). *Sphere Packings, Lattices and Groups*
 //! 2. Baez, J. C. (2002). *The Octonions*
 //! 3. Wilson, R. A. (2009). *The Finite Simple Groups*
 //! 4. Carter, R. W. (2005). *Lie Algebras of Finite and Affine Type*
 //!
-//! ### About UOR Foundation
+//! **About UOR Foundation**
 //!
 //! This work is published by the [UOR Foundation](https://uor.foundation), dedicated to
 //! advancing universal object reference systems and foundational research in mathematics,
 //! physics, and computation.
 //!
-//! ### Citation
+//! **Citation**
 //!
 //! If you use this crate in academic work, please cite it using the DOI:
 //!
@@ -736,19 +736,19 @@
 //! }
 //! ```
 //!
-//! ### Contact
+//! **Contact**
 //!
 //! - Homepage: <https://uor.foundation>
 //! - Issues: <https://github.com/UOR-Foundation/atlas-embeddings/issues>
 //! - Discussions: <https://github.com/UOR-Foundation/atlas-embeddings/discussions>
 //!
-//! ### License
+//! **License**
 //!
 //! This project is licensed under the [MIT License](https://github.com/UOR-Foundation/atlas-embeddings/blob/main/LICENSE-MIT).
 //!
 //! ---
 //!
-//! ### Module Organization
+//! **Module Organization**
 //!
 //! - [`atlas`] - Atlas graph construction from action functional
 //! - [`arithmetic`] - Exact rational arithmetic (no floats!)
