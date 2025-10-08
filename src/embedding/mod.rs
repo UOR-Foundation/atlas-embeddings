@@ -278,6 +278,35 @@
 
 use crate::e8::E8RootSystem;
 
+pub mod weyl_action;
+
+use crate::{Atlas, arithmetic::Vector8};
+
+/// Compute the actual Atlas → E₈ embedding as Vector8 coordinates
+///
+/// Maps the 96 Atlas vertices to their corresponding E₈ root vectors.
+///
+/// # Arguments
+///
+/// * `atlas` - The Atlas graph
+///
+/// # Returns
+///
+/// Array of 96 E₈ roots (as Vector8) corresponding to the Atlas vertices
+#[must_use]
+#[allow(clippy::large_stack_arrays)] // Embedding is 96 roots (mathematical constant)
+pub fn compute_atlas_embedding(_atlas: &Atlas) -> [Vector8; 96] {
+    let embedding_map = AtlasE8Embedding::new();
+    let e8 = E8RootSystem::new();
+
+    let mut result = [Vector8::new([crate::arithmetic::HalfInteger::from_integer(0); 8]); 96];
+    for (i, item) in result.iter_mut().enumerate() {
+        let root_idx = embedding_map.map_vertex(i);
+        *item = *e8.get_root(root_idx);
+    }
+    result
+}
+
 /// Atlas→E₈ embedding
 ///
 /// Maps the 96 vertices of the Atlas to 96 of the 240 E₈ roots,
