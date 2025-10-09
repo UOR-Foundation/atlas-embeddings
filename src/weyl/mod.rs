@@ -416,6 +416,135 @@ impl WeylGroup<8> {
     }
 }
 
+// ============================================================================
+// WeylElement: Representing Weyl group elements as products of reflections
+// ============================================================================
+
+/// Represents an element of the Weyl group as a product of simple reflections
+///
+/// A Weyl group element can be written as a word in simple reflections:
+/// w = s_{i₁} · s_{i₂} · ... · s_{iₖ}
+///
+/// This struct stores the sequence of reflection indices and provides
+/// group operations (composition, inverse).
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct WeylElement<const N: usize> {
+    /// Sequence of simple reflection indices (0..N)
+    reflections: Vec<usize>,
+}
+
+impl<const N: usize> WeylElement<N> {
+    /// Create the identity element (empty word)
+    #[must_use]
+    pub const fn identity() -> Self {
+        Self {
+            reflections: Vec::new(),
+        }
+    }
+
+    /// Create a simple reflection `s_i`
+    ///
+    /// # Panics
+    /// Panics if `i >= N` (index out of range)
+    #[must_use]
+    pub fn simple_reflection(i: usize) -> Self {
+        assert!(i < N, "Reflection index {i} out of range (must be < {N})");
+        Self {
+            reflections: vec![i],
+        }
+    }
+
+    /// Compose two Weyl elements (multiply in group)
+    ///
+    /// Computes w₁ · w₂ as concatenation of reflection words,
+    /// then reduces to canonical form.
+    #[must_use]
+    pub fn compose(&self, other: &Self) -> Self {
+        let mut result = self.reflections.clone();
+        result.extend(&other.reflections);
+        Self::reduce(result)
+    }
+
+    /// Reduce reflection word to canonical form
+    ///
+    /// Removes adjacent pairs `s_i · s_i = id` (involution property)
+    ///
+    /// Note: This is a simple reduction. Full reduction to minimal
+    /// word length would require Coxeter relations, which is more complex.
+    fn reduce(mut reflections: Vec<usize>) -> Self {
+        let mut changed = true;
+        while changed {
+            changed = false;
+            let mut i = 0;
+            while i + 1 < reflections.len() {
+                if reflections[i] == reflections[i + 1] {
+                    // s_i · s_i = id, remove both
+                    reflections.remove(i);
+                    reflections.remove(i);
+                    changed = true;
+                } else {
+                    i += 1;
+                }
+            }
+        }
+        Self { reflections }
+    }
+
+    /// Compute the inverse element
+    ///
+    /// For reflections, `s_i⁻¹ = s_i` (involutions)
+    /// So `(s_{i₁} · ... · s_{iₖ})⁻¹ = s_{iₖ} · ... · s_{i₁}`
+    #[must_use]
+    pub fn inverse(&self) -> Self {
+        let mut inv = self.reflections.clone();
+        inv.reverse();
+        Self { reflections: inv }
+    }
+
+    /// Get the length (number of simple reflections in reduced word)
+    #[must_use]
+    pub fn length(&self) -> usize {
+        self.reflections.len()
+    }
+}
+
+/// Apply simple reflection to a vector in ℝ⁸
+///
+/// Computes: `s_αᵢ(v) = v - ⟨v, αᵢ⟩ · αᵢ`
+///
+/// For E₈, all simple roots have ⟨αᵢ, αᵢ⟩ = 2, so:
+/// `s_αᵢ(v) = v - ⟨v, αᵢ⟩ · αᵢ`
+fn reflect_by_simple_root(v: Vector8, root_index: usize, simple_roots: &[Vector8; 8]) -> Vector8 {
+    let alpha = simple_roots[root_index];
+
+    // Compute ⟨v,α⟩
+    let inner = v.inner_product(&alpha);
+
+    // Compute ⟨v,α⟩ · α
+    let scaled_root = alpha.scale_rational(inner);
+
+    // Return v - scaled_root
+    v.sub(&scaled_root)
+}
+
+impl WeylElement<8> {
+    /// Apply this Weyl element to an E₈ root
+    ///
+    /// Applies the sequence of simple reflections to the given vector.
+    ///
+    /// # Arguments
+    /// * `root` - Vector in ℝ⁸ (typically an E₈ root)
+    /// * `simple_roots` - The 8 simple roots of E₈
+    #[must_use]
+    pub fn apply(&self, root: &Vector8, simple_roots: &[Vector8; 8]) -> Vector8 {
+        let mut result = *root;
+        for &i in &self.reflections {
+            result = reflect_by_simple_root(result, i, simple_roots);
+        }
+        result
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -666,5 +795,45 @@ mod tests {
 
         // Even tiny rational differences are detected
         assert_ne!(a, c);
+    }
+
+    // ========================================================================
+    // WeylElement Tests
+    // ========================================================================
+
+    #[test]
+    fn test_weyl_element_identity() {
+        let id = WeylElement::<8>::identity();
+        assert_eq!(id.length(), 0, "Identity has length 0");
+    }
+
+    #[test]
+    fn test_weyl_element_simple_reflection() {
+        let s0 = WeylElement::<8>::simple_reflection(0);
+        assert_eq!(s0.length(), 1, "Simple reflection has length 1");
+    }
+
+    #[test]
+    fn test_weyl_element_involution() {
+        let s0 = WeylElement::<8>::simple_reflection(0);
+        let s0_squared = s0.compose(&s0);
+        assert_eq!(s0_squared, WeylElement::identity(), "s₀² = id");
+    }
+
+    #[test]
+    fn test_weyl_element_composition() {
+        let s0 = WeylElement::<8>::simple_reflection(0);
+        let s1 = WeylElement::<8>::simple_reflection(1);
+        let s0s1 = s0.compose(&s1);
+        assert_eq!(s0s1.length(), 2, "s₀s₁ has length 2");
+    }
+
+    #[test]
+    fn test_weyl_element_inverse() {
+        let s0 = WeylElement::<8>::simple_reflection(0);
+        let s1 = WeylElement::<8>::simple_reflection(1);
+        let w = s0.compose(&s1);
+        let w_inv = w.inverse();
+        assert_eq!(w.compose(&w_inv), WeylElement::identity(), "w·w⁻¹ = id");
     }
 }
