@@ -1,0 +1,151 @@
+name: Lean 4
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'lean4/**'
+      - '.github/workflows/lean4.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'lean4/**'
+      - '.github/workflows/lean4.yml'
+
+jobs:
+  build:
+    name: Build and Verify
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Elan (Lean version manager)
+        run: |
+          curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> $GITHUB_PATH
+
+      - name: Cache mathlib4
+        uses: actions/cache@v4
+        with:
+          path: |
+            lean4/.lake
+            lean4/lake-packages
+          key: ${{ runner.os }}-lean4-${{ hashFiles('lean4/lean-toolchain', 'lean4/lakefile.lean') }}
+          restore-keys: |
+            ${{ runner.os }}-lean4-
+
+      - name: Update Lake dependencies
+        working-directory: lean4
+        run: lake update
+
+      - name: Download mathlib4 cache
+        working-directory: lean4
+        run: lake exe cache get || true
+
+      - name: Build Lean project
+        working-directory: lean4
+        run: lake build
+
+      - name: Verify no sorry statements
+        working-directory: lean4
+        run: |
+          if grep -r "sorry" AtlasEmbeddings/ --include="*.lean"; then
+            echo "Error: Found 'sorry' statements in Lean code"
+            echo "All theorems must be fully proven (NO sorry POLICY)"
+            exit 1
+          else
+            echo "Success: No 'sorry' statements found"
+          fi
+
+      - name: Count theorems
+        working-directory: lean4
+        run: |
+          THEOREM_COUNT=$(grep -r "^theorem " AtlasEmbeddings/ --include="*.lean" | wc -l)
+          echo "Total theorems proven: $THEOREM_COUNT"
+          if [ "$THEOREM_COUNT" -lt 30 ]; then
+            echo "Warning: Expected at least 30 theorems, found $THEOREM_COUNT"
+          fi
+
+  test:
+    name: Run Lean Tests
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Elan
+        run: |
+          curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> $GITHUB_PATH
+
+      - name: Cache mathlib4
+        uses: actions/cache@v4
+        with:
+          path: |
+            lean4/.lake
+            lean4/lake-packages
+          key: ${{ runner.os }}-lean4-${{ hashFiles('lean4/lean-toolchain', 'lean4/lakefile.lean') }}
+          restore-keys: |
+            ${{ runner.os }}-lean4-
+
+      - name: Update Lake dependencies
+        working-directory: lean4
+        run: lake update
+
+      - name: Download mathlib4 cache
+        working-directory: lean4
+        run: lake exe cache get || true
+
+      - name: Test individual modules
+        working-directory: lean4
+        run: |
+          echo "Testing Arithmetic module..."
+          lake env lean AtlasEmbeddings/Arithmetic.lean
+
+          echo "Testing E8 module..."
+          lake env lean AtlasEmbeddings/E8.lean
+
+          echo "Testing Atlas module..."
+          lake env lean AtlasEmbeddings/Atlas.lean
+
+          echo "Testing Embedding module..."
+          lake env lean AtlasEmbeddings/Embedding.lean
+
+          echo "Testing Groups module..."
+          lake env lean AtlasEmbeddings/Groups.lean
+
+          echo "Testing ActionFunctional module..."
+          lake env lean AtlasEmbeddings/ActionFunctional.lean
+
+          echo "Testing Completeness module..."
+          lake env lean AtlasEmbeddings/Completeness.lean
+
+  formatting:
+    name: Check Formatting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check line length
+        working-directory: lean4
+        run: |
+          if grep -rn ".\{101,\}" AtlasEmbeddings/ --include="*.lean" | grep -v "http"; then
+            echo "Warning: Found lines longer than 100 characters"
+            echo "Consider breaking long lines for readability"
+            exit 0
+          else
+            echo "Success: All lines are 100 characters or less"
+          fi
+
+      - name: Check for tabs
+        working-directory: lean4
+        run: |
+          if grep -r $'\t' AtlasEmbeddings/ --include="*.lean"; then
+            echo "Error: Found tab characters (use spaces)"
+            exit 1
+          else
+            echo "Success: No tab characters found"
+          fi
