@@ -7,10 +7,7 @@
 
 #![allow(clippy::large_stack_arrays)] // Testing with mathematical constants
 
-use atlas_embeddings::{
-    e8::E8RootSystem,
-    weyl::WeylElement,
-};
+use atlas_embeddings::{e8::E8RootSystem, weyl::WeylElement};
 
 #[test]
 fn test_weyl_preserves_norm() {
@@ -46,10 +43,7 @@ fn test_weyl_permutes_root_system() {
             let reflected = s_i.apply(&root, &simple_roots);
 
             let found = e8.find_root(&reflected);
-            assert!(
-                found.is_some(),
-                "Weyl reflection s_{i} must map root α to another root in Φ"
-            );
+            assert!(found.is_some(), "Weyl reflection s_{i} must map root α to another root in Φ");
         }
     }
 }
@@ -104,10 +98,7 @@ fn test_weyl_identity_acts_trivially() {
     // Test that identity fixes all simple roots
     for &root in &simple_roots {
         let result = identity.apply(&root, &simple_roots);
-        assert_eq!(
-            result, root,
-            "Identity element must fix all roots: id(α) = α"
-        );
+        assert_eq!(result, root, "Identity element must fix all roots: id(α) = α");
     }
 }
 
@@ -124,10 +115,7 @@ fn test_weyl_involution() {
         // Test on all roots
         for &root in e8.roots() {
             let double_reflected = s_i_squared.apply(&root, &simple_roots);
-            assert_eq!(
-                double_reflected, root,
-                "Simple reflection squared is identity: s_i² = id"
-            );
+            assert_eq!(double_reflected, root, "Simple reflection squared is identity: s_i² = id");
         }
     }
 }
@@ -148,10 +136,7 @@ fn test_weyl_inverse() {
     // Test on all simple roots
     for &root in &simple_roots {
         let result = composition.apply(&root, &simple_roots);
-        assert_eq!(
-            result, root,
-            "Composition with inverse is identity: w·w⁻¹(α) = α"
-        );
+        assert_eq!(result, root, "Composition with inverse is identity: w·w⁻¹(α) = α");
     }
 }
 

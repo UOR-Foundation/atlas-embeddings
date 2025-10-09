@@ -13,9 +13,7 @@
 //! This test verifies this property computationally.
 
 use atlas_embeddings::{
-    Atlas,
-    groups::G2,
-    foundations::categories::verify_product_universal_property,
+    foundations::categories::verify_product_universal_property, groups::G2, Atlas,
 };
 
 #[test]

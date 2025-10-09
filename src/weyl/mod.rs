@@ -437,9 +437,7 @@ impl<const N: usize> WeylElement<N> {
     /// Create the identity element (empty word)
     #[must_use]
     pub const fn identity() -> Self {
-        Self {
-            reflections: Vec::new(),
-        }
+        Self { reflections: Vec::new() }
     }
 
     /// Create a simple reflection `s_i`
@@ -449,9 +447,7 @@ impl<const N: usize> WeylElement<N> {
     #[must_use]
     pub fn simple_reflection(i: usize) -> Self {
         assert!(i < N, "Reflection index {i} out of range (must be < {N})");
-        Self {
-            reflections: vec![i],
-        }
+        Self { reflections: vec![i] }
     }
 
     /// Compose two Weyl elements (multiply in group)

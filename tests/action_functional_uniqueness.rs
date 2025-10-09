@@ -25,14 +25,16 @@
 #![allow(clippy::large_stack_arrays)]
 
 use atlas_embeddings::{
-    Atlas,
+    embedding::compute_atlas_embedding,
     foundations::{
-        action::{Complex12288, optimize_on_complex, verify_resonance_class_count,
-                 verify_stationary_uniqueness, verify_atlas_is_stationary},
+        action::{
+            optimize_on_complex, verify_atlas_is_stationary, verify_resonance_class_count,
+            verify_stationary_uniqueness, Complex12288,
+        },
         resgraph::ResGraphObject,
     },
-    groups::{G2, F4, E6, E7, E8Group},
-    embedding::compute_atlas_embedding,
+    groups::{E8Group, E6, E7, F4, G2},
+    Atlas,
 };
 
 #[test]
@@ -117,10 +119,7 @@ fn test_atlas_corresponds_to_stationary_configuration() {
         "Atlas with 96 vertices corresponds to stationary configuration"
     );
 
-    assert_eq!(
-        atlas.num_vertices(), 96,
-        "Atlas has exactly 96 vertices (resonance classes)"
-    );
+    assert_eq!(atlas.num_vertices(), 96, "Atlas has exactly 96 vertices (resonance classes)");
 }
 
 #[test]
@@ -178,21 +177,12 @@ fn test_embedding_uniqueness_implies_stationary_uniqueness() {
     let atlas = Atlas::new();
     let embedding = compute_atlas_embedding(&atlas);
 
-    assert_eq!(
-        embedding.len(), 96,
-        "Embedding has 96 roots (from stationary config)"
-    );
-    assert_eq!(
-        atlas.num_vertices(), 96,
-        "Atlas has 96 vertices (stationary classes)"
-    );
+    assert_eq!(embedding.len(), 96, "Embedding has 96 roots (from stationary config)");
+    assert_eq!(atlas.num_vertices(), 96, "Atlas has 96 vertices (stationary classes)");
 
     // The embedding is deterministic from Atlas structure
     let embedding2 = compute_atlas_embedding(&atlas);
-    assert_eq!(
-        embedding, embedding2,
-        "Embedding is deterministic (same stationary config)"
-    );
+    assert_eq!(embedding, embedding2, "Embedding is deterministic (same stationary config)");
 }
 
 #[test]
@@ -216,12 +206,8 @@ fn test_no_alternative_96_class_configurations() {
 
     // Its structure is uniquely determined
     // (tested via degree distribution, mirror symmetry, etc.)
-    let degree_5_count = (0..atlas.num_vertices())
-        .filter(|&v| atlas.degree(v) == 5)
-        .count();
-    let degree_6_count = (0..atlas.num_vertices())
-        .filter(|&v| atlas.degree(v) == 6)
-        .count();
+    let degree_5_count = (0..atlas.num_vertices()).filter(|&v| atlas.degree(v) == 5).count();
+    let degree_6_count = (0..atlas.num_vertices()).filter(|&v| atlas.degree(v) == 6).count();
 
     assert_eq!(degree_5_count, 64, "Unique structure: 64 degree-5 vertices");
     assert_eq!(degree_6_count, 32, "Unique structure: 32 degree-6 vertices");
@@ -247,10 +233,7 @@ fn test_resonance_class_stability() {
     }
 
     // Exactly 96 is the unique stationary count
-    assert!(
-        verify_resonance_class_count(96),
-        "96 classes: unique stationary configuration"
-    );
+    assert!(verify_resonance_class_count(96), "96 classes: unique stationary configuration");
 }
 
 #[test]

@@ -33,11 +33,11 @@
 #![allow(clippy::large_stack_arrays)] // Testing with mathematical constants
 
 use atlas_embeddings::{
-    Atlas,
     arithmetic::Rational,
     e8::E8RootSystem,
     embedding::{compute_atlas_embedding, weyl_action::*},
     weyl::WeylElement,
+    Atlas,
 };
 
 #[test]
@@ -53,20 +53,14 @@ fn test_weyl_preserves_embedding_properties() {
     // Verify injectivity: all transformed roots should be distinct
     let mut seen = std::collections::HashSet::new();
     for &root in &transformed {
-        assert!(
-            seen.insert(root),
-            "Weyl action must preserve injectivity"
-        );
+        assert!(seen.insert(root), "Weyl action must preserve injectivity");
     }
 
     // Verify norm preservation: all roots should still have norm² = 2
     let norm_2 = Rational::from_integer(2);
     for &root in &transformed {
         let norm_sq = root.inner_product(&root);
-        assert_eq!(
-            norm_sq, norm_2,
-            "Weyl action must preserve root norms"
-        );
+        assert_eq!(norm_sq, norm_2, "Weyl action must preserve root norms");
     }
 
     // Verify sign classes: should still have 48 pairs
@@ -96,10 +90,7 @@ fn test_orbit_contains_identity_image() {
     let orbit = compute_weyl_orbit(&embedding, &simple_roots, 2);
 
     // The orbit must contain the original embedding (identity element)
-    assert!(
-        orbit.contains(&embedding),
-        "Weyl orbit must contain the original embedding"
-    );
+    assert!(orbit.contains(&embedding), "Weyl orbit must contain the original embedding");
 
     // Orbit size should be at least 1 (identity) and at most ~O(8^2) = 64
     assert!(!orbit.is_empty(), "Orbit must contain at least the identity");
@@ -168,10 +159,7 @@ fn test_embedding_stabilizer_computation() {
     // The identity is always in the stabilizer
     let id = WeylElement::<8>::identity();
     let id_transformed = apply_weyl_to_embedding(&embedding, &id, &simple_roots);
-    assert!(
-        embeddings_equal(&embedding, &id_transformed),
-        "Identity must be in stabilizer"
-    );
+    assert!(embeddings_equal(&embedding, &id_transformed), "Identity must be in stabilizer");
 }
 
 #[test]
@@ -241,8 +229,12 @@ fn test_orbit_grows_with_depth() {
     let orbit_depth_1 = compute_weyl_orbit(&embedding, &simple_roots, 1);
     let orbit_depth_2 = compute_weyl_orbit(&embedding, &simple_roots, 2);
 
-    println!("Orbit sizes: depth 0 = {}, depth 1 = {}, depth 2 = {}",
-        orbit_depth_0.len(), orbit_depth_1.len(), orbit_depth_2.len());
+    println!(
+        "Orbit sizes: depth 0 = {}, depth 1 = {}, depth 2 = {}",
+        orbit_depth_0.len(),
+        orbit_depth_1.len(),
+        orbit_depth_2.len()
+    );
 
     // Orbits should be non-decreasing
     assert!(
@@ -279,10 +271,7 @@ fn test_all_orbit_elements_have_48_sign_classes() {
             }
         }
 
-        assert_eq!(
-            sign_class_count, 48,
-            "Every embedding in Weyl orbit must have 48 sign classes"
-        );
+        assert_eq!(sign_class_count, 48, "Every embedding in Weyl orbit must have 48 sign classes");
     }
 }
 
@@ -409,10 +398,7 @@ fn test_stabilizer_is_subgroup() {
     // The identity is always in the stabilizer
     let id = WeylElement::<8>::identity();
     let id_transformed = apply_weyl_to_embedding(&embedding, &id, &simple_roots);
-    assert!(
-        embeddings_equal(&embedding, &id_transformed),
-        "Identity must be in stabilizer"
-    );
+    assert!(embeddings_equal(&embedding, &id_transformed), "Identity must be in stabilizer");
 }
 
 #[test]
@@ -445,14 +431,8 @@ fn test_embedding_uniqueness_computational_certificate() {
 
     // 5. Orbit structure is consistent
     let orbit_depth_2 = compute_weyl_orbit(&embedding, &simple_roots, 2);
-    assert!(
-        !orbit_depth_2.is_empty(),
-        "Orbit must contain at least the identity image"
-    );
-    assert!(
-        orbit_depth_2.contains(&embedding),
-        "Orbit must contain original embedding"
-    );
+    assert!(!orbit_depth_2.is_empty(), "Orbit must contain at least the identity image");
+    assert!(orbit_depth_2.contains(&embedding), "Orbit must contain original embedding");
 
     // 6. All embeddings preserving Atlas structure lie in the same orbit
     // (This is verified by the mathematical proof in src/embedding/weyl_action.rs)

@@ -14,9 +14,9 @@
 #![allow(clippy::large_stack_arrays)]
 
 use atlas_embeddings::{
-    Atlas,
     categorical::CategoricalOperation,
-    groups::{G2, F4, E6, E7, E8Group},
+    groups::{E8Group, E6, E7, F4, G2},
+    Atlas,
 };
 
 // ## Test 1: Exactly 5 Operations Exist
@@ -221,10 +221,8 @@ fn test_no_sixth_exceptional_group_exists() {
         CategoricalOperation::morphism(),
     ];
 
-    let mut root_counts: Vec<usize> = operations
-        .iter()
-        .map(|op| op.verify(&atlas).expected_roots)
-        .collect();
+    let mut root_counts: Vec<usize> =
+        operations.iter().map(|op| op.verify(&atlas).expected_roots).collect();
     root_counts.sort_unstable();
 
     // The 5 exceptional groups have exactly these root counts
@@ -233,10 +231,7 @@ fn test_no_sixth_exceptional_group_exists() {
     // No other root count is produced
     let possible_other_counts = vec![6, 24, 36, 60, 84, 96, 120, 144, 168, 192, 210];
     for count in possible_other_counts {
-        assert!(
-            !root_counts.contains(&count),
-            "No operation produces {count} roots"
-        );
+        assert!(!root_counts.contains(&count), "No operation produces {count} roots");
     }
 }
 
@@ -272,13 +267,8 @@ fn test_all_exceptional_group_sizes_accounted_for() {
     assert_eq!(e8.rank(), 8);
 
     // All 5 groups are distinct by both root count and rank
-    let root_counts = [
-        g2.num_roots(),
-        f4.num_roots(),
-        e6.num_roots(),
-        e7.num_roots(),
-        e8.num_roots(),
-    ];
+    let root_counts =
+        [g2.num_roots(), f4.num_roots(), e6.num_roots(), e7.num_roots(), e8.num_roots()];
     let unique_counts: std::collections::HashSet<_> = root_counts.iter().collect();
     assert_eq!(unique_counts.len(), 5, "All 5 root counts are distinct");
 

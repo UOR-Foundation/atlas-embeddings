@@ -131,11 +131,11 @@
 //! assert_eq!(id.num_vertices(), atlas.num_vertices());
 //! ```
 
-use std::marker::PhantomData;
 use std::collections::HashMap;
+use std::marker::PhantomData;
 
-use crate::{Atlas, e8::E8RootSystem, arithmetic::Rational};
-use crate::groups::{G2, F4, E6, E7, E8Group};
+use crate::groups::{E8Group, E6, E7, F4, G2};
+use crate::{arithmetic::Rational, e8::E8RootSystem, Atlas};
 
 /// Trait for objects in the `ResGraph` category
 ///
@@ -229,11 +229,7 @@ impl<S: ResGraphObject, T: ResGraphObject> ResGraphMorphism<S, T> {
     /// A new morphism (unchecked - caller must ensure adjacency preservation)
     #[must_use]
     pub const fn new(mapping: HashMap<usize, usize>) -> Self {
-        Self {
-            mapping,
-            _phantom_source: PhantomData,
-            _phantom_target: PhantomData,
-        }
+        Self { mapping, _phantom_source: PhantomData, _phantom_target: PhantomData }
     }
 
     /// Create the identity morphism for an object

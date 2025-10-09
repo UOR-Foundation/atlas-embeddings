@@ -21,10 +21,10 @@
 #![allow(clippy::large_stack_arrays)]
 
 use atlas_embeddings::{
-    Atlas,
-    foundations::resgraph::ResGraphObject,
-    groups::{G2, F4, E6, E7, E8Group},
     embedding::compute_atlas_embedding,
+    foundations::resgraph::ResGraphObject,
+    groups::{E8Group, E6, E7, F4, G2},
+    Atlas,
 };
 
 #[test]
@@ -41,11 +41,7 @@ fn test_morphism_exists_atlas_to_g2() {
         12,
         "Atlas → G₂ morphism exists via product construction"
     );
-    assert_eq!(
-        g2.num_roots(),
-        12,
-        "Target G₂ has 12 roots as expected"
-    );
+    assert_eq!(g2.num_roots(), 12, "Target G₂ has 12 roots as expected");
 }
 
 #[test]
@@ -62,11 +58,7 @@ fn test_morphism_exists_atlas_to_f4() {
         48,
         "Atlas → F₄ morphism exists via quotient construction"
     );
-    assert_eq!(
-        f4.num_roots(),
-        48,
-        "Target F₄ has 48 roots as expected"
-    );
+    assert_eq!(f4.num_roots(), 48, "Target F₄ has 48 roots as expected");
 }
 
 #[test]
@@ -83,11 +75,7 @@ fn test_morphism_exists_atlas_to_e6() {
         72,
         "Atlas → E₆ morphism exists via filtration construction"
     );
-    assert_eq!(
-        e6.num_roots(),
-        72,
-        "Target E₆ has 72 roots as expected"
-    );
+    assert_eq!(e6.num_roots(), 72, "Target E₆ has 72 roots as expected");
 }
 
 #[test]
@@ -104,11 +92,7 @@ fn test_morphism_exists_atlas_to_e7() {
         126,
         "Atlas → E₇ morphism exists via augmentation construction"
     );
-    assert_eq!(
-        e7.num_roots(),
-        126,
-        "Target E₇ has 126 roots as expected"
-    );
+    assert_eq!(e7.num_roots(), 126, "Target E₇ has 126 roots as expected");
 }
 
 #[test]
@@ -120,16 +104,8 @@ fn test_morphism_exists_atlas_to_e8() {
     // The embedding construction provides the canonical morphism
     let embedding = compute_atlas_embedding(&atlas);
 
-    assert_eq!(
-        embedding.len(),
-        96,
-        "Atlas → E₈ morphism exists via direct embedding"
-    );
-    assert_eq!(
-        e8.num_roots(),
-        240,
-        "Target E₈ has 240 roots as expected"
-    );
+    assert_eq!(embedding.len(), 96, "Atlas → E₈ morphism exists via direct embedding");
+    assert_eq!(e8.num_roots(), 240, "Target E₈ has 240 roots as expected");
 }
 
 #[test]
@@ -175,11 +151,7 @@ fn test_atlas_to_g2_morphism_unique() {
         g2_construction2.num_roots(),
         "Atlas → G₂ morphism is unique up to product universal property"
     );
-    assert_eq!(
-        g2_construction1.num_roots(),
-        12,
-        "Unique morphism produces exactly 12 roots"
-    );
+    assert_eq!(g2_construction1.num_roots(), 12, "Unique morphism produces exactly 12 roots");
 }
 
 #[test]
@@ -203,11 +175,7 @@ fn test_atlas_to_f4_morphism_unique() {
         f4_construction2.num_roots(),
         "Atlas → F₄ morphism is unique up to quotient universal property"
     );
-    assert_eq!(
-        f4_construction1.num_roots(),
-        48,
-        "Unique morphism produces exactly 48 roots"
-    );
+    assert_eq!(f4_construction1.num_roots(), 48, "Unique morphism produces exactly 48 roots");
 }
 
 #[test]
@@ -230,11 +198,7 @@ fn test_atlas_to_e6_morphism_unique() {
         e6_construction2.num_roots(),
         "Atlas → E₆ morphism is unique up to filtration structure"
     );
-    assert_eq!(
-        e6_construction1.num_roots(),
-        72,
-        "Unique morphism produces exactly 72 roots"
-    );
+    assert_eq!(e6_construction1.num_roots(), 72, "Unique morphism produces exactly 72 roots");
 }
 
 #[test]
@@ -257,11 +221,7 @@ fn test_atlas_to_e7_morphism_unique() {
         e7_construction2.num_roots(),
         "Atlas → E₇ morphism is unique up to augmentation structure"
     );
-    assert_eq!(
-        e7_construction1.num_roots(),
-        126,
-        "Unique morphism produces exactly 126 roots"
-    );
+    assert_eq!(e7_construction1.num_roots(), 126, "Unique morphism produces exactly 126 roots");
 }
 
 #[test]
@@ -284,18 +244,10 @@ fn test_atlas_to_e8_morphism_unique_up_to_weyl() {
         embedding2.len(),
         "Atlas → E₈ morphism is unique up to Weyl group (proven in PV1)"
     );
-    assert_eq!(
-        embedding1.len(),
-        96,
-        "Unique morphism embeds all 96 Atlas vertices"
-    );
+    assert_eq!(embedding1.len(), 96, "Unique morphism embeds all 96 Atlas vertices");
 
     // Verify they are componentwise equal (same canonical embedding)
-    assert_eq!(
-        embedding1,
-        embedding2,
-        "Canonical embedding is deterministic and unique"
-    );
+    assert_eq!(embedding1, embedding2, "Canonical embedding is deterministic and unique");
 }
 
 #[test]

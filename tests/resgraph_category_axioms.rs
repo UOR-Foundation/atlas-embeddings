@@ -12,9 +12,9 @@
 #![allow(clippy::large_stack_arrays)]
 
 use atlas_embeddings::{
-    Atlas,
     foundations::resgraph::{ResGraphMorphism, ResGraphObject},
-    groups::{G2, F4, E6, E7, E8Group},
+    groups::{E8Group, E6, E7, F4, G2},
+    Atlas,
 };
 
 #[test]
@@ -36,39 +36,19 @@ fn test_identity_exists_for_all_objects() {
     );
 
     let g2_id = ResGraphMorphism::<G2, G2>::identity(&g2);
-    assert_eq!(
-        g2_id.num_vertices(),
-        g2.num_roots(),
-        "Identity for G2 must map all 12 roots"
-    );
+    assert_eq!(g2_id.num_vertices(), g2.num_roots(), "Identity for G2 must map all 12 roots");
 
     let f4_id = ResGraphMorphism::<F4, F4>::identity(&f4);
-    assert_eq!(
-        f4_id.num_vertices(),
-        f4.num_roots(),
-        "Identity for F4 must map all 48 roots"
-    );
+    assert_eq!(f4_id.num_vertices(), f4.num_roots(), "Identity for F4 must map all 48 roots");
 
     let e6_id = ResGraphMorphism::<E6, E6>::identity(&e6);
-    assert_eq!(
-        e6_id.num_vertices(),
-        e6.num_roots(),
-        "Identity for E6 must map all 72 roots"
-    );
+    assert_eq!(e6_id.num_vertices(), e6.num_roots(), "Identity for E6 must map all 72 roots");
 
     let e7_id = ResGraphMorphism::<E7, E7>::identity(&e7);
-    assert_eq!(
-        e7_id.num_vertices(),
-        e7.num_roots(),
-        "Identity for E7 must map all 126 roots"
-    );
+    assert_eq!(e7_id.num_vertices(), e7.num_roots(), "Identity for E7 must map all 126 roots");
 
     let e8_id = ResGraphMorphism::<E8Group, E8Group>::identity(&e8);
-    assert_eq!(
-        e8_id.num_vertices(),
-        e8.num_roots(),
-        "Identity for E8 must map all 240 roots"
-    );
+    assert_eq!(e8_id.num_vertices(), e8.num_roots(), "Identity for E8 must map all 240 roots");
 }
 
 #[test]
@@ -78,11 +58,7 @@ fn test_identity_fixes_all_vertices() {
 
     // Identity must fix every vertex
     for v in 0..atlas.num_vertices() {
-        assert_eq!(
-            id.apply(v),
-            Some(v),
-            "Identity morphism must map vertex {v} to itself"
-        );
+        assert_eq!(id.apply(v), Some(v), "Identity morphism must map vertex {v} to itself");
     }
 }
 
@@ -156,11 +132,7 @@ fn test_identity_law_left() {
     let composed = id.compose(&id);
 
     for v in 0..atlas.num_vertices() {
-        assert_eq!(
-            composed.apply(v),
-            id.apply(v),
-            "Left identity law: id ∘ f = f"
-        );
+        assert_eq!(composed.apply(v), id.apply(v), "Left identity law: id ∘ f = f");
     }
 }
 
@@ -174,11 +146,7 @@ fn test_identity_law_right() {
     let composed = id.compose(&id);
 
     for v in 0..atlas.num_vertices() {
-        assert_eq!(
-            composed.apply(v),
-            id.apply(v),
-            "Right identity law: f ∘ id = f"
-        );
+        assert_eq!(composed.apply(v), id.apply(v), "Right identity law: f ∘ id = f");
     }
 }
 
@@ -190,16 +158,8 @@ fn test_morphism_preserves_domain_size() {
     let id_atlas = ResGraphMorphism::<Atlas, Atlas>::identity(&atlas);
     let id_g2 = ResGraphMorphism::<G2, G2>::identity(&g2);
 
-    assert_eq!(
-        id_atlas.num_vertices(),
-        96,
-        "Atlas identity must have 96 vertices in domain"
-    );
-    assert_eq!(
-        id_g2.num_vertices(),
-        12,
-        "G2 identity must have 12 vertices in domain"
-    );
+    assert_eq!(id_atlas.num_vertices(), 96, "Atlas identity must have 96 vertices in domain");
+    assert_eq!(id_g2.num_vertices(), 12, "G2 identity must have 12 vertices in domain");
 }
 
 #[test]
@@ -259,10 +219,7 @@ fn test_category_axioms_summary() {
 
     // Axiom 2: Composition is defined
     let composed = id.compose(&id);
-    assert!(
-        composed.num_vertices() > 0,
-        "✓ Composition is well-defined"
-    );
+    assert!(composed.num_vertices() > 0, "✓ Composition is well-defined");
 
     // Axiom 3: Composition is associative
     // (tested in test_composition_associative_atlas)

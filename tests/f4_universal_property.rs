@@ -15,9 +15,7 @@
 #![allow(clippy::large_stack_arrays)]
 
 use atlas_embeddings::{
-    Atlas,
-    groups::F4,
-    foundations::categories::verify_quotient_universal_property,
+    foundations::categories::verify_quotient_universal_property, groups::F4, Atlas,
 };
 use std::collections::HashSet;
 
@@ -169,16 +167,9 @@ fn test_f4_respects_equivalence() {
         let mirror = atlas.mirror_pair(v);
 
         // The pair {v, mirror} should not overlap with any other pair
-        let pair = if v < mirror {
-            (v, mirror)
-        } else {
-            (mirror, v)
-        };
+        let pair = if v < mirror { (v, mirror) } else { (mirror, v) };
 
-        assert!(
-            !mirror_pairs.contains(&pair),
-            "Mirror pair ({v}, {mirror}) appears twice"
-        );
+        assert!(!mirror_pairs.contains(&pair), "Mirror pair ({v}, {mirror}) appears twice");
         mirror_pairs.insert(pair);
     }
 

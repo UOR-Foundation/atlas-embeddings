@@ -83,10 +83,7 @@
 //! assert!(are_weyl_equivalent(&embedding, &transformed, &simple_roots, 1));
 //! ```
 
-use crate::{
-    arithmetic::Vector8,
-    weyl::WeylElement,
-};
+use crate::{arithmetic::Vector8, weyl::WeylElement};
 use std::collections::HashSet;
 
 /// Apply a Weyl group element to an entire Atlas embedding
@@ -135,7 +132,7 @@ pub fn apply_weyl_to_embedding(
 ///
 /// # Returns
 ///
-/// `true` if emb1[i] = emb2[i] for all i ∈ [0, 96)
+/// `true` if emb1\[i\] = emb2\[i\] for all i ∈ \[0, 96)
 #[must_use]
 pub fn embeddings_equal(emb1: &[Vector8; 96], emb2: &[Vector8; 96]) -> bool {
     emb1.iter().zip(emb2.iter()).all(|(a, b)| a == b)
@@ -285,7 +282,8 @@ mod tests {
         let simple_roots = E8RootSystem::simple_roots();
         let roots = e8.roots();
 
-        let mut embedding = [Vector8::new([crate::arithmetic::HalfInteger::from_integer(0); 8]); 96];
+        let mut embedding =
+            [Vector8::new([crate::arithmetic::HalfInteger::from_integer(0); 8]); 96];
         embedding.copy_from_slice(&roots[..96]);
 
         let identity = WeylElement::<8>::identity();
@@ -303,7 +301,8 @@ mod tests {
         let simple_roots = E8RootSystem::simple_roots();
         let roots = e8.roots();
 
-        let mut embedding = [Vector8::new([crate::arithmetic::HalfInteger::from_integer(0); 8]); 96];
+        let mut embedding =
+            [Vector8::new([crate::arithmetic::HalfInteger::from_integer(0); 8]); 96];
         embedding.copy_from_slice(&roots[..96]);
 
         let s0 = WeylElement::<8>::simple_reflection(0);

@@ -78,15 +78,15 @@
 pub mod action;
 pub mod categories;
 pub mod primitives;
-pub mod resonance;
 pub mod resgraph;
+pub mod resonance;
 
 // Re-export key types for convenience
 pub use action::{ActionFunctional, Complex12288, Configuration};
 pub use categories::{Functor, Morphism, Product, Quotient, ResonanceGraph};
 pub use primitives::{KleinElement, SimpleGraph};
-pub use resonance::{extend_to_8d, generate_all_labels, AtlasLabel, ResonanceClass};
 pub use resgraph::{ResGraphMorphism, ResGraphObject};
+pub use resonance::{extend_to_8d, generate_all_labels, AtlasLabel, ResonanceClass};
 
 #[cfg(test)]
 mod tests {

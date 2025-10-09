@@ -280,7 +280,7 @@ use crate::e8::E8RootSystem;
 
 pub mod weyl_action;
 
-use crate::{Atlas, arithmetic::Vector8};
+use crate::{arithmetic::Vector8, Atlas};
 
 /// Compute the actual Atlas → E₈ embedding as Vector8 coordinates
 ///

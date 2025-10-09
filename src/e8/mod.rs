@@ -572,7 +572,9 @@ impl E8RootSystem {
             // α₇ = e₇ + e₈
             Vector8::new([zero, zero, zero, zero, zero, zero, one, one]),
             // α₈ = ½(-1, -1, -1, -1, -1, -1, -1, -1)
-            Vector8::new([neg_half, neg_half, neg_half, neg_half, neg_half, neg_half, neg_half, neg_half]),
+            Vector8::new([
+                neg_half, neg_half, neg_half, neg_half, neg_half, neg_half, neg_half, neg_half,
+            ]),
         ]
     }
 }
@@ -767,9 +769,11 @@ mod tests {
         for (i, root) in simple_roots.iter().enumerate() {
             let norm_sq = root.inner_product(root);
             assert_eq!(
-                norm_sq, norm_squared_2,
+                norm_sq,
+                norm_squared_2,
                 "Simple root α{} must have norm² = 2, got {}",
-                i + 1, norm_sq
+                i + 1,
+                norm_sq
             );
         }
     }
@@ -795,16 +799,17 @@ mod tests {
 
         // Verify diagonal entries = 2 (normalized)
         for (i, row) in gram.iter().enumerate() {
-            assert_eq!(row[i], Rational::from_integer(2),
-                "Diagonal entry G[{i}][{i}] should be 2");
+            assert_eq!(row[i], Rational::from_integer(2), "Diagonal entry G[{i}][{i}] should be 2");
         }
 
         // Verify off-diagonal entries ≤ 0 (simple roots condition)
         for (i, row) in gram.iter().enumerate() {
             for (j, &entry) in row.iter().enumerate() {
                 if i != j {
-                    assert!(entry <= Rational::from_integer(0),
-                        "Off-diagonal G[{i}][{j}] = {entry} should be ≤ 0");
+                    assert!(
+                        entry <= Rational::from_integer(0),
+                        "Off-diagonal G[{i}][{j}] = {entry} should be ≤ 0"
+                    );
                 }
             }
         }
@@ -827,7 +832,8 @@ mod tests {
             assert!(
                 found.is_some(),
                 "Simple root α{} = {:?} not found in E₈ root system",
-                i + 1, root
+                i + 1,
+                root
             );
         }
     }
