@@ -50,12 +50,14 @@ jobs:
       - name: Verify no sorry statements
         working-directory: lean4
         run: |
-          if grep -r "sorry" AtlasEmbeddings/ --include="*.lean"; then
+          # Look for actual sorry usage (not in comments)
+          # Match: sorry, sorry), := sorry, etc. but not "NO `sorry` POLICY"
+          if grep -rE '\bsorry\b' AtlasEmbeddings/ --include="*.lean" | grep -v "^\-\-" | grep -v "NO.*sorry.*POLICY" | grep -v "ZERO sorrys"; then
             echo "Error: Found 'sorry' statements in Lean code"
             echo "All theorems must be fully proven (NO sorry POLICY)"
             exit 1
           else
-            echo "Success: No 'sorry' statements found"
+            echo "Success: No 'sorry' statements found in code"
           fi
 
       - name: Count theorems
