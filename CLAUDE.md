@@ -25,6 +25,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Build Commands
 
+### Rust Commands
+
 ```bash
 # Development
 make build              # Standard build
@@ -54,6 +56,46 @@ make clean              # Remove all build artifacts
 make audit              # Security audit
 make deps               # Show dependency tree
 ```
+
+### Lean 4 Commands
+
+```bash
+# Setup and dependencies (run from lean4/ directory)
+lake update             # Fetch mathlib4 and dependencies
+lake exe cache get      # Download prebuilt mathlib4 binaries (faster)
+
+# Building
+lake build              # Build entire project (ALWAYS use this, not module-specific targets)
+
+# Development workflow
+lean <file.lean>        # Check single file for errors
+lake env lean <file>    # Check file with project dependencies
+
+# Verification (NO `sorry` allowed)
+lake build              # All theorems must compile without `sorry`
+grep -r "sorry" AtlasEmbeddings/  # Verify no `sorry`s in source
+
+# Cleaning
+lake clean              # Remove build artifacts
+rm -rf .lake lake-packages  # Deep clean (redownload dependencies)
+```
+
+**IMPORTANT**: Always use `lake build` (without module targets) to build the project. Module-specific targets like `lake build AtlasEmbeddings.E8` can cause build issues.
+
+### Lean 4 Development Principles
+
+1. **NO `sorry` POLICY** - Every theorem must be proven
+   - This is achievable because all data is finite and explicit
+   - Use `decide`, `norm_num`, `fin_cases`, `rfl` for automatic proofs
+
+2. **Exact arithmetic only** - Use `ℚ` (rationals) not `ℝ` (reals)
+   - `HalfInteger n` becomes `(n : ℚ) / 2`
+   - All E₈ roots are exactly representable
+
+3. **Computational proofs** - Let Lean compute on finite data
+   - 240 E₈ roots: explicit list, verify with `decide`
+   - 96 Atlas vertices: explicit enumeration
+   - All properties decidable on finite domains
 
 ## Architecture
 
@@ -190,4 +232,144 @@ assert_eq!(root.norm_squared(), Rational::from_integer(2));
 cargo test --test e6_construction       # Specific integration test
 cargo test atlas::tests::test_mirror    # Specific unit test by path
 cargo test --doc groups::E6             # Doc test for E6
+```
+
+### Lean 4 Common Development Tasks
+
+#### Minimal Complete Progress Strategy (CRITICAL)
+
+**Problem**: Attempting to prove everything at once leads to:
+- Compilation errors from incomplete proofs
+- Difficulty debugging which theorem fails
+- Context switching between multiple unfinished proofs
+
+**Solution**: Build the **minimal complete foundation** incrementally:
+
+1. **Identify the smallest buildable unit**
+   - What's the absolute minimum needed for the next layer?
+   - Example: `HalfInteger` needs only `add_comm` and `zero_add` to be usable
+
+2. **Implement minimal structure + 2-3 theorems max**
+   - Define the structure and instances
+   - Prove ONLY the theorems needed immediately
+   - Skip theorems that can be added later
+
+3. **Build and verify (NO `sorry`)**
+   ```bash
+   lake build  # Must succeed
+   grep -n "sorry" ModuleName.lean  # Must be empty
+   ```
+
+4. **Commit the complete minimal unit**
+   - This gives a stable foundation to build on
+   - If next steps fail, you can revert to working code
+
+5. **Iterate: Add next minimal layer**
+   - Example: With `HalfInteger` proven → build `Vector8`
+   - Each layer builds on previous complete layer
+
+**Example: HalfInteger Foundation (78 lines, 2 theorems)**
+```lean
+structure HalfInteger where
+  numerator : ℤ
+
+-- Minimal operations
+def new (n : ℤ) : HalfInteger := ⟨n⟩
+def zero : HalfInteger := ⟨0⟩
+instance : Add HalfInteger := ⟨fun x y => ⟨x.numerator + y.numerator⟩⟩
+
+-- ONLY 2 theorems (not 10)
+theorem add_comm (x y : HalfInteger) : x + y = y + x := by ...
+theorem zero_add (x : HalfInteger) : zero + x = x := by ...
+
+-- Build it: lake build ✓
+-- No sorrys: grep finds nothing ✓
+-- Ready for Vector8 ✓
+```
+
+This beats trying to prove `toRat_add`, `add_assoc`, `add_zero`, `neg_add_cancel`, etc. all at once.
+
+#### Adding a New Lean Module
+
+1. **Start minimal**: Create file in `lean4/AtlasEmbeddings/ModuleName.lean`
+2. Add mathematical background in doc comment at top
+3. Import ONLY required mathlib modules (don't over-import)
+4. Define core structure and 3-5 essential operations (not all)
+5. Prove **2-3 theorems max** (only what's immediately needed)
+6. Build and verify: `lake build` (must succeed)
+7. Verify zero sorrys: `grep -n "sorry" ModuleName.lean` (must be empty)
+8. Add to `lean4/AtlasEmbeddings.lean` imports
+9. **Only then** add more theorems if needed for next layer
+
+#### Proving Theorems in Lean 4
+
+**Tactic Strategy for NO `sorry` proofs:**
+
+1. **For structure equality**: Use `apply ext` first
+   ```lean
+   theorem add_comm (x y : HalfInteger) : x + y = y + x := by
+     apply ext  -- Reduces to proving numerators equal
+     -- Now goal is: (x + y).numerator = (y + x).numerator
+     show x.numerator + y.numerator = y.numerator + x.numerator
+     ring  -- Integer arithmetic
+   ```
+
+2. **For definitional equality**: Use `show` to make goal explicit
+   ```lean
+   theorem zero_add (x : HalfInteger) : zero + x = x := by
+     apply ext
+     show (zero + x).numerator = x.numerator
+     show 0 + x.numerator = x.numerator  -- Unfold zero
+     ring  -- Proves 0 + n = n
+   ```
+
+3. **For computations on finite data**: Use `rfl` or `decide`
+   ```lean
+   theorem e8_has_240_roots : roots.length = 240 := by
+     rfl  -- Lean computes this automatically
+
+   theorem atlas_is_unique : atlas.vertices.length = 96 := by
+     decide  -- Decidable computation
+   ```
+
+4. **For integer/rational arithmetic**: Use `ring`
+   - Works on ℤ and ℚ
+   - Does NOT work with division (use `field_simp` or avoid)
+   ```lean
+   -- Good
+   theorem int_arith : x + y = y + x := by ring
+
+   -- Avoid (ring doesn't handle /)
+   -- theorem rat_div : (x + y) / 2 = x / 2 + y / 2 := by ring  -- FAILS
+   ```
+
+5. **For case analysis**: Use `fin_cases` on finite types
+   ```lean
+   theorem norm_is_two (r : E8Root) : normSq r = 2 := by
+     fin_cases r  -- Check all 240 cases
+     all_goals norm_num  -- Prove each numerically
+   ```
+
+6. **When stuck**: Use `unfold` then `simp only` then `ring`
+   ```lean
+   theorem complex_proof : foo = bar := by
+     unfold foo bar  -- Expand definitions
+     simp only [Add.add, Neg.neg]  -- Simplify specific things
+     ring  -- Finish with algebra
+   ```
+
+**Common proof pattern for HalfInteger/Vector8:**
+```lean
+theorem some_property : lhs = rhs := by
+  apply ext          -- 1. Reduce to field equality
+  show lhs.field = rhs.field  -- 2. Make it explicit
+  ring               -- 3. Solve with algebra
+```
+
+#### Verifying No `sorry`s
+
+```bash
+cd lean4
+grep -r "sorry" AtlasEmbeddings/  # Must return empty
+lake build                        # All theorems must compile
 ```
