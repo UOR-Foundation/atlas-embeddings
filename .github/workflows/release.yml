@@ -1,0 +1,71 @@
+name: Release Artifacts
+
+on:
+  release:
+    types: [created]
+  workflow_dispatch: # Allow manual trigger for testing
+
+permissions:
+  contents: write
+
+jobs:
+  generate-fractals:
+    name: Generate Golden Seed Fractal Artifacts
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2
+
+      - name: Build examples in release mode
+        run: cargo build --release --examples
+
+      - name: Generate Golden Seed Fractals
+        run: |
+          echo "Generating depth 0 and 1..."
+          cargo run --release --example generate_golden_seed_fractal
+          echo "Generating depth 2..."
+          cargo run --release --example generate_depth2_fractal
+
+      - name: Generate Dynkin Diagrams
+        run: cargo run --release --example generate_dynkin_diagrams
+
+      - name: Generate E8 Projections
+        run: cargo run --release --example visualize_e8_projections
+
+      - name: List generated files
+        run: |
+          echo "Generated artifacts:"
+          ls -lh *.svg *.csv
+
+      - name: Upload artifacts to release
+        if: github.event_name == 'release'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload ${{ github.event.release.tag_name }} \
+            golden_seed_fractal_depth0.svg \
+            golden_seed_fractal_depth1.svg \
+            golden_seed_fractal_depth2.svg \
+            g2_dynkin.svg \
+            f4_dynkin.svg \
+            e6_dynkin.svg \
+            e7_dynkin.svg \
+            e8_dynkin.svg \
+            e8_coxeter_plane.csv \
+            e8_3d_projection.csv \
+            e8_xy_plane.csv \
+            --clobber
+
+      - name: Summary
+        run: |
+          echo "## 🌟 Golden Seed Fractal Generation Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Generated $(ls *.svg | wc -l) SVG files and $(ls *.csv | wc -l) CSV files" >> $GITHUB_STEP_SUMMARY
