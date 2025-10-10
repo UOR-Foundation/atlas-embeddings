@@ -1,6 +1,6 @@
 [package]
 name = "atlas-embeddings"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 authors = ["UOR Foundation <contact@uor.foundation>"]
 license = "MIT"

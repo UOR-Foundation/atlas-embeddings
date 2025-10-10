@@ -3,9 +3,12 @@
 //! WARNING: This generates 893,088 points and creates a very large SVG file (~120 MB)
 
 #[cfg(feature = "visualization")]
+#[allow(clippy::float_arithmetic)]
+#[allow(clippy::cast_precision_loss)]
+#[allow(clippy::large_stack_arrays)]
 fn main() {
-    use atlas_embeddings::Atlas;
     use atlas_embeddings::visualization::fractal::GoldenSeedFractal;
+    use atlas_embeddings::Atlas;
 
     println!("Generating Golden Seed Fractal at Depth 2...");
     println!("⚠️  WARNING: This will generate 893,088 points!");
@@ -30,15 +33,16 @@ fn main() {
 
     let filename = "golden_seed_fractal_depth2.svg";
 
-    match std::fs::write(filename, &svg) {
-        Ok(_) => {
-            println!("  ✓ Written {filename}");
-            println!("  Size: {} bytes ({:.1} MB)", format_number(svg.len()), svg.len() as f64 / 1_048_576.0);
-            println!("  Generation time: {:.2}s", elapsed.as_secs_f64());
-        }
-        Err(e) => {
-            eprintln!("  ❌ Error: Could not write {filename}: {e}");
-        }
+    if let Err(e) = std::fs::write(filename, &svg) {
+        eprintln!("  ❌ Error: Could not write {filename}: {e}");
+    } else {
+        println!("  ✓ Written {filename}");
+        println!(
+            "  Size: {} bytes ({:.1} MB)",
+            format_number(svg.len()),
+            svg.len() as f64 / 1_048_576.0
+        );
+        println!("  Generation time: {:.2}s", elapsed.as_secs_f64());
     }
 
     println!();
@@ -62,6 +66,7 @@ fn main() {
 }
 
 /// Format a number with thousand separators
+#[allow(clippy::large_stack_arrays)]
 fn format_number(n: usize) -> String {
     let s = n.to_string();
     let mut result = String::new();
