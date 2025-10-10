@@ -69,3 +69,41 @@ jobs:
           echo "## 🌟 Golden Seed Fractal Generation Complete" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "Generated $(ls *.svg | wc -l) SVG files and $(ls *.csv | wc -l) CSV files" >> $GITHUB_STEP_SUMMARY
+
+  publish-crate:
+    name: Publish to crates.io
+    runs-on: ubuntu-latest
+    needs: generate-fractals
+    if: github.event_name == 'release'
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Verify version matches tag
+        run: |
+          CARGO_VERSION=$(grep '^version = ' Cargo.toml | head -1 | sed 's/version = "\(.*\)"/\1/')
+          TAG_VERSION=${{ github.event.release.tag_name }}
+          TAG_VERSION=${TAG_VERSION#v}  # Remove 'v' prefix if present
+          echo "Cargo.toml version: $CARGO_VERSION"
+          echo "Release tag version: $TAG_VERSION"
+          if [ "$CARGO_VERSION" != "$TAG_VERSION" ]; then
+            echo "ERROR: Version mismatch!"
+            exit 1
+          fi
+
+      - name: Publish to crates.io
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: cargo publish --token "${CARGO_REGISTRY_TOKEN}"
+
+      - name: Summary
+        run: |
+          echo "## 📦 Published to crates.io" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Version: ${{ github.event.release.tag_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "Package: atlas-embeddings" >> $GITHUB_STEP_SUMMARY
