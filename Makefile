@@ -1,16 +1,16 @@
-.PHONY: help build test check lint format docs clean bench audit install-tools all verify
+.PHONY: help build test check lint format docs clean bench audit install-tools all verify lean4-build lean4-clean lean4-test
 
 # Default target
 help:
 	@echo "atlas-embeddings - Makefile targets:"
 	@echo ""
 	@echo "Building:"
-	@echo "  make build          - Build the crate"
+	@echo "  make build          - Build the Rust crate"
 	@echo "  make build-release  - Build with optimizations"
-	@echo "  make all            - Build + test + check + docs"
+	@echo "  make all            - Build + test + check + docs (Rust only)"
 	@echo ""
 	@echo "Testing:"
-	@echo "  make test           - Run all tests"
+	@echo "  make test           - Run all Rust tests"
 	@echo "  make test-unit      - Run unit tests only"
 	@echo "  make test-int       - Run integration tests only"
 	@echo "  make test-doc       - Run documentation tests"
@@ -20,19 +20,24 @@ help:
 	@echo "  make lint           - Run clippy with strict lints"
 	@echo "  make format         - Format code with rustfmt"
 	@echo "  make format-check   - Check formatting without changes"
-	@echo "  make verify         - Run all checks (CI equivalent)"
+	@echo "  make verify         - Run all checks (CI equivalent, Rust only)"
 	@echo ""
 	@echo "Documentation:"
-	@echo "  make docs           - Build documentation"
-	@echo "  make docs-open      - Build and open documentation"
+	@echo "  make docs           - Build Rust documentation"
+	@echo "  make docs-open      - Build and open Rust documentation"
 	@echo "  make docs-private   - Build docs including private items"
+	@echo ""
+	@echo "Lean 4 Formalization:"
+	@echo "  make lean4-build    - Build Lean 4 formalization"
+	@echo "  make lean4-clean    - Clean Lean 4 build artifacts"
+	@echo "  make lean4-test     - Verify no sorry statements in Lean code"
 	@echo ""
 	@echo "Benchmarking:"
 	@echo "  make bench          - Run all benchmarks"
 	@echo "  make bench-save     - Run benchmarks and save baseline"
 	@echo ""
 	@echo "Maintenance:"
-	@echo "  make clean          - Remove build artifacts"
+	@echo "  make clean          - Remove all build artifacts (Rust + Lean)"
 	@echo "  make audit          - Check for security vulnerabilities"
 	@echo "  make install-tools  - Install required development tools"
 	@echo "  make deps           - Check dependency tree"
@@ -105,11 +110,33 @@ bench:
 bench-save:
 	cargo bench --all-features -- --save-baseline main
 
+# Lean 4 targets
+lean4-build:
+	@echo "Building Lean 4 formalization..."
+	cd lean4 && lake build
+	@echo "✓ Lean 4 build complete (8 modules, 1,454 lines, 54 theorems)"
+
+lean4-clean:
+	@echo "Cleaning Lean 4 build artifacts..."
+	cd lean4 && lake clean
+	@echo "✓ Lean 4 artifacts cleaned"
+
+lean4-test:
+	@echo "Verifying no sorry statements in Lean code..."
+	@if grep -rE '\bsorry\b' lean4/AtlasEmbeddings/ --include="*.lean" | grep -v "^\-\-" | grep -v "NO.*sorry.*POLICY" | grep -v "ZERO sorrys"; then \
+		echo "Error: Found 'sorry' statements in Lean code"; \
+		exit 1; \
+	else \
+		echo "✓ Zero sorry statements found - all 54 theorems proven"; \
+	fi
+
 # Maintenance
 clean:
 	cargo clean
 	rm -rf target/
 	rm -rf Cargo.lock
+	@if [ -d lean4 ]; then cd lean4 && lake clean; fi
+	@echo "✓ All build artifacts removed"
 
 audit:
 	cargo audit

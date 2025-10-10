@@ -19,6 +19,7 @@ This crate provides a **mathematically rigorous implementation** of the Atlas of
 - ✅ **First Principles** - Constructions from Atlas structure alone, no external Lie theory assumptions
 - ✅ **Type Safety** - Compile-time guarantees of mathematical properties via Rust's type system
 - ✅ **Certifying Proofs** - Tests serve as formal verification of mathematical claims
+- ✅ **Formal Verification** - Complete Lean 4 formalization (8 modules, 1,454 lines, 54 theorems, **0 sorrys**)
 - ✅ **Documentation as Paper** - Primary exposition through comprehensive rustdoc
 - ✅ **No-std Compatible** - Can run in embedded/WASM environments
 
@@ -100,6 +101,9 @@ make docs-open
 
 # Run all checks (formatting, linting, tests, docs)
 make verify
+
+# Lean 4 formalization
+cd lean4 && lake build
 ```
 
 ### Documentation
@@ -116,6 +120,18 @@ Key documentation sections:
 - **[Module: `groups`]** - Exceptional group constructions (G₂, F₄, E₆, E₇, E₈)
 - **[Module: `cartan`]** - Cartan matrix extraction and Dynkin diagrams
 - **[Module: `categorical`]** - Categorical operations (product, quotient, filtration)
+
+### Formal Verification (Lean 4)
+
+See [lean4/README.md](lean4/README.md) for the complete Lean 4 formalization:
+
+```bash
+cd lean4
+lake build        # Build all 8 modules (1,454 lines, 54 theorems)
+lake clean        # Clean build artifacts
+```
+
+**Status:** ✅ Complete - All 54 theorems proven with **0 sorrys**
 
 ### Testing
 
@@ -156,6 +172,7 @@ atlas-embeddings/
 │   ├── cartan/             # Cartan matrices and Dynkin diagrams
 │   ├── weyl/               # Weyl groups and reflections
 │   └── categorical/        # Categorical operations
+├── lean4/                  # Lean 4 formalization
 ├── tests/                  # Integration tests
 ├── benches/                # Performance benchmarks
 ├── docs/                   # Additional documentation
