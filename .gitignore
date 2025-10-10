@@ -38,8 +38,12 @@ check_*
 *.json
 assets/
 
-# Large fractal files (built by CI as release artifacts)
-golden_seed_fractal_depth*.svg
+# Exception: Keep committed images for README
+!.github/images/*.svg
+!.github/images/*.png
+
+# Large fractal files (built by CI as release artifacts, but not in .github/images/)
+/golden_seed_fractal_depth*.svg
 *_dynkin.svg
 e8_*.csv
 golden_seed_*.csv

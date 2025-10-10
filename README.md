@@ -1,6 +1,10 @@
 # atlas-embeddings
 
 <p align="center">
+  <img src=".github/images/golden_seed_fractal_depth1.svg" alt="Golden Seed Fractal - Depth 1" width="600">
+</p>
+
+<p align="center">
   <em>🌟 The Golden Seed Fractal: 96-fold self-similar visualization of the Atlas 🌟</em><br>
   <sub><a href="https://github.com/UOR-Foundation/atlas-embeddings/releases/latest/download/golden_seed_fractal_depth2.svg">Download Full Resolution Fractal (Depth 2, 894K points)</a></sub>
 </p>
