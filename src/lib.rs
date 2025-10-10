@@ -775,6 +775,9 @@ pub mod foundations;
 pub mod groups;
 pub mod weyl;
 
+#[cfg(feature = "visualization")]
+pub mod visualization;
+
 // Re-exports for convenience
 pub use atlas::Atlas;
 pub use cartan::CartanMatrix;

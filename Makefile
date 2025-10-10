@@ -32,6 +32,13 @@ help:
 	@echo "  make lean4-clean    - Clean Lean 4 build artifacts"
 	@echo "  make lean4-test     - Verify no sorry statements in Lean code"
 	@echo ""
+	@echo "Visualization:"
+	@echo "  make vis-atlas      - Generate Atlas graph visualizations"
+	@echo "  make vis-dynkin     - Generate Dynkin diagrams (SVG)"
+	@echo "  make vis-golden-seed - Export Golden Seed Vector"
+	@echo "  make vis-all        - Generate all visualizations"
+	@echo "  make vis-clean      - Clean generated visualization files"
+	@echo ""
 	@echo "Benchmarking:"
 	@echo "  make bench          - Run all benchmarks"
 	@echo "  make bench-save     - Run benchmarks and save baseline"
@@ -129,6 +136,29 @@ lean4-test:
 	else \
 		echo "✓ Zero sorry statements found - all 54 theorems proven"; \
 	fi
+
+# Visualization targets
+vis-atlas:
+	@echo "Generating Atlas graph visualizations..."
+	cargo run --example generate_atlas_graph --features visualization
+
+vis-dynkin:
+	@echo "Generating Dynkin diagrams..."
+	cargo run --example generate_dynkin_diagrams --features visualization
+
+vis-golden-seed:
+	@echo "Exporting Golden Seed Vector..."
+	cargo run --example export_golden_seed_vector --features visualization
+
+vis-all: vis-atlas vis-dynkin vis-golden-seed
+	@echo "✓ All visualizations generated"
+
+vis-clean:
+	@echo "Cleaning generated visualization files..."
+	@rm -f atlas_graph.* atlas_edges.csv atlas_nodes.csv
+	@rm -f *_dynkin.svg
+	@rm -f golden_seed_*.csv golden_seed_*.json adjacency_preservation.csv
+	@echo "✓ Visualization files cleaned"
 
 # Maintenance
 clean:

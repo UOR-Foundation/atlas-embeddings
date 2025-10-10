@@ -42,13 +42,14 @@ pretty_assertions = "1.4"
 test-case = "3.3"
 
 [features]
-default = ["std"]
+default = ["std", "visualization"]
 std = [
     "num-rational/std",
     "num-integer/std",
     "num-traits/std",
 ]
 serde = ["dep:serde", "dep:serde_json", "num-rational/serde"]
+visualization = []
 
 # Strict compilation for peer review
 [profile.dev]
