@@ -321,6 +321,20 @@ The uniqueness follows from the categorical constructions:
 This closes verification gap **NV3** from PLAN.md Phase 8.
 -/
 
+/-- No sixth exceptional group: The five operations are exhaustive -/
+theorem no_sixth_exceptional_group :
+    CategoricalOperation.allOperations.length = 5 ∧
+    (∀ op₁ op₂, op₁ ∈ CategoricalOperation.allOperations →
+      op₂ ∈ CategoricalOperation.allOperations →
+      CategoricalOperation.operationResult op₁ = CategoricalOperation.operationResult op₂ →
+      op₁ = op₂) := by
+  constructor
+  · rfl  -- Exactly 5 operations
+  · intros op₁ op₂ h₁ h₂ heq
+    -- All operations produce distinct groups, so equality implies same operation
+    cases op₁ <;> cases op₂ <;> simp [CategoricalOperation.operationResult] at heq <;> try rfl
+    all_goals contradiction
+
 /-! ## Completeness Summary
 
 From Rust (tests/categorical_completeness.rs):

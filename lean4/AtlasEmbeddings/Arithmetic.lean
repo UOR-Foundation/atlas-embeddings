@@ -48,6 +48,9 @@ def ofInt (n : ℤ) : HalfInteger := ⟨2 * n⟩
 /-- Convert to rational (Rust line 113) -/
 def toRat (x : HalfInteger) : ℚ := x.numerator / 2
 
+/-- Phase 1.1 (PLAN.md lines 75-79): squared norm as exact rational. -/
+def normSquared (x : HalfInteger) : ℚ := x.toRat * x.toRat
+
 /-- Zero (Rust line 160) -/
 def zero : HalfInteger := ⟨0⟩
 
@@ -78,6 +81,11 @@ theorem zero_add (x : HalfInteger) : zero + x = x := by
   show (zero + x).numerator = x.numerator
   show 0 + x.numerator = x.numerator
   ring
+
+/-- Phase 1.1 (PLAN.md lines 75-79): squared norms are nonnegative. -/
+theorem normSquared_nonneg (x : HalfInteger) : 0 ≤ x.normSquared := by
+  unfold normSquared
+  simpa using mul_self_nonneg (x.toRat)
 
 end HalfInteger
 

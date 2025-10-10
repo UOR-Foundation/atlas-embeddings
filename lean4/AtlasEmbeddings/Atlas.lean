@@ -96,6 +96,23 @@ The mirror transformation flips e₇ coordinate.
 def mirrorLabel (l : AtlasLabel) : AtlasLabel :=
   { l with e7 := 1 - l.e7 }
 
+/-- Mirror symmetry is an involution: τ² = id -/
+theorem mirror_involution (l : AtlasLabel) :
+    mirrorLabel (mirrorLabel l) = l := by
+  cases l
+  simp [mirrorLabel]
+  omega
+
+/-! ## Degree Function
+
+From Rust (src/atlas/mod.rs:582-584):
+Degree of a vertex = number of neighbors in adjacency structure.
+-/
+
+/-- Compute degree of a label (number of neighbors) -/
+def degree (l : AtlasLabel) : Nat :=
+  generateAtlasLabels.filter (isNeighbor l) |>.length
+
 /-! ## Count Verification
 
 Following Rust's approach (line 449): runtime assertion `assert_eq!(labels.len(), ATLAS_VERTEX_COUNT)`.

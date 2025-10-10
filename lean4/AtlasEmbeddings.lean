@@ -34,5 +34,6 @@ import AtlasEmbeddings.E8
 import AtlasEmbeddings.Atlas
 import AtlasEmbeddings.Embedding
 import AtlasEmbeddings.Groups
+import AtlasEmbeddings.CategoricalFunctors
 import AtlasEmbeddings.Completeness
 import AtlasEmbeddings.ActionFunctional

@@ -123,6 +123,31 @@ theorem e7_augmentation_structure : E7.numRoots = 96 + 30 := by
 theorem e8_complete_structure : E8.numRoots = 240 := by
   rfl
 
+/-! ## Rank Properties
+
+The ranks form a strictly increasing sequence.
+-/
+
+/-- G₂ has rank 2 -/
+theorem g2_rank : G2.rank = 2 := by rfl
+
+/-- F₄ has rank 4 -/
+theorem f4_rank : F4.rank = 4 := by rfl
+
+/-- E₆ has rank 6 -/
+theorem e6_rank : E6.rank = 6 := by rfl
+
+/-- E₇ has rank 7 -/
+theorem e7_rank : E7.rank = 7 := by rfl
+
+/-- E₈ has rank 8 -/
+theorem e8_rank : E8.rank = 8 := by rfl
+
+/-- Ranks are strictly increasing: G₂ < F₄ < E₆ < E₇ < E₈ -/
+theorem ranks_increasing :
+    G2.rank < F4.rank ∧ F4.rank < E6.rank ∧ E6.rank < E7.rank ∧ E7.rank < E8.rank := by
+  decide
+
 /-! ## The Inclusion Chain
 
 From Rust (lines 41-47):

@@ -93,3 +93,22 @@ def hasNormTwo (v : Vector8) : Bool :=
 theorem all_roots_have_norm_two :
     allE8Roots.all hasNormTwo = true := by
   native_decide
+
+/-! ## Simple Roots (TODO: Derive from Categorical Construction)
+
+The 8 simple roots of E₈ should emerge from the categorical embedding
+construction, not be asserted a priori.
+
+**Current status**: Classical definition deferred until we prove the
+categorical functors (Atlas → E₈ embedding) preserve the required
+structure. Then simple roots will be identified as specific elements
+within the embedded Atlas structure.
+
+**Roadmap**:
+1. Define E₈ embedding functor: F_E8: Atlas → E₈
+2. Prove F_E8 preserves adjacency and symmetries
+3. Identify simple roots as images of specific Atlas vertices
+4. Prove they form a basis via Gram matrix computation
+
+This ensures simple roots emerge FROM the Atlas, not from classical Lie theory.
+-/
