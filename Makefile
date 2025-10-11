@@ -102,13 +102,13 @@ verify: format-check check lint test docs
 
 # Documentation
 docs:
-	cargo doc --all-features --no-deps
+	RUSTDOCFLAGS="--html-in-header docs/katex-header.html" cargo doc --all-features --no-deps
 
 docs-open:
-	cargo doc --all-features --no-deps --open
+	RUSTDOCFLAGS="--html-in-header docs/katex-header.html" cargo doc --all-features --no-deps --open
 
 docs-private:
-	cargo doc --all-features --no-deps --document-private-items
+	RUSTDOCFLAGS="--html-in-header docs/katex-header.html" cargo doc --all-features --no-deps --document-private-items
 
 # Benchmarking
 bench:
