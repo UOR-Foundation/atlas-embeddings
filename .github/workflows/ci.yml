@@ -85,7 +85,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
-      - run: cargo bench --all-features -- --baseline main --save-baseline pr
+      - run: cargo bench --all-features
 
   # Disabled due to proc-macro2 minimal version incompatibility
   # minimal-versions:
