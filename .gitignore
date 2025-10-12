@@ -49,3 +49,4 @@ e8_*.csv
 golden_seed_*.csv
 golden_seed_*.json
 adjacency_preservation.csv
+!docs/terminology.json

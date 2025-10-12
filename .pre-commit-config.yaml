@@ -1,0 +1,8 @@
+repos:
+  - repo: local
+    hooks:
+      - id: terminology-lint
+        name: terminology-lint
+        entry: python tools/terminology_lint.py
+        language: system
+        pass_filenames: false

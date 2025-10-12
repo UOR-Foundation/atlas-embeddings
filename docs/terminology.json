@@ -1,0 +1,11 @@
+{
+  "rules": [
+    {
+      "name": "ban-96-dimensional",
+      "pattern": "(?i)\\b96\\s*[- ]?dimensional\\b",
+      "replacement": "96-vertex subgraph of the E8 roots"
+    }
+  ],
+  "include": ["**/*.{md,tex,txt,py,ts,tsx,js,jsx,rs,go,java,c,cpp,json,yaml}"],
+  "exclude": ["**/*.{png,jpg,jpeg,gif,svg,pdf,zip,npz,bin}"]
+}
