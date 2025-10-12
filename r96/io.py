@@ -5,6 +5,7 @@ import pathlib
 
 import numpy as np
 
+from core.arithmetic import Q as _Q
 from .build import CSR, R96Graph
 
 
@@ -22,12 +23,13 @@ def save_artifacts(outdir: str, g: R96Graph) -> None:
         data=np.array(g.csr.data, dtype=np.int8),
     )
 
+    avg = _Q(sum(g.degrees), len(g.degrees)) if g.degrees else _Q(0)
     degree_stats = {
         "n": g.csr.n,
         "edges": g.edges,
         "degree_min": int(min(g.degrees)) if g.degrees else 0,
         "degree_max": int(max(g.degrees)) if g.degrees else 0,
-        "degree_avg": float(sum(g.degrees) / len(g.degrees)) if g.degrees else 0.0,
+        "degree_avg": {"numerator": avg.numerator, "denominator": avg.denominator},
         "cayley_free": g.cayley_free,
         "negation_closed": g.negation_closed,
     }

@@ -36,6 +36,7 @@ def test_r96_core_counts_and_flag(tmp_path):
     stats = json.loads((outdir / "degree_stats.json").read_text())
     assert stats["cayley_free"] is True
     assert stats["negation_closed"] is False
+    assert stats["degree_avg"]["denominator"] > 0
 
 
 def test_negation_closure_no_edge_changes_structure():
