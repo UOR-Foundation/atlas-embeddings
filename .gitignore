@@ -36,6 +36,9 @@ check_*
 *.png
 *.csv
 *.json
+!artifacts/manifest.lock.json
+!data/atlas_min.json
+!data/iota_96.json
 assets/
 
 # Exception: Keep committed images for README
