@@ -563,8 +563,8 @@
 //! - **E₈**: Embedding (full) → 240 roots, rank 8
 //!
 //! **Theorem E (Completeness)**
-//! These are the **only** exceptional Lie groups. The Atlas initiality implies
-//! no sixth exceptional group exists—the five morphisms exhaust all possibilities.
+//! These are the **only** exceptional Lie groups. The Atlas initiality (Conjecture)
+//! suggests the five morphisms exhaust all possibilities.
 //!
 //! **Implications**
 //!

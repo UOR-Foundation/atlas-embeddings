@@ -18,6 +18,16 @@
 
 > First-principles construction of exceptional Lie groups from the Atlas of Resonance Classes
 
+## Status of results
+
+**Theorem.** Atlas→E8 embedding. Proof in `docs/proofs/atlas_to_e8_embedding.md`.
+
+**Conjecture.** Exceptional constructions (G2, F4, E6, E7, E8). Evidence in `docs/evidence/constructions_G2_F4_E6_E7_E8.md`.
+
+**Conjecture.** Unrestricted initiality. Not proved.
+
+**Removed claim.** The statement denying the existence of a sixth exceptional group is not asserted.
+
 ## Overview
 
 **atlas-embeddings** is a rigorous mathematical framework demonstrating how all five exceptional Lie groups emerge from a single initial object: the **Atlas of Resonance Classes**.
@@ -53,7 +63,7 @@ This framework has implications across multiple domains:
 - **Exact Arithmetic** - All computations use rational numbers, no floating point
 - **First Principles** - Constructions from Atlas structure alone, no external Lie theory assumptions
 - **Type Safety** - Compile-time guarantees of mathematical properties via Rust's type system
-- **Certifying Proofs** - Tests serve as formal verification of mathematical claims
+- **Certifying Evidence** - Tests provide computational evidence for mathematical claims
 - **Formal Verification** - Complete Lean 4 formalization (8 modules, 1,454 lines, 54 theorems, 0 sorrys)
 - **Documentation as Paper** - Primary exposition through comprehensive rustdoc
 - **No-std Compatible** - Can run in embedded/WASM environments

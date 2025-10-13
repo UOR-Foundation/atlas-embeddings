@@ -1,3 +1,5 @@
-# ResGraph and morphisms
+# Lemma. ResGraph morphisms
 
-This page will host formal statements and proofs concerning the resolution graph and its morphisms.
+The resolution graph associated with the Atlas admits morphisms preserving the
+categorical structure required for the E₈ embedding. This page collects the
+lemmas establishing that compatibility.

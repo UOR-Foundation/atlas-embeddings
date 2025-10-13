@@ -1,5 +1,5 @@
 !!! warning "Computational evidence"
-    The content below is evidence produced by exact-arithmetic programs. It is **not** a proof.
+    The content below is evidence. It is **not** a proof.
 
 # E1–E3 validation
 

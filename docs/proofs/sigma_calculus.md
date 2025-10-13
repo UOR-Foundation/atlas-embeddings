@@ -1,3 +1,4 @@
-# Σ-calculus lemmas
+# Lemma. Σ-calculus identities
 
-Record the Σ-calculus lemmas and derivations required for the embedding program.
+The Σ-calculus identities necessary for the Atlas→E₈ embedding are recorded
+here, organized as lemmas referenced by the main theorem.

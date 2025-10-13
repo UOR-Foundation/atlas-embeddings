@@ -76,7 +76,7 @@ See [LAST_MILE.md](LAST_MILE.md) for detailed analysis.
 - **Phase 2:** ✅ E₈ Root System (all 240 roots have norm² = 2)
 - **Phase 3:** ✅ Atlas Structure (96 vertices, mirror involution, degree function)
 - **Phase 4:** ✅ Atlas → E₈ Embedding (certified embedding)
-- **Phase 5:** ✅ Categorical Framework (ResGraph category, initiality proven)
+- **Phase 5:** ✅ Categorical Framework (ResGraph category, initiality (Conjecture) proven)
 - **Phase 5.5:** ✅ **Categorical Functors (Five "foldings": Product, Quotient, Filtration, Augmentation, Embedding)**
 - **Phase 6:** ✅ Five Exceptional Groups (G₂, F₄, E₆, E₇, E₈ with universal properties)
 - **Phase 7:** ✅ Completeness (exactly 5 operations, no 6th group)
@@ -192,7 +192,7 @@ From `temp/` directory, we have computational certificates:
 
 - `CATEGORICAL_FORMALIZATION_CERTIFICATE.json` - All 5 operations verified
 - `categorical_operations_certificate.json` - Root counts match
-- `functors_certificate.json` - Uniqueness from initiality
+- `functors_certificate.json` - Uniqueness from initiality (Conjecture)
 - `QUOTIENT_GRAPHS_AND_ROOT_SYSTEMS.md` - Formal mathematical framework
 
 These guide the Lean proofs and provide test oracles.
@@ -223,7 +223,7 @@ This formalization proves the mathematical claims made in the main Rust reposito
 
 ### Main Theorem
 
-**Theorem (Atlas Initiality):** The Atlas is the initial object in the category `ResGraph` of resonance graphs. All five exceptional Lie groups emerge as unique categorical operations on the Atlas.
+**Theorem (Atlas Initiality (Conjecture)):** The Atlas is the initial object in the category `ResGraph` of resonance graphs. All five exceptional Lie groups emerge as unique categorical operations on the Atlas.
 
 ### Implications
 

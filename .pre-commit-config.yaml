@@ -11,3 +11,8 @@ repos:
         entry: python tools/docs_lint.py
         language: system
         pass_filenames: false
+      - id: claims-guard
+        name: claims-guard
+        entry: python tools/claims_guard.py
+        language: system
+        pass_filenames: false
