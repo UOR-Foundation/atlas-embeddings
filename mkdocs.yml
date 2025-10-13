@@ -1,0 +1,23 @@
+site_name: Hologram / Atlas
+theme:
+  name: material
+nav:
+  - Overview: index.md
+  - Proofs:
+      - Proofs home: proofs/index.md
+      - ResGraph and morphisms: proofs/resgraph.md
+      - Atlas→E8 embedding theorem: proofs/atlas_to_e8_embedding.md
+      - Σ-calculus lemmas: proofs/sigma_calculus.md
+  - Computational evidence:
+      - Evidence home: evidence/index.md
+      - E1–E3 validation: evidence/e1_e3_validation.md
+      - Exceptional constructions: evidence/constructions_G2_F4_E6_E7_E8.md
+      - Artifact manifest: evidence/artifacts_manifest.md
+      - Reproducibility & CI: evidence/reproducibility_ci.md
+markdown_extensions:
+  - admonition
+  - toc:
+      permalink: true
+  - attr_list
+  - pymdownx.details
+  - pymdownx.superfences
