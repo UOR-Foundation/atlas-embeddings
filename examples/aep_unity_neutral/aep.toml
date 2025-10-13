@@ -1,0 +1,14 @@
+# 2) Claims, attributes, witnesses
+claims = ["unity_neutral", "mirror_safe", "boundary_window", "phase_window", "classes_mask"]
+
+[boundary_window]
+shape = "rect"
+# integer limits: [xmin, xmax, ymin, ymax]
+limits = [0, 1024, 0, 1024]
+
+[phase_window]
+# store as strings for Decimal parsing; no floats
+phi0 = "0"
+span = "628318"    # example in micro-radians with Q=1e6 => 0.628318 rad
+
+classes_mask = [0,1,2]
