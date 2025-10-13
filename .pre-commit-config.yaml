@@ -6,3 +6,8 @@ repos:
         entry: python tools/terminology_lint.py
         language: system
         pass_filenames: false
+      - id: docs-lint
+        name: docs-lint
+        entry: python tools/docs_lint.py
+        language: system
+        pass_filenames: false
