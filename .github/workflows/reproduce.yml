@@ -1,0 +1,36 @@
+name: reproduce-and-verify
+on: [push, pull_request]
+jobs:
+  repro:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.11' }
+      - name: Install pinned deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Reproduce artifacts
+        run: python bin/reproduce.py
+      - name: Fail if no lockfile
+        run: |
+          test -f artifacts/manifest.lock.json || { echo "missing artifacts/manifest.lock.json"; exit 4; }
+      - name: Verify drift
+        run: |
+          python - <<'PY'
+          import json, sys, pathlib
+          lock = json.loads((pathlib.Path("artifacts/manifest.lock.json")).read_text())
+          curr = json.loads((pathlib.Path("artifacts/manifest.current.json")).read_text())
+          if lock["files"] != curr["files"]:
+              print("DRIFT detected")
+              # print short diff
+              lf = {x["path"]: x for x in lock["files"]}
+              cf = {x["path"]: x for x in curr["files"]}
+              for k in sorted(set(lf) | set(cf)):
+                  if lf.get(k) != cf.get(k):
+                      print(k, "lock=", lf.get(k), "curr=", cf.get(k))
+                      break
+              sys.exit(1)
+          print("No drift")
+          PY

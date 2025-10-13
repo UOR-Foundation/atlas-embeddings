@@ -6,6 +6,8 @@ import zipfile
 from typing import Any, Dict, Iterable, Iterator, List, MutableMapping, Sequence
 
 
+__version__ = "stub"
+
 int8 = int
 int64 = int
 
@@ -59,9 +61,13 @@ def savez_compressed(file: str | pathlib.Path, **arrays: Any) -> None:
         else:
             serial[key] = {"kind": "scalar", "data": value}
 
-    payload = json.dumps(serial).encode("utf-8")
+    payload = json.dumps(serial, separators=(",", ":"), sort_keys=True).encode("utf-8")
+    info = zipfile.ZipInfo("data.json")
+    info.date_time = (2020, 1, 1, 0, 0, 0)
+    info.compress_type = zipfile.ZIP_DEFLATED
+    info.external_attr = 0o644 << 16
     with zipfile.ZipFile(path, "w", compression=zipfile.ZIP_DEFLATED) as zf:
-        zf.writestr("data.json", payload)
+        zf.writestr(info, payload)
 
 
 def load(file: str | pathlib.Path) -> _NpzFile:
