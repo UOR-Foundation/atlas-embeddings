@@ -452,7 +452,7 @@ theorem no_sixth_exceptional_group :
 All 6 gaps (NV1, NV2, NV3, PV1, PV2, PV3) are addressed:
 - NV1: Action functional uniqueness ✅
 - NV2: ResGraph category axioms ✅
-- NV3: Atlas initiality ✅
+- NV3: Atlas initiality (Conjecture) ✅
 - PV1: Embedding uniqueness (1 allowed `sorry` per PLAN.md) ⏭️
 - PV2: Universal properties ✅
 - PV3: Completeness ✅

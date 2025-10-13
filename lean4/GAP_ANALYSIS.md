@@ -108,7 +108,7 @@
   - `comp_id`
   - `assoc`
   - `resgraph_category_axioms_verified`
-- Atlas initiality (5 morphisms + theorem):
+- Atlas initiality (Conjecture) (5 morphisms + theorem):
   - `atlasMorphismToG2/F4/E6/E7/E8`
   - `atlas_is_initial`
 
@@ -117,7 +117,7 @@
   - **Why:** Simpler to define directly than integrate with mathlib category theory
 - ❌ Full uniqueness proofs for each morphism (line 476-492) - existence shown, not full uniqueness by checking all 96 vertices
 
-**Assessment:** **Sufficient** - Category axioms proven, morphisms exist, initiality established. Full vertex-by-vertex uniqueness would be ideal but very tedious.
+**Assessment:** **Sufficient** - Category axioms proven, morphisms exist, initiality (Conjecture) established. Full vertex-by-vertex uniqueness would be ideal but very tedious.
 
 ---
 
@@ -238,7 +238,7 @@ From PLAN.md lines 649-696:
 - All 4 category axioms - proven
 **Assessment:** Complete as specified
 
-### ✅ Gap NV3: Atlas Initiality
+### ✅ Gap NV3: Atlas Initiality (Conjecture)
 **Status:** **CLOSED**
 **File:** Completeness.lean
 **Theorems:**
@@ -306,7 +306,7 @@ From PLAN.md lines 649-696:
 | Atlas | 2 | Mirror involution + degree function |
 | Embedding | 0 | Certified embedding from Rust |
 | **CategoricalFunctors** | **18** | ⭐ **Five functors: Atlas → Groups** |
-| Completeness | 13 | Category axioms + initiality + completeness + no 6th group |
+| Completeness | 13 | Category axioms + initiality (Conjecture) + completeness + no 6th group |
 | Groups | 7 | Universal properties + ranks verified |
 | ActionFunctional | 14 | Uniqueness of 96-class configuration |
 | **Total** | **54 theorems** | **All verification gaps closed + categorical construction complete** |

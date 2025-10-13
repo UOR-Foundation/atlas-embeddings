@@ -20,6 +20,6 @@
 - **Make Targets** `make lint` runs clippy with pedantic/nursery/cargo and strict float bans—fix lint warnings immediately rather than suppressing, except where doc-markdown allowances are already committed for math-heavy modules.
 - **Serialization Guardrails** When enabling the `serde` feature, ensure derived `Serialize/Deserialize` implementations respect exact arithmetic types and round-trip property tests in `tests/categorical_operations.rs`.
 - **Pulling Data** Any CSV or external data must be transformed into compile-time constants or baked JSON within `docs/`/`temp/`; runtime file IO is intentionally absent from the crate.
-- **ResGraph Category** Changes to categorical foundations should update `src/foundations/resgraph.rs`, the associated integration test `tests/resgraph_category_axioms.rs`, and the Lean proofs establishing initiality.
+- **ResGraph Category** Changes to categorical foundations should update `src/foundations/resgraph.rs`, the associated integration test `tests/resgraph_category_axioms.rs`, and the Lean proofs establishing initiality (Conjecture).
 - **Validation Steps** After altering core math (Atlas, embedding, Cartan, Weyl), run `make verify` and `make docs-private`; for Lean updates, run `lake build` and `grep -r "sorry" lean4/AtlasEmbeddings`.
 - **Contribution Style** Follow the minimal-complete-unit pattern: land small, fully verified increments with docs/tests instead of staging TODO files—this keeps the project audit trail compact.

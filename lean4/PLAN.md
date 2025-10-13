@@ -449,7 +449,7 @@ instance : Category ResGraphObject where
 -- NO SORRY: Category axioms by rfl
 ```
 
-### 5.3 Atlas Initiality
+### 5.3 Atlas Initiality (Conjecture)
 
 ```lean
 -- Explicit morphisms from Atlas to each group
@@ -684,7 +684,7 @@ theorem resgraph_is_category : Category ResGraphObject := by
   infer_instance  -- NO SORRY: defined in Phase 5
 ```
 
-### Gap NV3: Atlas Initiality
+### Gap NV3: Atlas Initiality (Conjecture)
 
 ```lean
 -- Already proven in Phase 5

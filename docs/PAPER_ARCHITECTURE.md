@@ -1,14 +1,14 @@
-# Paper Architecture: Atlas Initiality
+# Paper Architecture: Atlas Initiality (Conjecture)
 
 **Title**: Atlas Embeddings: Exceptional Lie Groups from First Principles
-**Thesis**: The Atlas of Resonance Classes is the initial object from which all five exceptional Lie groups emerge through categorical operations.
+**Thesis**: The Atlas of Resonance Classes is conjectured to be the initial object from which all five exceptional Lie groups emerge through categorical operations.
 
 ## Document Overview
 
-This rustdoc-based paper proves the initiality of the Atlas and demonstrates the canonical emergence of G₂, F₄, E₆, E₇, and E₈. The paper is structured as a complete mathematical exposition that:
+This rustdoc-based paper presents the initiality (Conjecture) of the Atlas and demonstrates the canonical emergence of G₂, F₄, E₆, E₇, and E₈. The paper is structured as a complete mathematical exposition that:
 
 1. Builds all concepts from first principles
-2. Proves Atlas initiality as the central theorem
+2. Frames Atlas initiality (Conjecture) as the central open problem
 3. Provides computational certificates for all claims
 4. Offers domain-specific perspectives (mathematics, physics, computer science)
 5. Maintains full executability and reproducibility
@@ -17,7 +17,7 @@ This rustdoc-based paper proves the initiality of the Atlas and demonstrates the
 
 ### Abstract (lib.rs lines 1-50)
 - Discovery context: UOR Framework research into software invariants
-- Main result: Atlas as initial object
+- Main conjecture: Atlas as initial object (Conjecture)
 - Significance: First-principles construction without classification theory
 - Novel contribution: Computational certification of exceptional group emergence
 
