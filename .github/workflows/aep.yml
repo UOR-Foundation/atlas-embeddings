@@ -1,12 +1,24 @@
-name: AEP Decision Rules
+name: AEP Two-Lane
 on: [push, pull_request]
 jobs:
-  decision:
+  lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-      - run: pip install -e . pytest numpy
-      - run: pytest -q tests/test_decision_rules.py
+        with: {python-version: "3.11"}
+      - run: pip install jsonschema tomli tomli-w pyyaml
+      - run: python cli/lint_aep.py aep.toml .
+  sim:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.11"}
+      - run: pip install -e . numpy
+      - run: pytest -q tests/test_runner.py
+  device:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo "second backend run placeholder"
