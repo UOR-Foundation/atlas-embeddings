@@ -16,6 +16,8 @@ jobs:
       - uses: actions/setup-python@v5
         with: {python-version: "3.11"}
       - run: pip install -e . numpy
+      - name: Install test deps
+        run: pip install pytest numpy
       - run: pytest -q tests/test_runner.py
   device:
     runs-on: ubuntu-latest

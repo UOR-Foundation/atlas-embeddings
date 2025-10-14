@@ -4,8 +4,9 @@ from atlas.aep.petc import (
     ChannelRow, PETCLedger,
     pack_rb, unpack_rb, act_U, anchors_S,
     Phi, phi_pow,
-    verify_freeness_sample, verify_orbit_counts, verify_C768_closure, verify_phi_equivariance_sample
+    verify_freeness_sample, verify_orbit_counts, verify_C768_closure,
 )
+from petc.phi import verify_phi_equivariance_sample
 
 
 # ---- signature and certificates ----
@@ -75,7 +76,30 @@ def test_phi_schedule_and_equivariance():
     # order 768 closure on anchors
     assert verify_C768_closure()
     # sample equivariance Φ(act_U)=act_U(Φ)
-    assert verify_phi_equivariance_sample()
+    G = [(8 * k, 0) for k in range(6)]
+    U = [(0,) * 11, (1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)]
+
+    def bits_to_int(bits: tuple[int, ...]) -> int:
+        total = 0
+        for idx, bit in enumerate(bits):
+            if bit:
+                total |= 1 << idx
+        return total
+
+    def phi_pair(g: tuple[int, int]) -> tuple[int, int]:
+        return Phi(g[0], g[1])
+
+    def act_U_on_G(u: tuple[int, ...], g: tuple[int, int]) -> tuple[int, int]:
+        return act_U(g[0], g[1], bits_to_int(u))
+
+    assert verify_phi_equivariance_sample(
+        G,
+        U,
+        phi_pair,
+        act_U_on_G,
+        act_U_on_G,
+        debug=True,
+    )
 
 
 def test_phi_pow():
