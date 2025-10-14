@@ -36,10 +36,11 @@ class ProjResult:
     """Result of the integer projection."""
 
     w_star_Q: List[int]
-    sum1: int
-    sum2: int
     lam_Q: int
     mu_Q: int
+    sum1: int
+    sum2: int
+    iters: int = 0
 
 
 @dataclass(frozen=True)
