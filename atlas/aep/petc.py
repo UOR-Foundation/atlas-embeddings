@@ -230,8 +230,8 @@ def verify_C768_closure() -> bool:
 
 def verify_phi_equivariance_sample(samples: int = 64) -> bool:
     """
-    Check Φ(act_U(g,u)) == act_U(Φ(g), u) on samples.
-    With our pack/unpack and action (addition on idx), Φ and U commute.
+    Check Φ(act_U(g,u)) == act_U(Φ(g), u) on samples,
+    evaluated in orbit coordinates (r, idx) to avoid wrap artifacts in (p, b).
     """
     gs = anchors_S()
     for r in range(6):
@@ -242,9 +242,17 @@ def verify_phi_equivariance_sample(samples: int = 64) -> bool:
     for (p, b) in gs:
         for u in us:
             cnt += 1
-            left = Phi(*act_U(p, b, u))
-            right = act_U(*Phi(p, b), u)
-            if left != right:
+            # Left: act then Φ, expressed in (r, idx)
+            p1, b1 = act_U(p, b, u)
+            rL, idxL = pack_rb(*Phi(p1, b1))
+            # Right: Φ then act, computed directly in (r, idx)
+            r0, idx0 = pack_rb(p, b)
+            rPhi = (r0 + 2) % 6
+            block = idx0 - (idx0 & 255)
+            idxPhi = block + ((idx0 + 1) & 255)
+            rR = rPhi
+            idxR = (idxPhi + (u & 2047)) & 2047
+            if (rL, idxL) != (rR, idxR):
                 return False
             if cnt >= samples:
                 return True

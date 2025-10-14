@@ -65,7 +65,7 @@ def op_MAP_project_dual(ctx: ISAContext, wtilde_Q: List[int], b: List[int], a: L
     proj = project_dual_int(wtilde_Q, budgets)
     ctx.proj = {
         "w_star_Q": proj.w_star_Q, "lam_Q": proj.lam_Q, "mu_Q": proj.mu_Q,
-        "sum1": proj.sum1, "sum2": proj.sum2, "iters": proj.iters
+        "sum1": proj.sum1, "sum2": proj.sum2, "iters": getattr(proj, "iters", 0)
     }
 
 def op_ASSERT_PETC(ctx: ISAContext) -> None:
