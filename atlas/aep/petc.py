@@ -228,32 +228,35 @@ def verify_C768_closure() -> bool:
     return True
 
 
-def verify_phi_equivariance_sample(samples: int = 64) -> bool:
-    """
-    Check Φ(act_U(g,u)) == act_U(Φ(g), u) on samples,
-    evaluated in orbit coordinates (r, idx) to avoid wrap artifacts in (p, b).
-    """
+def verify_phi_equivariance_sample(samples: int = 64, debug: bool = False) -> bool:
+    from petc.phi import verify_phi_equivariance_sample as _verify_phi_equivariance_sample
+
     gs = anchors_S()
     for r in range(6):
         for j in (5, 73, 511, 777, 1311):
             gs.append(unpack_rb(r, j & 2047))
-    us = [0, 1, 2, 3, 7, 15, 31, 63, 127, 255, 511, 1023, 2047]
-    cnt = 0
-    for (p, b) in gs:
-        for u in us:
-            cnt += 1
-            # Left: act then Φ, expressed in (r, idx)
-            p1, b1 = act_U(p, b, u)
-            rL, idxL = pack_rb(*Phi(p1, b1))
-            # Right: Φ then act, computed directly in (r, idx)
-            r0, idx0 = pack_rb(p, b)
-            rPhi = (r0 + 2) % 6
-            block = idx0 - (idx0 & 255)
-            idxPhi = block + ((idx0 + 1) & 255)
-            rR = rPhi
-            idxR = (idxPhi + (u & 2047)) & 2047
-            if (rL, idxL) != (rR, idxR):
-                return False
-            if cnt >= samples:
-                return True
-    return True
+
+    def int_to_bits(u: int) -> tuple[int, ...]:
+        return tuple((u >> k) & 1 for k in range(11))
+
+    us = [int_to_bits(u) for u in [0, 1, 2, 3, 7, 15, 31, 63, 127, 255, 511, 1023, 2047]]
+
+    def phi_pair(g: tuple[int, int]) -> tuple[int, int]:
+        return Phi(g[0], g[1])
+
+    def act_u_on_g(u_bits: tuple[int, ...], g: tuple[int, int]) -> tuple[int, int]:
+        u_int = 0
+        for idx, bit in enumerate(u_bits):
+            if bit:
+                u_int |= 1 << idx
+        return act_U(g[0], g[1], u_int)
+
+    return _verify_phi_equivariance_sample(
+        gs,
+        us,
+        phi_pair,
+        act_u_on_g,
+        act_u_on_g,
+        max_checks=samples,
+        debug=debug,
+    )

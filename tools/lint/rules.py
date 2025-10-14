@@ -1,5 +1,6 @@
 from __future__ import annotations
 import sys, json, hashlib, pathlib, tomllib, ast
+from decimal import Decimal, InvalidOperation
 
 try:
     from jsonschema import validate as _jsonschema_validate
@@ -51,8 +52,8 @@ def _parse_scalar(value: str):
         return int(value)
     except ValueError:
         try:
-            return float(value)
-        except ValueError:
+            return Decimal(value)
+        except (InvalidOperation, ValueError):
             return value
 
 def _load_rules_cfg(path: pathlib.Path) -> dict:
@@ -126,9 +127,12 @@ def lint(aep_toml: str, repo_root: str) -> list[dict]:
             failures.append({"id":"L200","msg":f"witness channel '{need}' not declared"})
 
     # L300
-    eps = float(doc["ace"]["epsilon"]); tau = float(doc["ace"]["tau"])
-    if not (0.0 < eps < 1.0): failures.append({"id":"L300","msg":"epsilon ∉ (0,1)"} )
-    if not (tau >= 0.0): failures.append({"id":"L300","msg":"tau < 0"} )
+    eps = Decimal(str(doc["ace"]["epsilon"]))
+    tau = Decimal(str(doc["ace"]["tau"]))
+    if not (Decimal("0") < eps < Decimal("1")):
+        failures.append({"id":"L300","msg":"epsilon ∉ (0,1)"})
+    if tau < Decimal("0"):
+        failures.append({"id":"L300","msg":"tau < 0"})
 
     # L310
     if doc.get("projection",{"method":"dual_kkt_soft_threshold"}).get("method") != "dual_kkt_soft_threshold":

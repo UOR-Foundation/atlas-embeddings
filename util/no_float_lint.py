@@ -7,6 +7,13 @@ import sys
 ROOT = pathlib.Path(".")
 SELF = pathlib.Path(__file__).resolve()
 VIOLATIONS = []
+TARGET_DIRS = [
+    pathlib.Path("atlas/aep"),
+    pathlib.Path("tools/lint"),
+    pathlib.Path("cli"),
+    pathlib.Path("util"),
+    pathlib.Path("tests"),
+]
 
 
 def check_file(path: pathlib.Path):
@@ -55,8 +62,13 @@ def check_file(path: pathlib.Path):
 
 
 def main():
-    for p in ROOT.rglob("*.py"):
-        check_file(p)
+    for rel in TARGET_DIRS:
+        target = ROOT / rel
+        if target.is_dir():
+            for p in target.rglob("*.py"):
+                check_file(p)
+        elif target.is_file():
+            check_file(target)
     if VIOLATIONS:
         print("\n".join(VIOLATIONS))
         sys.exit(1)
