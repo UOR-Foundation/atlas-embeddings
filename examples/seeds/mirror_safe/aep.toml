@@ -1,0 +1,3 @@
+# Minimal seed: Mirror-safety (conjugation equality)
+claims = ["mirror_safe"]
+classes_mask = [0]
