@@ -1,0 +1,7 @@
+# Minimal seed: Boundary-window footprint compliance
+claims = ["boundary_window"]
+
+[boundary_window]
+shape = "rect"
+# integer limits: [xmin, xmax, ymin, ymax]
+limits = [0, 128, 0, 128]

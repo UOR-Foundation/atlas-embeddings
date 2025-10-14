@@ -39,6 +39,9 @@ check_*
 !artifacts/manifest.lock.json
 !data/atlas_min.json
 !data/iota_96.json
+!examples/aep_unity_neutral/witness.json
+!examples/seeds/**/*.json
+!examples/seeds/**/*.toml
 assets/
 
 # Exception: Keep committed images for README

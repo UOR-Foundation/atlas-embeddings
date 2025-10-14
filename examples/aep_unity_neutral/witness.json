@@ -1,0 +1,8 @@
+{
+  "R_pre": [0, 0, 0],
+  "R_post": [0, 0, 0],
+  "mirror_equal": true,
+  "footprint": [0, 100, 0, 100],
+  "phase_values": ["0", "0"],
+  "classes_ok": true
+}

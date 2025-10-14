@@ -1,0 +1,7 @@
+# Minimal seed: Unity-neutral vec-add
+claims = ["unity_neutral"]
+
+[boundary_window]
+# not used here; present to keep schema extensible
+shape = "rect"
+limits = [0, 0, 0, 0]
