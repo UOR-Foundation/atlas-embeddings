@@ -1,6 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import Any, Dict, List, Protocol, Tuple, Literal
+from typing import Any, Dict, List, Protocol, Tuple, Literal, Optional, Callable
 import time
 from decimal import Decimal, ROUND_HALF_EVEN
 
@@ -40,10 +40,37 @@ class Decision:
     log: List[Dict[str, Any]]
 
 
+# ---- Deterministic clock (overridable) ----
+_CLOCK_FN: Optional[Callable[[], int]] = None
+
+
+def set_clock_ns(fn: Optional[Callable[[], int]]) -> None:
+    global _CLOCK_FN
+    _CLOCK_FN = fn
+
+
+def _now_ns() -> int:
+    if _CLOCK_FN is None:
+        return time.time_ns()
+    return int(_CLOCK_FN())
+
+
 def _event(op: str, **kv: Any) -> Dict[str, Any]:
     kv["op"] = op
-    kv["ts"] = time.time_ns()
+    kv["ts"] = _now_ns()
     return kv
+
+
+# ---- Canonicalization / digest (ts stripped) ----
+def canon_decision(d: "Decision") -> Dict[str, Any]:
+    log = [{k: v for k, v in e.items() if k != "ts"} for e in d.log]
+    return {
+        "status": d.status,
+        "code": int(d.code),
+        "reason": d.reason,
+        "evidence": d.evidence,
+        "log": log,
+    }
 
 
 # ---- Quantization helpers (no-float) ----
