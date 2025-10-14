@@ -42,6 +42,8 @@ check_*
 !examples/aep_unity_neutral/witness.json
 !examples/seeds/**/*.json
 !examples/seeds/**/*.toml
+!schema/aep.schema.json
+!petc/ledger.json
 assets/
 
 # Exception: Keep committed images for README

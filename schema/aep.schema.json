@@ -1,0 +1,77 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AEP TOML as JSON",
+  "type": "object",
+  "properties": {
+    "claims": {
+      "type": "object",
+      "properties": {
+        "mirror_safe": {"type": "boolean"},
+        "unity_neutral": {"type": "boolean"},
+        "boundary_window": {
+          "type": "object",
+          "properties": {
+            "shape": {"type": "string", "enum": ["box","ball"]},
+            "limits": {"type": "array", "items":{"type":"array","items":{"type":"number"}, "minItems":2,"maxItems":2}},
+            "center": {"type": "array", "items":{"type":"number"}},
+            "radius": {"type": "number", "minimum": 0}
+          },
+          "additionalProperties": false
+        },
+        "phase_window": {
+          "type": "object",
+          "properties": {
+            "phi0": {"type": "number"},
+            "span": {"type": "number", "minimum": 0}
+          },
+          "required": ["phi0","span"],
+          "additionalProperties": false
+        },
+        "classes_mask": {"type":"array", "items":{"type":"integer","minimum":0}}
+      },
+      "additionalProperties": false
+    },
+    "ace": {
+      "type": "object",
+      "properties": {
+        "epsilon": {"type":"number","exclusiveMinimum":0,"exclusiveMaximum":1},
+        "tau": {"type":"number","minimum":0},
+        "b_sha256": {"type":"string"},
+        "a_sha256": {"type":"string"},
+        "GapLB_min": {"type":"number","minimum":0},
+        "SlopeUB_max": {"type":"number","exclusiveMaximum":1}
+      },
+      "required":["epsilon","tau"],
+      "additionalProperties": true
+    },
+    "petc": {
+      "type": "object",
+      "properties": {
+        "group": {"type":"string"},
+        "schedule": {"type":"string"},
+        "anchors": {"type":"array","items":{"type":"array","items":{"type":"integer"}}}
+      },
+      "additionalProperties": true
+    },
+    "runner": {
+      "type":"object",
+      "properties":{
+        "backends":{"type":"array","items":{"type":"string"}, "minItems":2},
+        "determinism":{
+          "type":"object",
+          "properties":{
+            "seed":{"type":"integer"},
+            "dtype":{"type":"string"},
+            "rmode":{"type":"string"}
+          },
+          "required":["seed","dtype","rmode"],
+          "additionalProperties": false
+        }
+      },
+      "required":["backends","determinism"],
+      "additionalProperties": true
+    }
+  },
+  "required": ["claims","ace","petc","runner"],
+  "additionalProperties": true
+}

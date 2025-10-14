@@ -35,6 +35,17 @@ def array_equal(a: Sequence[Any], b: Sequence[Any]) -> bool:
     return list(a) == list(b)
 
 
+def diag(entries: Sequence[Any]) -> ndarray:
+    seq = list(entries)
+    size = len(seq)
+    rows = []
+    for i in range(size):
+        row = [0] * size
+        row[i] = seq[i]
+        rows.append(ndarray(row))
+    return ndarray(rows)
+
+
 class _NpzFile:
     def __init__(self, mapping: MutableMapping[str, Any]):
         self._mapping = mapping

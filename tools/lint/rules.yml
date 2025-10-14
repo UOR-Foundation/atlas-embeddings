@@ -1,0 +1,39 @@
+rules:
+  L100:
+    desc: "Files present and hashed"
+    required_files: ["aep.toml", "kernel.atlas", "runner/README.md"]
+    hash_fields: ["ace.b_sha256", "ace.a_sha256"]
+  L110:
+    desc: "Claims whitelisted and typed"
+    whitelist: ["mirror_safe","unity_neutral","boundary_window","phase_window","classes_mask"]
+  L120:
+    desc: "Backends ≥2 and legalization flags"
+    require_backends: 2
+  L200:
+    desc: "Witness channels declared"
+    require_channels: ["R_pre|delta_R", "R_post|delta_R", "B_probes", "P_probes"]
+  L300:
+    desc: "Budget parameters present and sane"
+    epsilon_range: [">",0,"<",1]
+    tau_min: 0
+    positive_vectors: ["b","a"]
+  L310:
+    desc: "Projection determinism declared"
+    method: "dual_kkt_soft_threshold"
+    search: "2d_monotone"
+    tolerances: {"abs":1.0e-12}
+  L320:
+    desc: "Thresholds declared"
+    require: ["ace.GapLB_min", "ace.SlopeUB_max", "runner.monitor_window"]
+  L400:
+    desc: "PETC ledgers valid"
+    require_files: ["petc/ledger.json"]
+  L410:
+    desc: "Group gate attached"
+    require: ["petc.group","petc.schedule","petc.anchors"]
+  L500:
+    desc: "Determinism config"
+    require: ["runner.determinism.seed","runner.determinism.dtype","runner.determinism.rmode"]
+  L600:
+    desc: "CI wiring hints present"
+    require_files: [".github/workflows/aep.yml"]

@@ -1,0 +1,40 @@
+witness_decl = ["R_pre", "R_post", "delta_R", "B_probes", "P_probes"]
+projection = { method = "dual_kkt_soft_threshold" }
+
+[claims]
+mirror_safe = true
+unity_neutral = true
+classes_mask = [0, 1]
+
+[claims.boundary_window]
+shape = "box"
+limits = [[-1.0, 1.0], [-1.0, 1.0]]
+center = [0.0, 0.0]
+radius = 1.0
+
+[claims.phase_window]
+phi0 = 0.0
+span = 3.1415926535
+
+[ace]
+epsilon = 0.25
+tau = 0.1
+GapLB_min = 0.05
+SlopeUB_max = 0.95
+b_sha256 = "deadbeef"
+a_sha256 = "cafebabe"
+
+[petc]
+group = "atlas"
+schedule = "weekly"
+anchors = [[0, 1], [2, 3]]
+ledger = "petc/ledger.json"
+
+[runner]
+backends = ["cpu-sim", "device"]
+monitor_window = 64
+
+[runner.determinism]
+seed = 0
+dtype = "float64"
+rmode = "strict"

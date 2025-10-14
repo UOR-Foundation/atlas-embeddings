@@ -1,0 +1,7 @@
+{
+  "anchors": [
+    {"epoch": 0, "digest": "0000"},
+    {"epoch": 1, "digest": "1111"}
+  ],
+  "notes": "Placeholder ledger for contract validation."
+}
