@@ -337,3 +337,9 @@ This repository now includes the initial scaffolding for the Hologram v2 plan:
 - Ship math-clean, acceptance-tested libraries: R96 resonance, RL budgets over Z_96 with Z_2 collapse, HRF-F scaffold, DPI compressors, GG architecture.
 
 > Status: skeleton + stubs. Replace all TODOs.
+
+## Hologram v2 scaffolding
+
+The repository now includes a frozen specification snapshot in `docs/specs/v2`,
+traceability tooling under `scripts/gen-trace.py`, and governance artifacts for
+proof and receipt management.

@@ -1,0 +1,23 @@
+# /docs/specs/v2/invariants.yaml
+invariants:
+  - id: R96.cardinality
+    statement: "|R(B)| == 96"
+    model_ref: models/R96_model.json
+    obligation_ids: [obl.R96.enumeration, obl.R96.collapse-parity]
+    test_bindings: [t.R96.enumerate, t.R96.collapse_parity]
+    owner: Spec Lead
+    status: frozen
+  - id: SCHED.order
+    statement: "order == 768"
+    model_ref: models/SCHED_model.json
+    obligation_ids: [obl.SCHED.group-order-768, obl.SCHED.equidistribution]
+    test_bindings: [t.SCHED.order, t.SCHED.equidistribution]
+    owner: Spec Lead
+    status: frozen
+  - id: SIGN.support
+    statement: "support == 12288"
+    model_ref: models/SIGN_model.json
+    obligation_ids: [obl.SIGN.support-def]
+    test_bindings: [t.SIGN.support]
+    owner: Spec Lead
+    status: frozen

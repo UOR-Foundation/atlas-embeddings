@@ -1,0 +1,6 @@
+torus: [96,128]
+cnf_invariants: true
+semiring: B96
+schedule:
+  order: 768
+  conformance: true
