@@ -1,0 +1,36 @@
+#!/usr/bin/env python3
+import json
+import sys
+
+
+def main() -> None:
+    if len(sys.argv) != 2:
+        print("usage: verify-receipt <receipt.json>", file=sys.stderr)
+        sys.exit(2)
+
+    path = sys.argv[1]
+    with open(path, "r", encoding="utf-8") as handle:
+        receipt = json.load(handle)
+
+    required = [
+        "version",
+        "build_id",
+        "module",
+        "seed",
+        "n",
+        "tv_bound",
+        "mi_bound",
+        "spectral_margin",
+        "params",
+        "artifacts",
+        "signatures",
+    ]
+    missing = [key for key in required if key not in receipt]
+    if missing:
+        print(f"missing fields: {missing}", file=sys.stderr)
+        sys.exit(2)
+
+    print("verify-receipt: STRUCTURE OK (signature verification not implemented)")
+
+if __name__ == "__main__":
+    main()

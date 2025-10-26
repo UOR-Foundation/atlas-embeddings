@@ -1,0 +1,11 @@
+block_if:
+  proof_gap: true
+  fairness_sprt_reject: true
+  receipt_unverifiable: true
+  tcb_ratio_over: 0.05
+  dpi_check_fail: true
+  dkw_fail: true
+rollback:
+  plan: "documented"
+  version_pin: true
+overrides: "zero"

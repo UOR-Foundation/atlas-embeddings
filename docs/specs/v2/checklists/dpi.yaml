@@ -1,0 +1,8 @@
+# Per-modulus checklist
+- modulus: 96
+  constraints:
+    tv_max: 0.012
+    mi_max: 0.002
+    bias_max: 0.005
+  samples: 100000
+  seeds: ["commit"]
