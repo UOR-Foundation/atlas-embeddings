@@ -58,3 +58,9 @@ golden_seed_*.csv
 golden_seed_*.json
 adjacency_preservation.csv
 !docs/terminology.json
+
+# Python artifacts
+__pycache__/
+*.pyc
+.venv/
+.ipynb_checkpoints/
