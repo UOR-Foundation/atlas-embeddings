@@ -6,7 +6,7 @@
 //! # Usage
 //!
 //! ```bash
-//! cargo run --example generate_golden_seed_fractal_3d --features visualization
+//! cargo run --example generate_golden_seed_fractal_3d
 //! ```
 //!
 //! This will generate:
@@ -22,7 +22,6 @@
 //! - **Fractal dimension**: D ≈ 4.15 (computed as log₃(96))
 //! - **Scaling factor**: 1/3 (matches ternary coordinate d₄₅)
 //! - **3D spherical projection**: Emphasizes spatial structure of the Atlas
-
 #[cfg(feature = "visualization")]
 fn main() {
     use atlas_embeddings::visualization::fractal::GoldenSeedFractal3D;
@@ -56,6 +55,7 @@ fn main() {
         // Generate CSV
         let csv = fractal.to_csv(depth);
         let filename = format!("golden_seed_fractal_3d_depth{depth}.csv");
+
         if let Err(e) = std::fs::write(&filename, &csv) {
             eprintln!("  Error: Could not write {filename}: {e}");
         } else {
@@ -66,13 +66,13 @@ fn main() {
         // Generate JSON
         let json = fractal.to_json(depth);
         let filename = format!("golden_seed_fractal_3d_depth{depth}.json");
+
         if let Err(e) = std::fs::write(&filename, &json) {
             eprintln!("  Error: Could not write {filename}: {e}");
         } else {
             println!("  ✓ Written {filename}");
             println!("  Size: {} bytes", format_number(json.len()));
         }
-
         println!();
     }
 
@@ -104,9 +104,7 @@ fn main() {
 #[cfg(not(feature = "visualization"))]
 fn main() {
     eprintln!("Error: This example requires the 'visualization' feature.");
-    eprintln!(
-        "Run with: cargo run --example generate_golden_seed_fractal_3d --features visualization"
-    );
+    eprintln!("Run with: cargo run --example generate_golden_seed_fractal_3d");
     std::process::exit(1);
 }
 
