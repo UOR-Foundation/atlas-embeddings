@@ -1,0 +1,17 @@
+# Minimal CI pipeline placeholder. Replace with real jobs.
+stages:
+  - lint
+  - test
+  - gate
+
+lint:
+  stage: lint
+  script: ["make lint"]
+
+tests:
+  stage: test
+  script: ["make property", "make acceptance"]
+
+gate:
+  stage: gate
+  script: ["make gate"]
