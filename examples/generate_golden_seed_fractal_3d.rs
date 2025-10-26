@@ -6,7 +6,7 @@
 //! # Usage
 //!
 //! ```bash
-//! cargo run --example generate_golden_seed_fractal_3d
+//! cargo run --example generate_golden_seed_fractal_3d --features visualization
 //! ```
 //!
 //! This will generate:
@@ -22,6 +22,7 @@
 //! - **Fractal dimension**: D ≈ 4.15 (computed as log₃(96))
 //! - **Scaling factor**: 1/3 (matches ternary coordinate d₄₅)
 //! - **3D spherical projection**: Emphasizes spatial structure of the Atlas
+
 #[cfg(feature = "visualization")]
 fn main() {
     use atlas_embeddings::visualization::fractal::GoldenSeedFractal3D;
@@ -103,7 +104,9 @@ fn main() {
 #[cfg(not(feature = "visualization"))]
 fn main() {
     eprintln!("Error: This example requires the 'visualization' feature.");
-    eprintln!("Run with: cargo run --example generate_golden_seed_fractal_3d");
+    eprintln!(
+        "Run with: cargo run --example generate_golden_seed_fractal_3d --features visualization"
+    );
     std::process::exit(1);
 }
 
@@ -111,13 +114,11 @@ fn main() {
 fn format_number(n: usize) -> String {
     let s = n.to_string();
     let mut result = String::new();
-
     for (i, ch) in s.chars().rev().enumerate() {
         if i > 0 && i % 3 == 0 {
             result.insert(0, ',');
         }
         result.insert(0, ch);
     }
-
     result
 }
