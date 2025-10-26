@@ -182,7 +182,7 @@ pub use dynkin::DynkinVisualizer;
 pub use e8_roots::E8Projector;
 pub use embedding::GoldenSeedVisualizer;
 pub use export::{ExportFormat, Exporter};
-pub use fractal::GoldenSeedFractal;
+pub use fractal::{GoldenSeedFractal, GoldenSeedFractal3D};
 
 #[cfg(test)]
 mod tests {

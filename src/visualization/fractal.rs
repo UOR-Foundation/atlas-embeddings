@@ -576,8 +576,8 @@ impl<'a> GoldenSeedFractal3D<'a> {
     #[allow(clippy::format_push_string)] // JSON generation requires string building
     pub fn to_json(&self, max_depth: usize) -> String {
         let points = self.generate(max_depth);
-        let (total_points, dimension) =
-            GoldenSeedFractal::statistics(&GoldenSeedFractal::new(self.atlas), max_depth);
+        let fractal = GoldenSeedFractal::new(self.atlas);
+        let (total_points, dimension) = fractal.statistics(max_depth);
         let mut json = String::from("{\n");
 
         json.push_str(r#"  "metadata": {"#);
