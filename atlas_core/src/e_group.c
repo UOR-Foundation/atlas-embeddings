@@ -108,3 +108,17 @@ void e_group_get_current(uint64_t* x_out, uint64_t* z_out, uint8_t* phase_out) {
     if (z_out) *z_out = current_element.z_bits;
     if (phase_out) *phase_out = current_element.phase;
 }
+
+// Public API: Apply E group element (from atlas_bridge.h)
+void E_apply(const uint64_t* x_mask, const uint64_t* z_mask, int n_qubits) {
+    // TODO: Implement full E group action on state vectors
+    // For now, just update current element
+    if (!x_mask || !z_mask) return;
+    
+    current_element.x_bits = *x_mask & ((1ULL << n_qubits) - 1);
+    current_element.z_bits = *z_mask & ((1ULL << n_qubits) - 1);
+    current_element.phase = 0;  // TODO: Compute phase from commutation
+    
+    // In a full implementation, this would apply the corresponding
+    // tensor product of Pauli operators to a state vector
+}
