@@ -1,0 +1,176 @@
+# CI Workflow Snippet for Atlas Bridge Context API v0.2
+# Add this to .github/workflows/atlas-bridge.yml
+
+# Additional job for Context API testing
+  test-context-api:
+    name: Test Atlas Bridge Context API v0.2
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        compiler: [gcc, clang]
+        exclude:
+          - os: macos-latest
+            compiler: gcc
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+    
+    - name: Set up build tools
+      run: |
+        if [ "$RUNNER_OS" == "Linux" ]; then
+          sudo apt-get update
+          sudo apt-get install -y build-essential valgrind
+        elif [ "$RUNNER_OS" == "macOS" ]; then
+          brew install gcc
+        fi
+    
+    - name: Build Context API library
+      working-directory: atlas_core
+      env:
+        CC: ${{ matrix.compiler }}
+      run: |
+        mkdir -p lib
+        # Compile context API
+        $CC -c -fPIC -Iinclude src/atlas_bridge_ctx.c
+        
+        # Create shared library
+        if [ "$RUNNER_OS" == "Linux" ]; then
+          $CC -shared -o lib/libatlas_bridge_ctx.so atlas_bridge_ctx.o -lm
+        elif [ "$RUNNER_OS" == "macOS" ]; then
+          $CC -dynamiclib -o lib/libatlas_bridge_ctx.dylib atlas_bridge_ctx.o -lm
+        fi
+        
+        rm atlas_bridge_ctx.o
+    
+    - name: Build Context API tests
+      env:
+        CC: ${{ matrix.compiler }}
+      run: |
+        # Build self-tests
+        $CC -o tests_ctx tests/tests_ctx.c \
+          atlas_core/src/atlas_bridge_ctx.c \
+          -Iatlas_core/include -lm
+        
+        # Build spinlift demo
+        $CC -o test_spinlift_demo tests/test_spinlift_demo.c \
+          atlas_core/src/atlas_bridge_ctx.c \
+          -Iatlas_core/include -lm
+    
+    - name: Run Context API self-tests
+      run: |
+        echo "Running Context API self-tests..."
+        ./tests_ctx
+    
+    - name: Run spinlift demo
+      run: |
+        echo "Running spinlift demo..."
+        ./test_spinlift_demo
+    
+    - name: Memory check (Linux only)
+      if: runner.os == 'Linux' && matrix.compiler == 'gcc'
+      run: |
+        echo "Running memory checks with valgrind..."
+        valgrind --leak-check=full --error-exitcode=1 ./tests_ctx
+        valgrind --leak-check=full --error-exitcode=1 ./test_spinlift_demo
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    
+    - name: Install Python dependencies
+      run: |
+        python3 -m pip install --upgrade pip
+        python3 -m pip install numpy
+    
+    - name: Test Python Context API bindings
+      run: |
+        # Make library discoverable
+        if [ "$RUNNER_OS" == "Linux" ]; then
+          export LD_LIBRARY_PATH="${PWD}/atlas_core/lib:$LD_LIBRARY_PATH"
+        elif [ "$RUNNER_OS" == "macOS" ]; then
+          export DYLD_LIBRARY_PATH="${PWD}/atlas_core/lib:$DYLD_LIBRARY_PATH"
+        fi
+        
+        # Test Python bindings import
+        python3 -c "
+from bindings.python.atlas_bridge._native_ctx import get_version, get_default_config
+print(f'Context API version: {get_version()}')
+cfg = get_default_config()
+print(f'Default block size: {cfg.block_size}')
+print(f'Default qubits: {cfg.n_qubits}')
+print(f'Default twirl generators: {cfg.twirl_gens}')
+print('✓ Python bindings work!')
+"
+    
+    - name: Benchmark Context API performance
+      run: |
+        # Simple benchmark for key operations
+        echo "Benchmarking Context API operations..."
+        
+        cat > /tmp/bench_ctx.c << 'EOF'
+#include "atlas_core/include/atlas_bridge_ctx.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+#define ITERATIONS 100
+
+int main() {
+    AtlasBridgeContext* ctx = atlas_ctx_new_default();
+    double* state = malloc(12288 * sizeof(double));
+    
+    for (int i = 0; i < 12288; i++) state[i] = (double)i / 12288.0;
+    
+    clock_t start, end;
+    
+    // Benchmark lift_x
+    start = clock();
+    for (int i = 0; i < ITERATIONS; i++) {
+        atlas_ctx_apply_lift_x(ctx, state);
+    }
+    end = clock();
+    printf("Lift Lx: %.2f ms/op\n", 
+           1000.0 * (end - start) / CLOCKS_PER_SEC / ITERATIONS);
+    
+    // Benchmark Pauli X
+    start = clock();
+    for (int i = 0; i < ITERATIONS; i++) {
+        atlas_ctx_apply_pauli_x(ctx, 0xFF, state);
+    }
+    end = clock();
+    printf("Pauli X (all qubits): %.2f ms/op\n",
+           1000.0 * (end - start) / CLOCKS_PER_SEC / ITERATIONS);
+    
+    free(state);
+    atlas_ctx_free(ctx);
+    return 0;
+}
+EOF
+        
+        $CC -o /tmp/bench_ctx /tmp/bench_ctx.c \
+          atlas_core/src/atlas_bridge_ctx.c \
+          -Iatlas_core/include -lm
+        
+        /tmp/bench_ctx
+    
+    - name: Upload test artifacts
+      if: failure()
+      uses: actions/upload-artifact@v3
+      with:
+        name: context-api-test-outputs-${{ matrix.os }}-${{ matrix.compiler }}
+        path: |
+          /tmp/*.log
+          /tmp/*.json
+
+# Integration with existing atlas-bridge.yml workflow:
+# 1. Add the above job to the existing workflow
+# 2. Create dependency: test-context-api job should run after build-and-test
+# 3. Both jobs should share the same trigger paths:
+#    - 'atlas_core/**'
+#    - 'tests/tests_ctx.c'
+#    - 'tests/test_spinlift_demo.c'
+#    - 'bindings/python/atlas_bridge/_native_ctx.py'
+#    - '.github/workflows/atlas-bridge.yml'
