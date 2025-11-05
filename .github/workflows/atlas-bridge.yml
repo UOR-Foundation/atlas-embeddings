@@ -1,0 +1,174 @@
+name: Atlas Bridge CI
+
+on:
+  push:
+    branches: [ main, develop, copilot/** ]
+    paths:
+      - 'atlas_core/**'
+      - 'tests/test_*.c'
+      - 'bindings/python/atlas_bridge/**'
+      - '.github/workflows/atlas-bridge.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'atlas_core/**'
+      - 'tests/test_*.c'
+      - 'bindings/python/atlas_bridge/**'
+
+jobs:
+  build-and-test:
+    name: Build and Test Atlas Bridge
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        compiler: [gcc, clang]
+        exclude:
+          - os: macos-latest
+            compiler: gcc
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+    
+    - name: Set up build tools
+      run: |
+        if [ "$RUNNER_OS" == "Linux" ]; then
+          sudo apt-get update
+          sudo apt-get install -y build-essential valgrind
+        elif [ "$RUNNER_OS" == "macOS" ]; then
+          brew install gcc
+        fi
+    
+    - name: Build atlas_core library
+      working-directory: atlas_core
+      env:
+        CC: ${{ matrix.compiler }}
+      run: |
+        # TODO: Add proper build system (Makefile or CMake)
+        # For now, compile all source files
+        mkdir -p lib
+        $CC -c -fPIC -Iinclude \
+          src/atlas_bridge.c \
+          src/linalg_util.c \
+          src/e_group.c \
+          src/twirl.c \
+          src/projectors.c \
+          src/co1_gates.c \
+          src/diagnostics.c
+        
+        # Create shared library
+        if [ "$RUNNER_OS" == "Linux" ]; then
+          $CC -shared -o lib/libatlas_bridge.so *.o -lm
+        elif [ "$RUNNER_OS" == "macOS" ]; then
+          $CC -dynamiclib -o lib/libatlas_bridge.dylib *.o -lm
+        fi
+        
+        # Clean up object files
+        rm *.o
+    
+    - name: Build test executables
+      env:
+        CC: ${{ matrix.compiler }}
+      run: |
+        # Compile test programs
+        $CC -o test_explosion tests/test_explosion.c \
+          atlas_core/src/atlas_bridge.c \
+          atlas_core/src/linalg_util.c \
+          atlas_core/src/e_group.c \
+          atlas_core/src/twirl.c \
+          atlas_core/src/projectors.c \
+          atlas_core/src/co1_gates.c \
+          atlas_core/src/diagnostics.c \
+          -Iatlas_core/include -lm
+        
+        $CC -o test_projectors tests/test_projectors.c \
+          atlas_core/src/atlas_bridge.c \
+          atlas_core/src/linalg_util.c \
+          atlas_core/src/e_group.c \
+          atlas_core/src/twirl.c \
+          atlas_core/src/projectors.c \
+          atlas_core/src/co1_gates.c \
+          atlas_core/src/diagnostics.c \
+          -Iatlas_core/include -lm
+        
+        $CC -o test_commutant tests/test_commutant.c \
+          atlas_core/src/atlas_bridge.c \
+          atlas_core/src/linalg_util.c \
+          atlas_core/src/e_group.c \
+          atlas_core/src/twirl.c \
+          atlas_core/src/projectors.c \
+          atlas_core/src/co1_gates.c \
+          atlas_core/src/diagnostics.c \
+          -Iatlas_core/include -lm
+    
+    - name: Run C tests
+      run: |
+        echo "Running test_explosion..."
+        ./test_explosion
+        
+        echo "Running test_projectors..."
+        ./test_projectors
+        
+        echo "Running test_commutant..."
+        ./test_commutant
+    
+    - name: Memory check (Linux only)
+      if: runner.os == 'Linux' && matrix.compiler == 'gcc'
+      run: |
+        echo "Running memory checks with valgrind..."
+        valgrind --leak-check=full --error-exitcode=1 ./test_explosion
+        valgrind --leak-check=full --error-exitcode=1 ./test_projectors
+        valgrind --leak-check=full --error-exitcode=1 ./test_commutant
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    
+    - name: Test Python bindings
+      run: |
+        # Make library discoverable
+        if [ "$RUNNER_OS" == "Linux" ]; then
+          export LD_LIBRARY_PATH="${PWD}/atlas_core/lib:$LD_LIBRARY_PATH"
+        elif [ "$RUNNER_OS" == "macOS" ]; then
+          export DYLD_LIBRARY_PATH="${PWD}/atlas_core/lib:$DYLD_LIBRARY_PATH"
+        fi
+        
+        # Run Python examples
+        python3 bindings/python/atlas_bridge/examples/run_all.py
+    
+    - name: Upload test artifacts
+      if: failure()
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-outputs-${{ matrix.os }}-${{ matrix.compiler }}
+        path: |
+          /tmp/test_leakage.json
+          /tmp/atlas_leakage_cert.json
+
+  lint:
+    name: Lint C Code
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+    
+    - name: Install clang-format
+      run: sudo apt-get update && sudo apt-get install -y clang-format
+    
+    - name: Check code formatting
+      run: |
+        # TODO: Add .clang-format configuration file
+        # For now, just check that files exist
+        find atlas_core/src -name "*.c" -o -name "*.h" | while read f; do
+          echo "Checking $f"
+        done
+    
+    - name: Static analysis with cppcheck
+      run: |
+        sudo apt-get install -y cppcheck
+        cppcheck --enable=all --error-exitcode=1 \
+          --suppress=missingIncludeSystem \
+          atlas_core/src/ tests/*.c
