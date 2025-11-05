@@ -1,345 +1,322 @@
-# atlas-embeddings
+# UOR Prime Structure FFI
 
-<p align="center">
-  <img src=".github/images/golden_seed_fractal_depth1.svg" alt="Golden Seed Fractal - Depth 1" width="600">
-</p>
-
-<p align="center">
-  <em>🌟 The Golden Seed Fractal: 96-fold self-similar visualization of the Atlas 🌟</em><br>
-  <sub><a href="https://github.com/UOR-Foundation/atlas-embeddings/releases/latest/download/golden_seed_fractal_depth2.svg">Download Full Resolution Fractal (Depth 2, 894K points)</a></sub>
-</p>
-
-[![CI](https://github.com/UOR-Foundation/atlas-embeddings/workflows/CI/badge.svg)](https://github.com/UOR-Foundation/atlas-embeddings/actions)
-[![Documentation](https://docs.rs/atlas-embeddings/badge.svg)](https://docs.rs/atlas-embeddings)
-[![Crates.io](https://img.shields.io/crates/v/atlas-embeddings.svg)](https://crates.io/crates/atlas-embeddings)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17289540.svg)](https://doi.org/10.5281/zenodo.17289540)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/UOR-Foundation/atlas-embeddings#license)
-[![Rust Version](https://img.shields.io/badge/rust-1.75%2B-blue.svg)](https://www.rust-lang.org)
-
-> First-principles construction of exceptional Lie groups from the Atlas of Resonance Classes
-
-## Status of results
-
-**Theorem.** Atlas→E8 embedding. Proof in `docs/proofs/atlas_to_e8_embedding.md`.
-
-**Conjecture.** Exceptional constructions (G2, F4, E6, E7, E8). Evidence in `docs/evidence/constructions_G2_F4_E6_E7_E8.md`.
-
-**Conjecture.** Unrestricted initiality. Not proved.
-
-**Removed claim.** The statement denying the existence of a sixth exceptional group is not asserted.
+A Lean 4 implementation of the Prime Structure/Φ-Atlas-12288 mathematical framework with FFI bindings for multiple languages.
 
 ## Overview
 
-**atlas-embeddings** is a rigorous mathematical framework demonstrating how all five exceptional Lie groups emerge from a single initial object: the **Atlas of Resonance Classes**.
+This project implements the core mathematical concepts from the Universal Object Reference (UOR) Prime Structure specification, providing:
 
-The model takes the Atlas—a 96-vertex graph arising from action functional stationarity—and through categorical operations (product, quotient, filtration, augmentation, embedding) produces the complete hierarchy of exceptional groups:
-
-- **G₂** (rank 2, 12 roots) via Klein quartet × Z/3 product
-- **F₄** (rank 4, 48 roots) via quotient operation 96/±
-- **E₆** (rank 6, 72 roots) via degree-partition filtration
-- **E₇** (rank 7, 126 roots) via augmentation 96 + 30 orbits
-- **E₈** (rank 8, 240 roots) via direct embedding
-
-The output of this model—the complete embedding structure mapping Atlas to E₈—is known as the **Golden Seed Vector**, representing a universal mathematical language for describing symmetry and structure.
-
-### Origin
-
-This work emerged from Universal Object Reference (UOR) research into decentralized artifact identification. What began as a computational model for schema embeddings revealed fundamental mathematical structure: the Atlas is not merely a computational construct but expresses deep relationships in exceptional group theory.
-
-### Applications
-
-This framework has implications across multiple domains:
-
-**Quantum Computing**: Provides mathematical foundation for qubit stabilizer codes and error correction based on exceptional group symmetries.
-
-**Artificial Intelligence**: Offers structured embedding spaces with proven mathematical properties for representation learning and model interpretability.
-
-**Physics**: Supplies a unified categorical framework for analyzing symmetries in string theory, particle physics, and gauge theories.
-
-**Decentralized Systems**: Establishes universal reference structures for content addressing and schema evolution.
-
-### Key Features
-
-- **Exact Arithmetic** - All computations use rational numbers, no floating point
-- **First Principles** - Constructions from Atlas structure alone, no external Lie theory assumptions
-- **Type Safety** - Compile-time guarantees of mathematical properties via Rust's type system
-- **Certifying Evidence** - Tests provide computational evidence for mathematical claims
-- **Formal Verification** - Complete Lean 4 formalization (8 modules, 1,454 lines, 54 theorems, 0 sorrys)
-- **Documentation as Paper** - Primary exposition through comprehensive rustdoc
-- **No-std Compatible** - Can run in embedded/WASM environments
+- **12,288-element structure** (48×256) representing the fundamental mathematical object
+- **R96 resonance classifier** mapping 256 byte values to 96 resonance classes (3/8 compression)
+- **Φ boundary encoding** for page/byte coordinate packing
+- **Truth ≙ conservation** budget semantics
+- **Multi-language FFI** supporting Go, Rust, Node.js, and C
 
 ## Mathematical Background
 
-The **Atlas of Resonance Classes** is a 96-vertex graph arising as the stationary configuration of an action functional on a 12,288-cell boundary. This structure is unique: exactly 96 resonance classes satisfy the stationarity condition.
+The Prime Structure is built on several key mathematical principles:
 
-From this single initial object, five categorical operations ("foldings") produce the five exceptional Lie groups. This is proven both computationally (Rust implementation) and formally (Lean 4 proof assistant).
+- **Unity Constraint**: α₄α₅ = 1 creating fundamental symmetries
+- **96 Resonance Classes**: Exactly 96 distinct values from 8-bit patterns
+- **Conservation Laws**: Triple-cycle invariant with sum 687.110133...
+- **Holographic Duality**: Bulk↔boundary correspondence via master isomorphism Φ
 
-### The Golden Seed Vector
+For detailed mathematical context, see the formal Lean implementation in the `/lean/` directory.
 
-The complete embedding from Atlas into E₈ produces a 96-dimensional configuration in the 240-vertex E₈ root system. This embedding—the Golden Seed Vector—encodes the full exceptional group hierarchy and serves as a universal template for constructing symmetric structures.
+## Repository Structure
 
-### The Golden Seed Fractal
-
-The **Golden Seed Fractal** (shown above) is a novel visualization of the Atlas structure exhibiting unprecedented mathematical properties:
-
-- **96-fold self-similarity**: Each point branches into 96 sub-points at each iteration
-- **Fractal dimension**: D = log₃(96) ≈ 4.155
-- **8-fold rotational symmetry**: Color-coded by the 8 sign classes of the Atlas
-- **Exact arithmetic**: All coordinates computed as exact rationals before visualization
-- **Mixed radix structure**: Encodes both binary (2⁵) and ternary (3) components
-
-This fractal is **exclusive to the Atlas**—no other known mathematical structure exhibits 96-fold branching with 8-fold symmetry. The visualization encodes the complete exceptional group hierarchy (G₂ → F₄ → E₆ → E₇ → E₈) through its self-similar structure.
-
-**Generation**: The fractal can be generated at various depths:
-- Depth 0: 96 points (base Atlas pattern)
-- Depth 1: 9,312 points (shown above, recommended for visualization)
-- Depth 2: 894,048 points (available for high-resolution analysis)
-
-See [examples/generate_golden_seed_fractal.rs](examples/generate_golden_seed_fractal.rs) for the generation code.
-
-### Principle of Informational Action
-
-The Atlas is not constructed algorithmically. It is the unique stationary configuration of the action functional:
-
-$$S[\phi] = \sum_{\text{cells}} \phi(\partial \text{cell})$$
-
-This first-principles approach ensures mathematical correctness without approximation.
-
-## Quick Start
-
-Add to your `Cargo.toml`:
-
-```toml
-[dependencies]
-atlas-embeddings = "0.1"
+```
+/
+├─ README.md                         # This file
+├─ lean-toolchain                     # Lean version specification
+├─ lakefile.lean                      # Build configuration
+├─ lean/
+│  └─ UOR/
+│     ├─ Prime/
+│     │  └─ Structure.lean           # 48×256 boundary + R96 (core math)
+│     ├─ Atlas/
+│     │  └─ Core.lean                # Φ-Atlas-12288 record instance
+│     ├─ FFI/
+│     │  └─ CAPI.lean                # Exported C ABI
+│     └─ Verify/
+│        └─ CLI.lean                 # CLI for testing
+├─ ffi/
+│  └─ c/
+│     ├─ uor_ffi.h                   # C header: stable ABI
+│     ├─ minimal_wrapper.c           # Minimal C implementation
+│     └─ uor_init.c                  # Lean runtime initialization
+├─ pkg/
+│  ├─ go/                            # Go bindings (basic)
+│  ├─ python/                        # Python bindings
+│  ├─ rust/                          # Rust bindings (basic)
+│  └─ node/                          # Node.js bindings
+├─ runtime/
+│  ├─ go/                            # Enhanced Go wrapper
+│  ├─ rust/                          # Enhanced Rust wrapper
+│  └─ node/                          # Enhanced Node.js wrapper
+└─ tests/
+   └─ c/test_ffi.c                   # C smoke test
 ```
 
-### Example: Constructing E₆
-
-```rust
-use atlas_embeddings::{Atlas, groups::E6};
-
-// Atlas construction (from first principles)
-let atlas = Atlas::new();
-
-// E₆ emerges via degree-partition: 64 + 8 = 72 roots
-let e6 = E6::from_atlas(&atlas);
-
-// Extract simple roots
-let simple_roots = e6.simple_roots();
-assert_eq!(simple_roots.len(), 6);
-
-// Compute Cartan matrix
-let cartan = e6.cartan_matrix();
-assert!(cartan.is_simply_laced());
-assert_eq!(cartan.determinant(), 3);
-
-// Verify Dynkin diagram structure
-let dynkin = cartan.to_dynkin_diagram("E₆");
-assert_eq!(dynkin.branch_nodes().len(), 1); // E₆ has 1 branch point
-assert_eq!(dynkin.endpoints().len(), 3);     // 3 arms
-```
-
-## Development
+## Building
 
 ### Prerequisites
 
-- Rust 1.75 or later
-- `cargo`, `rustfmt`, `clippy` (via `rustup`)
+- Lean 4 (stable release)
+- C compiler (gcc/clang)
+- GNU Make
+- Optional: Go, Rust, Node.js for language-specific wrappers
 
-### Building
+### Quick Start with Make
+
+The project includes a hierarchical Makefile system for easy building:
 
 ```bash
-# Clone repository
-git clone https://github.com/UOR-Foundation/atlas-embeddings
-cd atlas-embeddings
+# Build everything (Lean library, FFI, and runtime wrappers)
+make all
 
-# Build
-make build
-
-# Run tests
+# Run all tests
 make test
 
-# Generate documentation
-make docs-open
+# Quick verification check
+make check
 
-# Run all checks (formatting, linting, tests, docs)
-make verify
+# Install to system (requires sudo for default prefix)
+sudo make install
 
-# Lean 4 formalization
-cd lean4 && lake build
+# Clean all build artifacts
+make clean
 ```
 
-### Documentation
+### Make Targets
 
-The primary exposition is through rustdoc. Build and view:
+#### Main Targets
+- `make all` - Build everything (lean, ffi, runtime)
+- `make lean` - Build Lean library only
+- `make ffi` - Build FFI components
+- `make runtime` - Build all language wrappers
+- `make test` - Run all tests
+- `make check` - Quick verification test
+- `make clean` - Remove all build artifacts
+- `make install` - Install libraries and headers
+- `make format` - Format source code (if formatters available)
+- `make docs` - Build comprehensive documentation
+
+#### Subdirectory Targets
+```bash
+# Build specific components
+make -C lean all        # Build Lean library and executable
+make -C ffi all         # Build FFI layer and tests
+make -C pkg all         # Build all language bindings (basic)
+make -C runtime all     # Build enhanced language wrappers
+make -C tests all       # Run all tests
+
+# Run specific tests
+make -C tests test-lean        # Lean verification only
+make -C tests test-c           # C tests only
+make -C tests test-pkg         # Package binding tests
+make -C tests test-runtime     # Enhanced wrapper tests
+make -C tests benchmark        # Performance benchmarks
+```
+
+#### Configuration Variables
+```bash
+# Build with custom settings
+make BUILD_TYPE=debug          # Debug build
+make VERBOSE=1                 # Verbose output
+make PREFIX=/opt/uor install   # Custom install prefix
+make NO_COLOR=1                # Disable colored output
+```
+
+## Documentation
+
+The project includes comprehensive documentation that can be built using the make system:
 
 ```bash
-cargo doc --open
+# Build all documentation
+make docs
+
+# Build specific documentation types
+make -C docs html      # HTML documentation with navigation
+make -C docs api       # API reference from Lean sources  
+make -C docs capi      # C API documentation from headers
+make -C docs langdocs  # Language wrapper documentation
+make -C docs markdown  # Collect and process markdown files
+make -C docs pdf       # PDF documentation (requires pandoc)
+
+# Serve documentation locally
+make -C docs serve     # Starts HTTP server at localhost:8000
 ```
 
-Key documentation sections:
+### Documentation Structure
 
-- **[Module: `atlas`]** - Atlas construction from action functional
-- **[Module: `groups`]** - Exceptional group constructions (G₂, F₄, E₆, E₇, E₈)
-- **[Module: `cartan`]** - Cartan matrix extraction and Dynkin diagrams
-- **[Module: `categorical`]** - Categorical operations (product, quotient, filtration)
+After building, documentation is available in `docs/build/`:
 
-### Formal Verification (Lean 4)
+- `html/index.html` - Main documentation site with navigation
+- `api/` - Lean API documentation and module reference
+- `capi/` - C API function signatures and constants
+- `lang/` - Go, Rust, and Node.js wrapper documentation
+- `markdown/` - Processed documentation files
 
-See [lean4/README.md](lean4/README.md) for the complete Lean 4 formalization:
+The HTML documentation provides a comprehensive view of:
+- **Getting Started**: README, API reference, C API reference  
+- **Language Bindings**: Go, Rust, Node.js wrapper documentation
+- **Additional Resources**: Documentation index and Lean language links
 
+### Manual Build Steps (without Make)
+
+1. **Build Lean library and CLI**:
 ```bash
-cd lean4
-lake build        # Build all 8 modules (1,454 lines, 54 theorems)
-lake clean        # Clean build artifacts
+lake build
 ```
 
-**Status:** Complete - All 54 theorems proven with 0 sorrys
+Artifacts will be generated under `.lake/build/lib/` (libUOR.{a,so,dylib})
 
-### Testing
+2. **Build and run CLI verification**:
+```bash
+.lake/build/bin/uor-verify
+echo $?  # Should output 0 for success
+```
 
+3. **Build C smoke test**:
+```bash
+cc -Iffi/c -L.lake/build/lib tests/c/test_ffi.c -o tests/c/test_ffi \
+   -lUOR -lLean -lpthread -ldl
+./tests/c/test_ffi  # Should output "OK"
+```
+
+## API Reference
+
+### Constants
+
+- `lean_uor_pages()` → 48 (number of pages)
+- `lean_uor_bytes()` → 256 (bytes per page)
+- `lean_uor_rclasses()` → 96 (resonance classes)
+- `lean_uor_abi_version()` → 1 (ABI version)
+
+### R96 Classifier
+
+- `lean_uor_r96_classify(b)` → [0,95]
+  - Returns the resonance class for byte `b`
+
+### Φ Boundary Encoding
+
+- `lean_uor_phi_encode(page, byte)` → 32-bit code
+  - Packs (page, byte) as `(page << 8) | byte`
+- `lean_uor_phi_page(code)` → page (mod 48)
+  - Extracts page component
+- `lean_uor_phi_byte(code)` → byte
+  - Extracts byte component (low 8 bits)
+
+### Truth ≙ Conservation
+
+- `lean_uor_truth_zero(budget)` → 0/1
+  - Returns 1 if budget equals 0 (truth)
+- `lean_uor_truth_add(a, b)` → 0/1
+  - Returns 1 if `a + b == 0` (additive conservation)
+
+## Language Bindings
+
+The repository provides two tiers of language bindings:
+
+### Basic Bindings (`pkg/`)
+Minimal wrappers providing direct access to core functions:
+
+**Go** (`pkg/go/`)
+```go
+import uor "github.com/your-repo/pkg/go/src"
+fmt.Println("Pages:", uor.Pages())      // 48
+fmt.Println("R96(255):", uor.R96(255))  // Class [0,95]
+```
+
+**Python** (`pkg/python/`)  
+```python
+import uor
+print(f"Pages: {uor.pages()}")         # 48
+print(f"R96(255): {uor.r96(255)}")     # Class [0,95]
+```
+
+**Rust** (`pkg/rust/`)
+```rust
+use uor_ffi;
+println!("Pages: {}", uor_ffi::pages()); // 48
+```
+
+**Node.js** (`pkg/node/`)
+```javascript
+const uor = require('uor-ffi');
+console.log('Pages:', uor.pages());     // 48
+```
+
+### Enhanced Bindings (`runtime/`)
+Rich object-oriented APIs with comprehensive types:
+
+**Go** (`runtime/go/`)
+```go
+import "path/to/runtime/go/uorffi"
+coord := uorffi.NewPhiCoordinate(3, 16)
+fmt.Println("Encoded:", coord.Code())
+```
+
+**Rust** (`runtime/rust/`)
+```rust
+use uor_runtime::*;
+let coord = PhiCoordinate::new(3, 16)?;
+println!("Page: {}", coord.page());
+```
+
+**Node.js** (`runtime/node/`)
+```javascript
+const { PhiCoordinate } = require('./runtime/node');
+const coord = new PhiCoordinate(3, 16);
+console.log('Code:', coord.code);
+```
+
+## Mathematical Significance
+
+The FFI exposes key invariants from the Prime Structure formalization:
+
+1. **R96 Compression**: The 96/256 = 3/8 ratio is a universal compression bound
+2. **Page Structure**: 48-periodic organization emerges from unity constraint
+3. **Conservation Laws**: Truth ≙ conservation at budget 0
+4. **Holographic Principle**: Boundary encodes bulk information
+
+## Testing
+
+Run the verification suite:
 ```bash
 # All tests
 make test
 
-# Unit tests only
-make test-unit
+# Component-specific tests
+make -C lean test               # Lean verification
+make -C ffi test               # C FFI tests  
+make -C pkg test               # Basic bindings
+make -C runtime test           # Enhanced bindings
 
-# Integration tests
-make test-int
-
-# Documentation tests
-make test-doc
+# Language-specific tests
+make -C pkg test-go            # Go basic bindings
+make -C pkg test-python        # Python bindings
+make -C runtime test-rust      # Rust enhanced bindings
+make -C runtime test-node      # Node.js enhanced bindings
 ```
 
-### Benchmarking
+## Contributing
 
-```bash
-# Run all benchmarks
-make bench
+Contributions should maintain the mathematical integrity of the Prime Structure invariants. Key requirements:
 
-# Save baseline
-make bench-save
-```
-
-## Project Structure
-
-```
-atlas-embeddings/
-├── src/
-│   ├── lib.rs              # Main crate documentation
-│   ├── atlas/              # Atlas graph structure
-│   ├── arithmetic/         # Exact rational arithmetic
-│   ├── e8/                 # E₈ root system and embedding
-│   ├── groups/             # G₂, F₄, E₆, E₇, E₈ constructions
-│   ├── cartan/             # Cartan matrices and Dynkin diagrams
-│   ├── weyl/               # Weyl groups and reflections
-│   └── categorical/        # Categorical operations
-├── lean4/                  # Lean 4 formalization
-├── tests/                  # Integration tests
-├── benches/                # Performance benchmarks
-├── docs/                   # Additional documentation
-└── Makefile                # Development tasks
-```
-
-## Design Principles
-
-### 1. Exact Arithmetic
-
-**NO floating point arithmetic** is used anywhere in this crate. All coordinates are represented as:
-
-- **Integers** (`i64`) for whole numbers
-- **Rationals** (`Fraction` from `num-rational`) for non-integers
-- **Half-integers** (multiples of 1/2) for E₈ coordinates
-
-### 2. Type-Level Guarantees
-
-```rust
-// Rank encoded at type level
-struct CartanMatrix<const N: usize>;
-
-// Simply-laced property enforced
-trait SimplyLaced {
-    fn off_diagonal_entries(&self) -> &[i8]; // Only 0, -1
-}
-```
-
-### 3. Documentation-Driven Development
-
-Every module begins with comprehensive mathematical exposition. Code serves as the formal proof.
-
-### 4. No External Dependencies on Lie Theory
-
-The exceptional groups **emerge** from the Atlas structure. We do not import Cartan matrices or Dynkin diagrams from external sources.
-
-## Peer Review
-
-This crate is designed for rigorous peer review:
-
-- All mathematical claims are verifiable from code
-- Tests serve as formal proofs of properties
-- Documentation provides complete mathematical context
-- No approximations or heuristics
-- Deterministic, reproducible results
-
-## Standards
-
-- **Linting**: Strictest clippy configuration (`pedantic`, `nursery`, `cargo`)
-- **Formatting**: Enforced `rustfmt` configuration
-- **Unsafe Code**: **FORBIDDEN** (`#![forbid(unsafe_code)]`)
-- **Floating Point**: **DENIED** (clippy: `deny(float_arithmetic)`)
-- **Documentation**: All public items documented
-- **Testing**: Comprehensive unit, integration, and property-based tests
+- Preserve R96 count (exactly 96 resonance classes)
+- Maintain unity constraint α₄α₅ = 1
+- Ensure conservation laws hold
+- Document any new mathematical insights
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE-MIT).
-
-### Contribution
-
-Contributions are welcome! Please ensure all contributions are compatible with the MIT License.
-
-## About UOR Foundation
-
-This work is published by the [UOR Foundation](https://uor.foundation), dedicated to advancing universal object reference systems and foundational research in mathematics, physics, and computation.
-
-## Citation
-
-If you use this crate in academic work, please cite:
-
-```bibtex
-@software{atlas_embeddings,
-  title = {atlas-embeddings: First-principles construction of exceptional Lie groups},
-  author = {{UOR Foundation}},
-  year = {2025},
-  url = {https://github.com/UOR-Foundation/atlas-embeddings},
-}
-```
+This implementation provides formal verification of the mathematical framework through Lean 4. See individual files for specific licensing information.
 
 ## References
 
-1. Conway, J. H., & Sloane, N. J. A. (1988). *Sphere Packings, Lattices and Groups*
-2. Baez, J. C. (2002). *The Octonions*
-3. Wilson, R. A. (2009). *The Finite Simple Groups*
-4. Carter, R. W. (2005). *Lie Algebras of Finite and Affine Type*
-
-## Contact
-
-- Homepage: https://uor.foundation
-- Issues: https://github.com/UOR-Foundation/atlas-embeddings/issues
-- Discussions: https://github.com/UOR-Foundation/atlas-embeddings/discussions
-
-## Hologram v2 Skeleton Snapshot
-
-This repository now includes the initial scaffolding for the Hologram v2 plan:
-- Unify boundary/schedule/response/signature with 48/256/12_288, R96, 3/8.
-- Ship math-clean, acceptance-tested libraries: R96 resonance, RL budgets over Z_96 with Z_2 collapse, HRF-F scaffold, DPI compressors, GG architecture.
-
-> Status: skeleton + stubs. Replace all TODOs.
-
-## Hologram v2 scaffolding
-
-The repository now includes a frozen specification snapshot in `docs/specs/v2`,
-traceability tooling under `scripts/gen-trace.py`, and governance artifacts for
-proof and receipt management.
+- Lean 4 Implementation (lean/UOR/)
+- Prime Structure Module (lean/UOR/Prime/Structure.lean)
+- Atlas Core Module (lean/UOR/Atlas/Core.lean)
+- FFI C API (lean/UOR/FFI/CAPI.lean)

@@ -1,0 +1,28 @@
+[package]
+name = "uor-ffi"
+version = "1.0.0"
+edition = "2021"
+authors = ["UOR FFI Contributors"]
+description = "Rust FFI wrapper for UOR Prime Structure"
+license = "MIT"
+repository = "https://github.com/yourusername/uor-ffi"
+keywords = ["uor", "prime-structure", "ffi", "lean", "mathematics"]
+categories = ["mathematics", "science", "ffi"]
+
+[lib]
+name = "uor_ffi"
+path = "src/lib.rs"
+
+[dependencies]
+
+[build-dependencies]
+cc = "1.0"
+
+[dev-dependencies]
+
+[features]
+default = []
+
+# Link configuration for the UOR library
+[package.metadata.pkg-config]
+uor-ffi = "1.0.0"

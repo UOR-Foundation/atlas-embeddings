@@ -1,0 +1,31 @@
+{
+  "name": "uor-runtime",
+  "version": "1.0.0",
+  "description": "Node.js Runtime Bindings for UOR Prime Structure",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "install": "node-gyp rebuild",
+    "build": "tsc",
+    "rebuild": "node-gyp rebuild",
+    "test": "node test/test.js",
+    "clean": "node-gyp clean && rm -rf lib/ build/"
+  },
+  "dependencies": {
+    "node-addon-api": "^7.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "node-gyp": "^10.0.0"
+  },
+  "gypfile": true,
+  "author": "UOR Contributors",
+  "license": "MIT",
+  "keywords": [
+    "uor",
+    "prime-structure", 
+    "mathematics",
+    "native-addon"
+  ]
+}

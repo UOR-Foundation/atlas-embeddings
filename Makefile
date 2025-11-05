@@ -1,248 +1,133 @@
-.PHONY: help build test check lint format docs clean bench audit install-tools all verify lean4-build lean4-clean lean4-test
+# UOR-FFI Root Makefile
+# Coordinates builds across all subdirectories
 
-# Default target
-help:
-	@echo "atlas-embeddings - Makefile targets:"
-	@echo ""
-	@echo "Building:"
-	@echo "  make build          - Build the Rust crate"
-	@echo "  make build-release  - Build with optimizations"
-	@echo "  make all            - Build + test + check + docs (Rust only)"
-	@echo ""
-	@echo "Testing:"
-	@echo "  make test           - Run all Rust tests"
-	@echo "  make test-unit      - Run unit tests only"
-	@echo "  make test-int       - Run integration tests only"
-	@echo "  make test-doc       - Run documentation tests"
-	@echo ""
-	@echo "Quality:"
-	@echo "  make check          - Run cargo check"
-	@echo "  make lint           - Run clippy with strict lints"
-	@echo "  make format         - Format code with rustfmt"
-	@echo "  make format-check   - Check formatting without changes"
-	@echo "  make verify         - Run all checks (CI equivalent, Rust only)"
-	@echo ""
-	@echo "Documentation:"
-	@echo "  make docs           - Build Rust documentation"
-	@echo "  make docs-open      - Build and open Rust documentation"
-	@echo "  make docs-private   - Build docs including private items"
-	@echo ""
-	@echo "Lean 4 Formalization:"
-	@echo "  make lean4-build    - Build Lean 4 formalization"
-	@echo "  make lean4-clean    - Clean Lean 4 build artifacts"
-	@echo "  make lean4-test     - Verify no sorry statements in Lean code"
-	@echo ""
-	@echo "Visualization:"
-	@echo "  make vis-atlas      - Generate Atlas graph visualizations"
-	@echo "  make vis-dynkin     - Generate Dynkin diagrams (SVG)"
-	@echo "  make vis-golden-seed - Export Golden Seed Vector"
-	@echo "  make vis-all        - Generate all visualizations"
-	@echo "  make vis-clean      - Clean generated visualization files"
-	@echo ""
-	@echo "Benchmarking:"
-	@echo "  make bench          - Run all benchmarks"
-	@echo "  make bench-save     - Run benchmarks and save baseline"
-	@echo ""
-	@echo "Maintenance:"
-	@echo "  make clean          - Remove all build artifacts (Rust + Lean)"
-	@echo "  make audit          - Check for security vulnerabilities"
-	@echo "  make install-tools  - Install required development tools"
-	@echo "  make deps           - Check dependency tree"
+include common.mk
 
-# Build targets
-build:
-	cargo build
+# Subdirectories with their own Makefiles
+SUBDIRS := lean ffi runtime tests pkg
 
-build-release:
-	cargo build --release
+# Main targets
+.PHONY: all clean test install uninstall lean ffi runtime tests check format
 
-all: build test check lint docs
-	@echo "✓ All checks passed"
 
-# Testing targets
-test:
-	cargo test --all-features
+dockerup:
+	$(call print_header, "Starting Docker container")
+	$(Q)docker-compose up -d
+	$(call print_success, "Docker container started")
 
-test-unit:
-	cargo test --lib --all-features
+dockerdown:
+	$(call print_header, "Stopping Docker container")
+	$(Q)docker-compose down
+	$(call print_success, "Docker container stopped")
 
-test-int:
-	cargo test --test '*' --all-features
+all: lean ffi runtime
+	$(call print_success, "Build complete")
 
-test-doc:
-	cargo test --doc --all-features
+# Build Lean library first (dependency for everything else)
+lean:
+	$(call print_header, "Building Lean library")
+	$(Q)$(MAKE) -C lean all
 
-# Quality assurance
-check:
-	cargo check --all-features
-	cargo check --all-features --no-default-features
+# Build FFI components (depends on Lean)
+ffi: lean
+	$(call print_header, "Building FFI components")
+	$(Q)$(MAKE) -C ffi all
 
-lint:
-	@echo "Running clippy with strict lints..."
-	cargo clippy --all-targets --all-features -- \
-		-D warnings \
-		-D clippy::all \
-		-D clippy::pedantic \
-		-D clippy::nursery \
-		-D clippy::cargo \
-		-D clippy::float_arithmetic \
-		-D clippy::float_cmp \
-		-D clippy::float_cmp_const
+# Build runtime wrappers (depends on lean and ffi)
+runtime: lean ffi
+	$(call print_header, "Building runtime wrappers")
+	$(Q)$(MAKE) -C runtime all
 
-format:
-	cargo fmt --all
+# Run all tests
+test: all
+	$(call print_header, "Running all tests")
+	$(Q)$(MAKE) -C tests all
+	$(call print_success, "All tests passed")
 
-format-check:
-	@cargo fmt --all -- --check 2>/dev/null
+# Quick check - just run lean verification
+check: lean
+	$(call print_header, "Running quick verification")
+	$(Q)$(BIN_DIR)/uor-verify
+	$(call print_success, "Verification passed")
 
-# Verification (for CI)
-verify: format-check check lint test docs
-	@echo "✓ All verification checks passed"
-	@echo "✓ Ready for peer review"
-
-# Documentation
-docs:
-	cargo doc --all-features --no-deps
-
-docs-open:
-	cargo doc --all-features --no-deps --open
-
-docs-private:
-	cargo doc --all-features --no-deps --document-private-items
-
-# Benchmarking
-bench:
-	cargo bench --all-features
-
-bench-save:
-	cargo bench --all-features -- --save-baseline main
-
-# Lean 4 targets
-lean4-build:
-	@echo "Building Lean 4 formalization..."
-	cd lean4 && lake build
-	@echo "✓ Lean 4 build complete (8 modules, 1,454 lines, 54 theorems)"
-
-lean4-clean:
-	@echo "Cleaning Lean 4 build artifacts..."
-	cd lean4 && lake clean
-	@echo "✓ Lean 4 artifacts cleaned"
-
-lean4-test:
-	@echo "Verifying no sorry statements in Lean code..."
-	@if grep -rE '\bsorry\b' lean4/AtlasEmbeddings/ --include="*.lean" | grep -v "^\-\-" | grep -v "NO.*sorry.*POLICY" | grep -v "ZERO sorrys"; then \
-		echo "Error: Found 'sorry' statements in Lean code"; \
-		exit 1; \
-	else \
-		echo "✓ Zero sorry statements found - all 54 theorems proven"; \
-	fi
-
-# Visualization targets
-vis-atlas:
-	@echo "Generating Atlas graph visualizations..."
-	cargo run --example generate_atlas_graph --features visualization
-
-vis-dynkin:
-	@echo "Generating Dynkin diagrams..."
-	cargo run --example generate_dynkin_diagrams --features visualization
-
-vis-golden-seed:
-	@echo "Exporting Golden Seed Vector..."
-	cargo run --example export_golden_seed_vector --features visualization
-
-vis-all: vis-atlas vis-dynkin vis-golden-seed
-	@echo "✓ All visualizations generated"
-
-vis-clean:
-	@echo "Cleaning generated visualization files..."
-	@rm -f atlas_graph.* atlas_edges.csv atlas_nodes.csv
-	@rm -f *_dynkin.svg
-	@rm -f golden_seed_*.csv golden_seed_*.json adjacency_preservation.csv
-	@echo "✓ Visualization files cleaned"
-
-# Maintenance
+# Clean all subdirectories
 clean:
-	cargo clean
-	rm -rf target/
-	rm -rf Cargo.lock
-	@if [ -d lean4 ]; then cd lean4 && lake clean; fi
-	@echo "✓ All build artifacts removed"
+	$(call print_header, "Cleaning all build artifacts")
+	@for dir in $(SUBDIRS); do \
+		if [ -f $$dir/Makefile ]; then \
+			echo "  Cleaning $$dir..."; \
+			$(MAKE) -C $$dir clean || exit 1; \
+		fi; \
+	done
+	$(Q)$(RMDIR) $(BUILD_DIR)
+	$(call print_success, "Clean complete")
 
-audit:
-	cargo audit
+# Install everything
+install: all
+	$(call print_header, "Installing UOR-FFI")
+	$(Q)$(MAKE) -C lean install
+	$(Q)$(MAKE) -C ffi install
+	$(Q)$(MAKE) -C pkg install
+	$(call print_success, "Installation complete")
 
-deps:
-	cargo tree --all-features
+# Uninstall everything
+uninstall:
+	$(call print_header, "Uninstalling UOR-FFI")
+	$(Q)$(MAKE) -C lean uninstall
+	$(Q)$(MAKE) -C ffi uninstall
+	$(Q)$(MAKE) -C pkg uninstall
+	$(call print_success, "Uninstallation complete")
 
-install-tools:
-	@echo "Installing development tools..."
-	cargo install cargo-audit
-	cargo install cargo-criterion
-	rustup component add rustfmt
-	rustup component add clippy
-	@echo "✓ Tools installed"
+# Format code (if formatters are available)
+format:
+	$(call print_header, "Formatting code")
+	@which lean4-format >/dev/null 2>&1 && find lean -name "*.lean" -exec lean4-format -i {} \; || true
+	@which clang-format >/dev/null 2>&1 && find ffi tests -name "*.[ch]" -exec clang-format -i {} \; || true
+	@which gofmt >/dev/null 2>&1 && find runtime/go -name "*.go" -exec gofmt -w {} \; || true
+	@which rustfmt >/dev/null 2>&1 && cd runtime/rust && cargo fmt || true
+	$(call print_success, "Formatting complete")
 
-# Coverage (requires cargo-tarpaulin)
-coverage:
-	cargo tarpaulin --all-features --workspace --timeout 300 --out Html --output-dir coverage/
+# Build documentation
+docs:
+	$(call print_header, "Building documentation")
+	$(Q)$(MAKE) -C docs-src clean build
 
-# Watch mode (requires cargo-watch)
-watch-test:
-	cargo watch -x test
+# Show help
+help::
+	@echo "UOR-FFI Build System"
+	@echo "===================="
+	@echo ""
+	@echo "Main targets:"
+	@echo "  make all      - Build everything (lean, ffi, runtime)"
+	@echo "  make lean     - Build Lean library only"
+	@echo "  make ffi      - Build FFI components"
+	@echo "  make runtime  - Build all language wrappers"
+	@echo "  make test     - Run all tests"
+	@echo "  make check    - Quick verification test"
+	@echo "  make clean    - Remove all build artifacts"
+	@echo "  make install  - Install libraries and headers"
+	@echo "  make format   - Format source code"
+	@echo "  make docs     - Build documentation"
+	@echo ""
+	@echo "Subdirectory targets:"
+	@echo "  make -C lean all    - Build Lean components"
+	@echo "  make -C runtime/go  - Build Go wrapper"
+	@echo "  make -C runtime/rust - Build Rust wrapper"
+	@echo "  make -C runtime/node - Build Node wrapper"
+	@echo "  make -C tests all   - Run all tests"
+	@echo ""
 
-watch-check:
-	cargo watch -x check -x clippy
+# Dependency graph visualization (requires graphviz)
+depgraph:
+	@echo "digraph dependencies {" > deps.dot
+	@echo "  lean -> ffi;" >> deps.dot
+	@echo "  lean -> runtime;" >> deps.dot
+	@echo "  ffi -> runtime;" >> deps.dot
+	@echo "  runtime -> tests;" >> deps.dot
+	@echo "}" >> deps.dot
+	@dot -Tpng deps.dot -o dependencies.png 2>/dev/null && \
+		echo "Dependency graph saved to dependencies.png" || \
+		echo "Install graphviz to generate dependency graph"
+	@rm -f deps.dot
 
-# Size analysis
-bloat:
-	cargo bloat --release --crate-name atlas_embeddings
-
-# Assembly inspection
-asm:
-	cargo asm --rust --lib
-
-# Continuous integration targets
-ci-test: format-check lint test
-	@echo "✓ CI test phase passed"
-
-ci-build: build build-release
-	@echo "✓ CI build phase passed"
-
-ci-docs: docs
-	@echo "✓ CI docs phase passed"
-
-ci: ci-test ci-build ci-docs
-	@echo "✓ All CI checks passed"
-
-.PHONY: spec-check proofs tcb-test property liveness receipts gate trace verify-build
-
-spec-check:
-	@python3 scripts/spec_check.py
-
-proofs:
-	@echo "Building proofs (stub)."
-	@mkdir -p build/proofs && touch build/proofs/R96Enumeration.ok build/proofs/ScheduleOrder.ok
-	@echo "proofs: OK"
-
-tcb-test:
-	@echo "TCB tests (stub)."
-
-property:
-	@python -m pytest -q tests/property || true
-
-liveness:
-	@echo "Run liveness monitor (stub)."
-
-receipts:
-	@mkdir -p build
-	@echo '{"version":"1","build_id":"stub","module":"R96","seed":"0x0","n":1000,"tv_bound":0.0,"mi_bound":0.0,"spectral_margin":0.0,"params":{"modulus":96},"artifacts":[],"signatures":[{"alg":"ed25519","key_id":"k","sig":"s"}]}' > build/receipt.json
-	@./bin/verify-receipt build/receipt.json
-
-gate: spec-check proofs
-	@echo "gate: acceptance suite would run here (stub)."
-
-trace:
-	@python3 scripts/gen-trace.py
-
-verify-build:
-	@echo "verify-build stub"
+.PHONY: depgraph docs
