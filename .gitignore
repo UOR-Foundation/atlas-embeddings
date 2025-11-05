@@ -64,3 +64,8 @@ __pycache__/
 *.pyc
 .venv/
 .ipynb_checkpoints/
+test_explosion
+test_projectors
+test_commutant
+tests_ctx
+test_spinlift_demo
