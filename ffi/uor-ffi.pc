@@ -1,0 +1,10 @@
+prefix=/usr/local
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: UOR-FFI
+Description: UOR Prime Structure FFI - Minimal C Implementation
+Version: 1.0.0
+Libs: -L${libdir}
+Cflags: -I${includedir}/uor-ffi

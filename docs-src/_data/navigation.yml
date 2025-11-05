@@ -1,0 +1,130 @@
+# Main navigation structure for the documentation site
+main:
+  - title: Home
+    url: /
+  - title: Getting Started
+    url: /guides/getting-started
+  - title: API Reference
+    url: /api/
+  - title: Guides
+    url: /guides/
+  - title: Examples
+    url: /examples/
+  - title: GitHub
+    url: https://github.com/afflom/atlas-12288
+    external: true
+
+# Sidebar navigation for different sections
+sidebar:
+  getting-started:
+    - title: Quick Start
+      url: /guides/getting-started
+    - title: Installation
+      url: /guides/installation
+    - title: First Steps
+      url: /guides/first-steps
+    - title: Basic Examples
+      url: /examples/basic
+
+  api:
+    - title: Overview
+      url: /api/
+    - title: C API Reference
+      url: /api/c-api
+      children:
+        - title: Constants
+          url: /api/c-api#constants
+        - title: R96 Classifier
+          url: /api/c-api#r96-classifier
+        - title: Phi Encoding
+          url: /api/c-api#phi-encoding
+        - title: Truth Functions
+          url: /api/c-api#truth-functions
+    - title: Language Bindings
+      children:
+        - title: Go API
+          url: /api/go-api
+        - title: Python API
+          url: /api/python-api
+        - title: Rust API
+          url: /api/rust-api
+        - title: Node.js API
+          url: /api/node-api
+    - title: Runtime APIs
+      children:
+        - title: Go Runtime
+          url: /api/go-runtime
+        - title: Python Runtime
+          url: /api/python-runtime
+        - title: Rust Runtime
+          url: /api/rust-runtime
+        - title: Node.js Runtime
+          url: /api/node-runtime
+    - title: API Comparison
+      url: /api/comparison
+
+  guides:
+    - title: Overview
+      url: /guides/
+    - title: Core Concepts
+      children:
+        - title: Mathematical Background
+          url: /guides/mathematics
+        - title: Architecture
+          url: /guides/architecture
+        - title: FFI Design
+          url: /guides/ffi-design
+    - title: Development
+      children:
+        - title: Build System
+          url: /guides/build-system
+        - title: Testing
+          url: /guides/testing
+        - title: Benchmarks
+          url: /guides/benchmarks
+    - title: Usage
+      children:
+        - title: Installation
+          url: /guides/installation
+        - title: Getting Started
+          url: /guides/getting-started
+        - title: Best Practices
+          url: /guides/best-practices
+
+  examples:
+    - title: Overview
+      url: /examples/
+    - title: Basic Examples
+      url: /examples/basic
+    - title: By Language
+      children:
+        - title: C Examples
+          url: /examples/c
+        - title: Go Examples
+          url: /examples/go
+        - title: Python Examples
+          url: /examples/python
+        - title: Rust Examples
+          url: /examples/rust
+        - title: Node.js Examples
+          url: /examples/node
+    - title: Advanced
+      children:
+        - title: Cross-Language
+          url: /examples/cross-language
+        - title: Performance
+          url: /examples/performance
+        - title: Integration
+          url: /examples/integration
+
+  reference:
+    - title: FAQ
+      url: /reference/faq
+    - title: Troubleshooting
+      url: /reference/troubleshooting
+    - title: Contributing
+      url: /reference/contributing
+    - title: Changelog
+      url: /reference/changelog
+    - title: License
+      url: /reference/license

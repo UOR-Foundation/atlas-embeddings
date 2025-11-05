@@ -1,0 +1,23 @@
+---
+layout: null
+---
+[
+  {% for page in site.pages %}
+    {% if page.title %}
+    {
+      "title": "{{ page.title | escape }}",
+      "url": "{{ page.url | relative_url }}",
+      "content": {{ page.content | strip_html | jsonify }}
+    }{% unless forloop.last %},{% endunless %}
+    {% endif %}
+  {% endfor %}
+  {% for doc in site.documents %}
+    {% if doc.title %}
+    ,{
+      "title": "{{ doc.title | escape }}",
+      "url": "{{ doc.url | relative_url }}",
+      "content": {{ doc.content | strip_html | jsonify }}
+    }
+    {% endif %}
+  {% endfor %}
+]

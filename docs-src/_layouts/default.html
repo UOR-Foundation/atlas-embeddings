@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="{{ site.lang | default: "en-US" }}">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+{% seo %}
+    <link rel="stylesheet" href="{{ "/assets/css/style.css?v=" | append: site.github.build_revision | relative_url }}">
+    <style>
+      /* Custom navigation styles */
+      .main-nav {
+        background-color: #159957;
+        background-image: linear-gradient(120deg, #155799, #159957);
+        padding: 1rem 0;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+      }
+      .nav-container {
+        max-width: 64rem;
+        margin: 0 auto;
+        padding: 0 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .nav-links {
+        display: flex;
+        gap: 2rem;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      .nav-links a {
+        color: white;
+        text-decoration: none;
+        font-weight: 500;
+        transition: opacity 0.2s;
+      }
+      .nav-links a:hover {
+        opacity: 0.8;
+      }
+      .content-wrapper {
+        display: flex;
+        max-width: 64rem;
+        margin: 0 auto;
+        padding: 2rem;
+        gap: 2rem;
+      }
+      .sidebar {
+        flex: 0 0 250px;
+        padding: 1rem;
+        background: #f6f8fa;
+        border-radius: 6px;
+        height: fit-content;
+        position: sticky;
+        top: 80px;
+      }
+      .sidebar h3 {
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        color: #586069;
+        margin-bottom: 0.5rem;
+      }
+      .sidebar ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+      .sidebar li {
+        margin: 0.25rem 0;
+      }
+      .sidebar a {
+        color: #0366d6;
+        text-decoration: none;
+        font-size: 0.9rem;
+      }
+      .sidebar a:hover {
+        text-decoration: underline;
+      }
+      .sidebar .active {
+        font-weight: bold;
+        color: #24292e;
+      }
+      .sidebar ul ul {
+        margin-left: 1rem;
+        margin-top: 0.25rem;
+      }
+      .main-content {
+        flex: 1;
+        min-width: 0;
+      }
+      .breadcrumb {
+        padding: 0.5rem 0;
+        margin-bottom: 1rem;
+        border-bottom: 1px solid #e1e4e8;
+        font-size: 0.875rem;
+      }
+      .breadcrumb a {
+        color: #0366d6;
+        text-decoration: none;
+      }
+      .breadcrumb a:hover {
+        text-decoration: underline;
+      }
+      .breadcrumb span {
+        margin: 0 0.5rem;
+        color: #586069;
+      }
+      .page-header {
+        padding: 2rem 4rem;
+      }
+      .project-name {
+        margin-top: 0;
+        margin-bottom: 0.1rem;
+      }
+      .project-tagline {
+        margin-bottom: 2rem;
+        font-weight: normal;
+        opacity: 0.7;
+      }
+      .search-box {
+        position: relative;
+        margin-left: auto;
+      }
+      .search-box input {
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        border: 1px solid rgba(255,255,255,0.3);
+        background: rgba(255,255,255,0.1);
+        color: white;
+        width: 200px;
+      }
+      .search-box input::placeholder {
+        color: rgba(255,255,255,0.7);
+      }
+      .search-results {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background: white;
+        border: 1px solid #e1e4e8;
+        border-radius: 6px;
+        box-shadow: 0 3px 12px rgba(0,0,0,0.15);
+        max-width: 400px;
+        max-height: 400px;
+        overflow-y: auto;
+        display: none;
+        z-index: 1001;
+        margin-top: 0.5rem;
+      }
+      .search-results ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      .search-results li {
+        border-bottom: 1px solid #e1e4e8;
+      }
+      .search-results li:last-child {
+        border-bottom: none;
+      }
+      .search-results a {
+        display: block;
+        padding: 0.75rem 1rem;
+        color: #24292e;
+        text-decoration: none;
+        transition: background 0.2s;
+      }
+      .search-results a:hover {
+        background: #f6f8fa;
+      }
+      .search-results .snippet {
+        color: #586069;
+        font-size: 0.875rem;
+        display: block;
+        margin-top: 0.25rem;
+      }
+      .search-results .no-results {
+        padding: 1rem;
+        color: #586069;
+        text-align: center;
+      }
+      @media screen and (max-width: 768px) {
+        .content-wrapper {
+          flex-direction: column;
+        }
+        .sidebar {
+          position: relative;
+          top: 0;
+          flex: 1;
+        }
+        .nav-links {
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+        .search-box {
+          margin-top: 1rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="main-nav">
+      <div class="nav-container">
+        <ul class="nav-links">
+          {% for item in site.data.navigation.main %}
+          <li>
+            <a href="{% if item.external %}{{ item.url }}{% else %}{{ item.url | relative_url }}{% endif %}" 
+               {% if item.external %}target="_blank" rel="noopener"{% endif %}>
+              {{ item.title }}
+            </a>
+          </li>
+          {% endfor %}
+        </ul>
+        <div class="search-box">
+          <input type="search" id="search-input" placeholder="Search docs...">
+        </div>
+      </div>
+    </nav>
+
+    <header class="page-header" role="banner">
+      <h1 class="project-name">{{ page.title | default: site.title | default: site.github.repository_name }}</h1>
+      <h2 class="project-tagline">{{ page.description | default: site.description | default: site.github.project_tagline }}</h2>
+    </header>
+
+    <div class="content-wrapper">
+      {% if page.sidebar %}
+      <aside class="sidebar">
+        {% assign sidebar_data = site.data.navigation.sidebar[page.sidebar] %}
+        {% if sidebar_data %}
+        <ul>
+          {% for item in sidebar_data %}
+          <li>
+            {% if item.url %}
+            <a href="{{ item.url | relative_url }}" {% if page.url == item.url %}class="active"{% endif %}>
+              {{ item.title }}
+            </a>
+            {% else %}
+            <strong>{{ item.title }}</strong>
+            {% endif %}
+            {% if item.children %}
+            <ul>
+              {% for child in item.children %}
+              <li>
+                <a href="{{ child.url | relative_url }}" {% if page.url == child.url %}class="active"{% endif %}>
+                  {{ child.title }}
+                </a>
+              </li>
+              {% endfor %}
+            </ul>
+            {% endif %}
+          </li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+      </aside>
+      {% endif %}
+
+      <main id="content" class="main-content" role="main">
+        {% if page.breadcrumb != false %}
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+          <a href="{{ "/" | relative_url }}">Home</a>
+          {% assign crumbs = page.url | split: '/' %}
+          {% assign crumb_path = '' %}
+          {% for crumb in crumbs %}
+            {% if crumb != '' and crumb != 'index.html' %}
+              {% assign crumb_path = crumb_path | append: '/' | append: crumb %}
+              <span>/</span>
+              {% if forloop.last %}
+                <span>{{ page.title | default: crumb | replace: '-', ' ' | capitalize }}</span>
+              {% else %}
+                <a href="{{ crumb_path | relative_url }}">{{ crumb | replace: '-', ' ' | capitalize }}</a>
+              {% endif %}
+            {% endif %}
+          {% endfor %}
+        </nav>
+        {% endif %}
+
+        {{ content }}
+
+        <footer class="site-footer">
+          <span class="site-footer-credits">
+            <a href="{{ site.github.repository_url }}">{{ site.github.repository_name }}</a> is maintained by <a href="{{ site.github.owner_url }}">{{ site.github.owner_name }}</a>.
+          </span>
+        </footer>
+      </main>
+    </div>
+
+    <script src="{{ "/assets/js/search.js" | relative_url }}"></script>
+  </body>
+</html>

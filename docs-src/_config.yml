@@ -1,0 +1,53 @@
+theme: jekyll-theme-cayman
+title: UOR Prime Structure FFI
+description: Mathematical framework for 12,288-element holographic structure
+baseurl: "/atlas-12288"
+url: "https://afflom.github.io"
+
+# Build settings
+markdown: kramdown
+highlighter: rouge
+
+# Collections
+collections:
+  guides:
+    output: true
+    permalink: /guides/:name
+  examples:
+    output: true
+    permalink: /examples/:name
+  reference:
+    output: true
+    permalink: /reference/:name
+
+# Defaults
+defaults:
+  - scope:
+      path: ""
+      type: "pages"
+    values:
+      layout: "default"
+      sidebar: "guides"
+  - scope:
+      path: "api"
+      type: "pages"
+    values:
+      layout: "default"
+      sidebar: "api"
+  - scope:
+      path: "guides"
+      type: "pages"
+    values:
+      layout: "default"
+      sidebar: "guides"
+  - scope:
+      path: "examples"
+      type: "pages"
+    values:
+      layout: "default"
+      sidebar: "examples"
+
+# Plugins
+plugins:
+  - jekyll-seo-tag
+  - jekyll-sitemap
