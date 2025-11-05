@@ -296,7 +296,7 @@ def leakage_certificate(bridge: AtlasBridge, json_out_path: str) -> int:
 # Explosion test (Appendix B)
 # ============================================================================
 
-def test_explosion():
+def run_explosion_test():
     """
     Test that noncentral E elements trigger 8-way explosion in BRIDGE mode.
     """
@@ -352,7 +352,7 @@ def main():
     print()
     
     # Test explosion
-    test_explosion()
+    run_explosion_test()
     
     # Test projectors
     print("=== Projector Tests ===")
