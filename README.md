@@ -1,322 +1,193 @@
-# UOR Prime Structure FFI
+# Hologram APEX Monorepo
 
-A Lean 4 implementation of the Prime Structure/Φ-Atlas-12288 mathematical framework with FFI bindings for multiple languages.
+**Components:** Atlas • Embeddings • Sigmatics
 
-## Overview
+This repository hosts a cohesive stack for moonshine‑inspired computation. It brings together a fast classical/bridge **Atlas** core, **Embeddings** that map data into Atlas spaces, and **Sigmatics** for symbolic + programmatic workflows. The stack is designed for rigorous experiments around Conway–Monster structures while remaining practical for ML/quant‑adjacent workloads.
 
-This project implements the core mathematical concepts from the Universal Object Reference (UOR) Prime Structure specification, providing:
+---
 
-- **12,288-element structure** (48×256) representing the fundamental mathematical object
-- **R96 resonance classifier** mapping 256 byte values to 96 resonance classes (3/8 compression)
-- **Φ boundary encoding** for page/byte coordinate packing
-- **Truth ≙ conservation** budget semantics
-- **Multi-language FFI** supporting Go, Rust, Node.js, and C
+## Contents
+- [Architecture](#architecture)
+- [Components](#components)
+  - [Atlas](#atlas)
+  - [Embeddings](#embeddings)
+  - [Sigmatics](#sigmatics)
+- [Quickstart](#quickstart)
+- [Repository Layout](#repository-layout)
+- [Configuration Files](#configuration-files)
+- [Build, Test, and Certificates](#build-test-and-certificates)
+- [Python Bindings](#python-bindings)
+- [Status & Roadmap](#status--roadmap)
+- [Contributing](#contributing)
+- [License](#license)
 
-## Mathematical Background
+---
 
-The Prime Structure is built on several key mathematical principles:
+## Architecture
+At a high level, the stack is a **hybrid classical/bridge system** with a hard 2B interface and an opt‑in Conway–Monster bridge.
 
-- **Unity Constraint**: α₄α₅ = 1 creating fundamental symmetries
-- **96 Resonance Classes**: Exactly 96 distinct values from 8-bit patterns
-- **Conservation Laws**: Triple-cycle invariant with sum 687.110133...
-- **Holographic Duality**: Bulk↔boundary correspondence via master isomorphism Φ
+- **Classical layer (base):** `W_class = 24 × 4096` reduced in code to a practical 12,288‑dimensional block (48×256).
+- **Bridge (Monster‑adjacent):** an 8‑lift expansion driven by the extraspecial group `E = 2^{1+24}` and reduced Co1 actions. In practice, we use an 8‑lift XOR action keyed by linear forms of `(x,z)`.
+- **Projectors and diagnostics:** executable `P_class` and `P_299` projectors, commutant probes, leakage and idempotency metrics. A CI certificate (`bridge_cert.json`) records thresholds.
 
-For detailed mathematical context, see the formal Lean implementation in the `/lean/` directory.
+> The Atlas core runs standalone. Embeddings and Sigmatics consume Atlas as a library and provide higher‑level experiments.
 
-## Repository Structure
+---
 
-```
-/
-├─ README.md                         # This file
-├─ lean-toolchain                     # Lean version specification
-├─ lakefile.lean                      # Build configuration
-├─ lean/
-│  └─ UOR/
-│     ├─ Prime/
-│     │  └─ Structure.lean           # 48×256 boundary + R96 (core math)
-│     ├─ Atlas/
-│     │  └─ Core.lean                # Φ-Atlas-12288 record instance
-│     ├─ FFI/
-│     │  └─ CAPI.lean                # Exported C ABI
-│     └─ Verify/
-│        └─ CLI.lean                 # CLI for testing
-├─ ffi/
-│  └─ c/
-│     ├─ uor_ffi.h                   # C header: stable ABI
-│     ├─ minimal_wrapper.c           # Minimal C implementation
-│     └─ uor_init.c                  # Lean runtime initialization
-├─ pkg/
-│  ├─ go/                            # Go bindings (basic)
-│  ├─ python/                        # Python bindings
-│  ├─ rust/                          # Rust bindings (basic)
-│  └─ node/                          # Node.js bindings
-├─ runtime/
-│  ├─ go/                            # Enhanced Go wrapper
-│  ├─ rust/                          # Enhanced Rust wrapper
-│  └─ node/                          # Enhanced Node.js wrapper
-└─ tests/
-   └─ c/test_ffi.c                   # C smoke test
-```
+## Components
 
-## Building
+### Atlas
+The Atlas component is the numerical/runtime core.
 
-### Prerequisites
+**Highlights**
+- Context‑based C API (`atlas_bridge_ctx.h/.c`)
+- Exact extraspecial 2‑group action on blocks with XOR lift routing
+- `P_class` and `P_299` projectors (reduced‑rank exact; optional full linear projector via external matrix)
+- Minimal Co1 “mini‑gates” + pluggable dense generators
+- Deterministic diagnostics: projector idempotency, commutant proxy, certificate emission
+- Optional SIMD (AVX2) and BLAS acceleration
 
-- Lean 4 (stable release)
-- C compiler (gcc/clang)
-- GNU Make
-- Optional: Go, Rust, Node.js for language-specific wrappers
+**Key files**
+- `atlas_bridge_ctx.h/.c` — core API and implementation
+- `tests_ctx.c` — unit tests (homomorphism, Pauli relations, projector idempotency, commutant collapse)
+- `.github/workflows/bridge.yml` — CI to build, test, and publish `bridge_cert.json`
 
-### Quick Start with Make
+**Thresholds**
+- `‖P_class^2 − P_class‖ ≤ 1e−8` (target), `≤ 1e−12` in practice
+- `Comm(E,Co1)` effective dim < 1.5
 
-The project includes a hierarchical Makefile system for easy building:
+---
 
+### Embeddings
+The Embeddings component turns structured or unstructured inputs into vectors living in Atlas spaces for analysis or downstream learning.
+
+**Capabilities**
+- Dataset adapters → Atlas‑compatible tensors
+- Feature heads producing 12,288‑length vectors (base) or 8‑lift stacks (bridge)
+- Optional training/eval loops for reconstruction and projector‑consistency losses
+
+**Typical workflow**
+1. Prepare data adapter producing `(page, byte)` structured views or raw vectors.
+2. Encode to 12,288 and run `P_class` / `P_299` consistency checks.
+3. If needed, lift to bridge mode and evaluate leakage and commutant metrics.
+
+**Key entrypoints**
+- `embeddings/…` (Python): dataset loaders, model wrappers, evaluation scripts
+- `docs/embeddings.md`: format specs and examples
+
+---
+
+### Sigmatics
+Sigmatics is the symbolic and orchestration layer: notebooks, proof‑sketch runners, and Sage/Atlas glue.
+
+**Capabilities**
+- Sage‑Atlas bridge: generate lift forms, sanity‑check linear forms, export `lift_forms.hex`
+- Scripted experiments around `S²(24)` trace‑zero features and projector synthesis
+- Batch drivers to run Atlas diagnostics across seeds and datasets
+
+**Key entrypoints**
+- `sigmatics/…` (Sage/Python): generators, exporters, experiment runners
+- `docs/sigmatics.md`: setup and recipes
+
+---
+
+## Quickstart
+
+### Prereqs
+- C toolchain supporting C11
+- Python 3.10+
+- Optional: OpenBLAS (recommended) and AVX2 for better performance
+
+### Build & test Atlas
 ```bash
-# Build everything (Lean library, FFI, and runtime wrappers)
-make all
-
-# Run all tests
-make test
-
-# Quick verification check
-make check
-
-# Install to system (requires sudo for default prefix)
-sudo make install
-
-# Clean all build artifacts
-make clean
+# From repo root
+bash tools/verify_bridge.sh
 ```
-
-### Make Targets
-
-#### Main Targets
-- `make all` - Build everything (lean, ffi, runtime)
-- `make lean` - Build Lean library only
-- `make ffi` - Build FFI components
-- `make runtime` - Build all language wrappers
-- `make test` - Run all tests
-- `make check` - Quick verification test
-- `make clean` - Remove all build artifacts
-- `make install` - Install libraries and headers
-- `make format` - Format source code (if formatters available)
-- `make docs` - Build comprehensive documentation
-
-#### Subdirectory Targets
+If you have your own lift forms:
 ```bash
-# Build specific components
-make -C lean all        # Build Lean library and executable
-make -C ffi all         # Build FFI layer and tests
-make -C pkg all         # Build all language bindings (basic)
-make -C runtime all     # Build enhanced language wrappers
-make -C tests all       # Run all tests
-
-# Run specific tests
-make -C tests test-lean        # Lean verification only
-make -C tests test-c           # C tests only
-make -C tests test-pkg         # Package binding tests
-make -C tests test-runtime     # Enhanced wrapper tests
-make -C tests benchmark        # Performance benchmarks
+echo "A7 5C 39 D2 4E 11" > lift_forms.hex
+bash tools/verify_bridge.sh
 ```
+The script compiles the ctx library, runs the full unit suite, and emits `bridge_cert.json`.
 
-#### Configuration Variables
-```bash
-# Build with custom settings
-make BUILD_TYPE=debug          # Debug build
-make VERBOSE=1                 # Verbose output
-make PREFIX=/opt/uor install   # Custom install prefix
-make NO_COLOR=1                # Disable colored output
-```
-
-## Documentation
-
-The project includes comprehensive documentation that can be built using the make system:
-
-```bash
-# Build all documentation
-make docs
-
-# Build specific documentation types
-make -C docs html      # HTML documentation with navigation
-make -C docs api       # API reference from Lean sources  
-make -C docs capi      # C API documentation from headers
-make -C docs langdocs  # Language wrapper documentation
-make -C docs markdown  # Collect and process markdown files
-make -C docs pdf       # PDF documentation (requires pandoc)
-
-# Serve documentation locally
-make -C docs serve     # Starts HTTP server at localhost:8000
-```
-
-### Documentation Structure
-
-After building, documentation is available in `docs/build/`:
-
-- `html/index.html` - Main documentation site with navigation
-- `api/` - Lean API documentation and module reference
-- `capi/` - C API function signatures and constants
-- `lang/` - Go, Rust, and Node.js wrapper documentation
-- `markdown/` - Processed documentation files
-
-The HTML documentation provides a comprehensive view of:
-- **Getting Started**: README, API reference, C API reference  
-- **Language Bindings**: Go, Rust, Node.js wrapper documentation
-- **Additional Resources**: Documentation index and Lean language links
-
-### Manual Build Steps (without Make)
-
-1. **Build Lean library and CLI**:
-```bash
-lake build
-```
-
-Artifacts will be generated under `.lake/build/lib/` (libUOR.{a,so,dylib})
-
-2. **Build and run CLI verification**:
-```bash
-.lake/build/bin/uor-verify
-echo $?  # Should output 0 for success
-```
-
-3. **Build C smoke test**:
-```bash
-cc -Iffi/c -L.lake/build/lib tests/c/test_ffi.c -o tests/c/test_ffi \
-   -lUOR -lLean -lpthread -ldl
-./tests/c/test_ffi  # Should output "OK"
-```
-
-## API Reference
-
-### Constants
-
-- `lean_uor_pages()` → 48 (number of pages)
-- `lean_uor_bytes()` → 256 (bytes per page)
-- `lean_uor_rclasses()` → 96 (resonance classes)
-- `lean_uor_abi_version()` → 1 (ABI version)
-
-### R96 Classifier
-
-- `lean_uor_r96_classify(b)` → [0,95]
-  - Returns the resonance class for byte `b`
-
-### Φ Boundary Encoding
-
-- `lean_uor_phi_encode(page, byte)` → 32-bit code
-  - Packs (page, byte) as `(page << 8) | byte`
-- `lean_uor_phi_page(code)` → page (mod 48)
-  - Extracts page component
-- `lean_uor_phi_byte(code)` → byte
-  - Extracts byte component (low 8 bits)
-
-### Truth ≙ Conservation
-
-- `lean_uor_truth_zero(budget)` → 0/1
-  - Returns 1 if budget equals 0 (truth)
-- `lean_uor_truth_add(a, b)` → 0/1
-  - Returns 1 if `a + b == 0` (additive conservation)
-
-## Language Bindings
-
-The repository provides two tiers of language bindings:
-
-### Basic Bindings (`pkg/`)
-Minimal wrappers providing direct access to core functions:
-
-**Go** (`pkg/go/`)
-```go
-import uor "github.com/your-repo/pkg/go/src"
-fmt.Println("Pages:", uor.Pages())      // 48
-fmt.Println("R96(255):", uor.R96(255))  // Class [0,95]
-```
-
-**Python** (`pkg/python/`)  
+### Minimal Python usage
 ```python
-import uor
-print(f"Pages: {uor.pages()}")         # 48
-print(f"R96(255): {uor.r96(255)}")     # Class [0,95]
+from bindings.python.atlas_bridge._native_ctx import lib, AtlasCtx
+
+ctx = lib.atlas_new()
+lib.atlas_set_mode(ctx, 1)          # BRIDGE
+lib.atlas_spinlift_enable(ctx, 1)
+lib.emit_bridge_cert_ctx(ctx, b"bridge_cert.json")
+lib.atlas_free(ctx)
 ```
 
-**Rust** (`pkg/rust/`)
-```rust
-use uor_ffi;
-println!("Pages: {}", uor_ffi::pages()); // 48
+---
+
+## Repository Layout
+```
+repo/
+  atlas_bridge_ctx.h
+  atlas_bridge_ctx.c
+  tests_ctx.c
+  tools/
+    verify_bridge.sh
+    emit_cert.c
+    check_metrics.c
+  bindings/
+    python/
+      atlas_bridge/
+        _native_ctx.py
+  sigmatics/              # symbolic & Sage helpers (planned/optional)
+  embeddings/             # dataset adapters + training/eval (planned/optional)
+  docs/
+    atlas.md
+    embeddings.md
+    sigmatics.md
+  .github/workflows/bridge.yml
+  lift_forms.hex          # required for real runs
+  P_299_matrix.bin        # optional: exact projector matrix
+  co1_gates.txt           # optional: Co1 generator registry
 ```
 
-**Node.js** (`pkg/node/`)
-```javascript
-const uor = require('uor-ffi');
-console.log('Pages:', uor.pages());     // 48
-```
+---
 
-### Enhanced Bindings (`runtime/`)
-Rich object-oriented APIs with comprehensive types:
+## Configuration Files
+- **`lift_forms.hex`** — 6 hex bytes: `Lx0 Lx1 Lx2  Lz0 Lz1 Lz2` (low 8 bits used when `N_QBITS=8`).
+- **`P_299_matrix.bin`** — optional exact linear projector (row‑major `N×N` doubles; `N=12288` or `98304`).
+- **`co1_gates.txt`** — optional DSL for registering Co1 gates. `MAT` entries point to dense `N×N` binaries.
 
-**Go** (`runtime/go/`)
-```go
-import "path/to/runtime/go/uorffi"
-coord := uorffi.NewPhiCoordinate(3, 16)
-fmt.Println("Encoded:", coord.Code())
-```
+---
 
-**Rust** (`runtime/rust/`)
-```rust
-use uor_runtime::*;
-let coord = PhiCoordinate::new(3, 16)?;
-println!("Page: {}", coord.page());
-```
+## Build, Test, and Certificates
+- **Build:** `tools/verify_bridge.sh` compiles the library, runs tests, and emits a certificate.
+- **CI:** `.github/workflows/bridge.yml` runs the same checks on every PR and uploads `bridge_cert.json` as an artifact.
+- **Certificate:** includes mode, spin‑lift, lift forms, projector idempotency, and commutant proxies.
 
-**Node.js** (`runtime/node/`)
-```javascript
-const { PhiCoordinate } = require('./runtime/node');
-const coord = new PhiCoordinate(3, 16);
-console.log('Code:', coord.code);
-```
+---
 
-## Mathematical Significance
+## Python Bindings
+Bindings live under `bindings/python/atlas_bridge`. The ctx API is loaded from a shared library (`libatlas_bridge_ctx.so`).
 
-The FFI exposes key invariants from the Prime Structure formalization:
+- `AtlasCtx*` lifecycle: `atlas_new` → `atlas_free`
+- Core ops: `e_apply`, `e_twirl`, `P_class_apply_ctx`, `P_299_apply_ctx`, `co1_apply_ctx`
+- Diagnostics: `projector_residual_ctx`, `commutant_probe_ctx`, `emit_bridge_cert_ctx`
 
-1. **R96 Compression**: The 96/256 = 3/8 ratio is a universal compression bound
-2. **Page Structure**: 48-periodic organization emerges from unity constraint
-3. **Conservation Laws**: Truth ≙ conservation at budget 0
-4. **Holographic Principle**: Boundary encodes bulk information
+> Legacy non‑ctx entry points are deprecated. Use the ctx API exclusively.
 
-## Testing
+---
 
-Run the verification suite:
-```bash
-# All tests
-make test
+## Status & Roadmap
+- **Done:** ctx API; lift routing via linear forms; in‑block Pauli; `P_class`/`P_299` projectors; Co1 mini‑gates; diagnostics; CI certs; optional BLAS/AVX2.
+- **Planned:** full 12‑qubit base block; richer Co1 generator sets; dataset‑specific embeddings; Sigmatics proof runners and exporters.
 
-# Component-specific tests
-make -C lean test               # Lean verification
-make -C ffi test               # C FFI tests  
-make -C pkg test               # Basic bindings
-make -C runtime test           # Enhanced bindings
-
-# Language-specific tests
-make -C pkg test-go            # Go basic bindings
-make -C pkg test-python        # Python bindings
-make -C runtime test-rust      # Rust enhanced bindings
-make -C runtime test-node      # Node.js enhanced bindings
-```
+---
 
 ## Contributing
+- Open an issue describing your change.
+- Keep CI green. New features must add unit tests.
+- If you contribute projectors or generators, include a loader and a small verifier.
 
-Contributions should maintain the mathematical integrity of the Prime Structure invariants. Key requirements:
-
-- Preserve R96 count (exactly 96 resonance classes)
-- Maintain unity constraint α₄α₅ = 1
-- Ensure conservation laws hold
-- Document any new mathematical insights
+---
 
 ## License
-
-This implementation provides formal verification of the mathematical framework through Lean 4. See individual files for specific licensing information.
-
-## References
-
-- Lean 4 Implementation (lean/UOR/)
-- Prime Structure Module (lean/UOR/Prime/Structure.lean)
-- Atlas Core Module (lean/UOR/Atlas/Core.lean)
-- FFI C API (lean/UOR/FFI/CAPI.lean)
+MIT (or project’s chosen license). Add `LICENSE` at repo root.
