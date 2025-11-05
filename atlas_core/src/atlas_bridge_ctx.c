@@ -336,25 +336,28 @@ int atlas_ctx_apply_heisenberg(AtlasBridgeContext* ctx, uint8_t q1, uint8_t q2, 
     // Heisenberg exchange: σ_i · σ_j = X_i X_j + Y_i Y_j + Z_i Z_j
     // This is implemented as a combination of Pauli operations
     
-    // Save original state
-    vec_copy(ctx->temp_buffer, state, ctx->config.block_size);
+    // Save original state for all terms
+    vec_copy(ctx->twirl_accumulator, state, ctx->config.block_size);
     
-    // XX term
-    apply_pauli_x_single(state, ctx->config.block_size, q1);
-    apply_pauli_x_single(state, ctx->config.block_size, q2);
+    // Initialize result to zero
+    vec_zero(state, ctx->config.block_size);
     
-    // YY term = -X_i Z_i X_j Z_j (with proper phase)
-    apply_pauli_z_single(ctx->temp_buffer, ctx->config.block_size, q1);
+    // XX term: apply X_i X_j to original state
+    vec_copy(ctx->temp_buffer, ctx->twirl_accumulator, ctx->config.block_size);
     apply_pauli_x_single(ctx->temp_buffer, ctx->config.block_size, q1);
-    apply_pauli_z_single(ctx->temp_buffer, ctx->config.block_size, q2);
     apply_pauli_x_single(ctx->temp_buffer, ctx->config.block_size, q2);
     vec_axpy(state, ctx->temp_buffer, ctx->config.block_size, 1.0);
     
-    // ZZ term
-    vec_copy(ctx->temp_buffer, state, ctx->config.block_size);
-    for (size_t i = 0; i < ctx->config.block_size; i++) {
-        ctx->temp_buffer[i] = state[i];
-    }
+    // YY term: apply Y_i Y_j = (iX_i Z_i)(iX_j Z_j) = -X_i Z_i X_j Z_j to original state
+    vec_copy(ctx->temp_buffer, ctx->twirl_accumulator, ctx->config.block_size);
+    apply_pauli_x_single(ctx->temp_buffer, ctx->config.block_size, q1);
+    apply_pauli_z_single(ctx->temp_buffer, ctx->config.block_size, q1);
+    apply_pauli_x_single(ctx->temp_buffer, ctx->config.block_size, q2);
+    apply_pauli_z_single(ctx->temp_buffer, ctx->config.block_size, q2);
+    vec_axpy(state, ctx->temp_buffer, ctx->config.block_size, 1.0);
+    
+    // ZZ term: apply Z_i Z_j to original state
+    vec_copy(ctx->temp_buffer, ctx->twirl_accumulator, ctx->config.block_size);
     apply_pauli_z_single(ctx->temp_buffer, ctx->config.block_size, q1);
     apply_pauli_z_single(ctx->temp_buffer, ctx->config.block_size, q2);
     vec_axpy(state, ctx->temp_buffer, ctx->config.block_size, 1.0);
