@@ -145,7 +145,7 @@ void test_p_class_projector(void) {
     // Check idempotency
     double idem = atlas_ctx_check_p_class_idempotency(ctx, state);
     printf("  P_class idempotency: %.6e\n", idem);
-    assert(idem < 1e-6);  // Should be very small
+    assert(idem < 1e-10);  // Reasonable tolerance for floating point
     printf("  ✓ P_class is idempotent (||P²-P|| = %.6e)\n", idem);
     
     free(state);
@@ -175,7 +175,7 @@ void test_p_299_projector(void) {
     // Check idempotency
     double idem = atlas_ctx_check_p_299_idempotency(ctx, state);
     printf("  P_299 idempotency: %.6e\n", idem);
-    assert(idem < 1e-6);  // Should be very small
+    assert(idem < 1e-10);  // Reasonable tolerance for floating point
     printf("  ✓ P_299 is idempotent (||P²-P|| = %.6e)\n", idem);
     
     // Verify trace-zero property (within each page%24 group)

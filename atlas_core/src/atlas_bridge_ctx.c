@@ -34,6 +34,9 @@ struct AtlasBridgeContext {
 // Library version
 static const char* VERSION = "0.3.0";
 
+// Constants
+#define CERT_LIFT_FORMS_HEX_LIMIT 128  // Max bytes of lift forms to include in certificate
+
 // Default E-twirl generators (16 generators for 8-qubit Pauli group)
 // These are carefully chosen to cover representative directions in the Pauli group
 static const uint8_t DEFAULT_TWIRL_X[16] = {
@@ -588,13 +591,18 @@ int atlas_ctx_load_lift_forms(AtlasBridgeContext* ctx, const char* filepath) {
     return result;
 }
 
+// Helper: check if character is whitespace
+static int is_whitespace(char c) {
+    return c == ' ' || c == '\n' || c == '\r' || c == '\t';
+}
+
 int atlas_ctx_set_lift_forms_hex(AtlasBridgeContext* ctx, const char* hex_data, size_t len) {
     if (!ctx || !ctx->initialized || !hex_data) return -1;
     
     // Strip whitespace and newlines
     size_t hex_len = 0;
     for (size_t i = 0; i < len; i++) {
-        if (hex_data[i] != ' ' && hex_data[i] != '\n' && hex_data[i] != '\r' && hex_data[i] != '\t') {
+        if (!is_whitespace(hex_data[i])) {
             hex_len++;
         }
     }
@@ -607,21 +615,22 @@ int atlas_ctx_set_lift_forms_hex(AtlasBridgeContext* ctx, const char* hex_data, 
     
     // Convert hex to bytes
     size_t pos = 0;
-    for (size_t i = 0; i < len && pos < data_len; i++) {
-        if (hex_data[i] == ' ' || hex_data[i] == '\n' || hex_data[i] == '\r' || hex_data[i] == '\t') {
+    for (size_t i = 0; i < len && pos < data_len; ) {
+        // Skip whitespace
+        if (is_whitespace(hex_data[i])) {
+            i++;
             continue;
         }
         
         int high = hex_char_to_nibble(hex_data[i]);
-        if (high < 0 || i + 1 >= len) {
+        if (high < 0) {
             free(data);
             return -1;
         }
+        i++;
         
         // Skip whitespace before low nibble
-        i++;
-        while (i < len && (hex_data[i] == ' ' || hex_data[i] == '\n' || 
-               hex_data[i] == '\r' || hex_data[i] == '\t')) {
+        while (i < len && is_whitespace(hex_data[i])) {
             i++;
         }
         
@@ -635,6 +644,7 @@ int atlas_ctx_set_lift_forms_hex(AtlasBridgeContext* ctx, const char* hex_data, 
             free(data);
             return -1;
         }
+        i++;
         
         data[pos++] = (high << 4) | low;
     }
@@ -893,10 +903,12 @@ int atlas_ctx_emit_certificate(const AtlasBridgeContext* ctx, const char* filepa
     
     if (ctx->lift_forms_data && ctx->lift_forms_len > 0) {
         fprintf(f, "\"");
-        for (size_t i = 0; i < ctx->lift_forms_len && i < 128; i++) {  // Limit output
+        size_t limit = (ctx->lift_forms_len < CERT_LIFT_FORMS_HEX_LIMIT) 
+                       ? ctx->lift_forms_len : CERT_LIFT_FORMS_HEX_LIMIT;
+        for (size_t i = 0; i < limit; i++) {
             fprintf(f, "%02x", ctx->lift_forms_data[i]);
         }
-        if (ctx->lift_forms_len > 128) {
+        if (ctx->lift_forms_len > CERT_LIFT_FORMS_HEX_LIMIT) {
             fprintf(f, "...");
         }
         fprintf(f, "\"\n");
