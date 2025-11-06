@@ -4,6 +4,8 @@
 
 This repository hosts a cohesive stack for moonshine‑inspired computation. It brings together a fast classical/bridge **Atlas** core, **Embeddings** that map data into Atlas spaces, and **Sigmatics** for symbolic + programmatic workflows. The stack is designed for rigorous experiments around Conway–Monster structures while remaining practical for ML/quant‑adjacent workloads.
 
+**v0.5 Update:** Atlas Bridge Deployment Pack integrated with BLAS acceleration, real artifact support, and enhanced language bindings.
+
 ---
 
 ## Contents
@@ -92,6 +94,17 @@ Sigmatics is the symbolic and orchestration layer: notebooks, proof‑sketch run
 ---
 
 ## Quickstart
+
+### v0.5 What's New
+
+**Atlas Bridge Deployment Pack v0.5** brings significant enhancements:
+- **BLAS Acceleration**: Optional OpenBLAS/CBLAS support for matrix-vector operations with automatic fallback
+- **Real Artifacts**: Production-ready `lift_forms.hex`, optional `P_299_matrix.bin`, optional `co1_gates.txt`
+- **Enhanced Build System**: Makefile and CMake with automatic BLAS detection (`make` in `atlas_core/` or `cmake ..`)
+- **Verification Suite**: `tools/verify_bridge.sh` runs full test suite with metrics threshold enforcement
+- **Language Bindings**: Python, Rust, Node.js, Go bindings all updated with context API
+- **Deprecation Warnings**: Legacy non-context APIs marked deprecated, will be removed in v0.6
+- **CI Integration**: `.github/workflows/bridge.yml` publishes certificates on every PR
 
 ### Prereqs
 - C toolchain supporting C11
