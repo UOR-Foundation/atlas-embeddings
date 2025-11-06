@@ -1,4 +1,4 @@
-// atlas_core/src/atlas_bridge_ctx.c
+// atlas/src/atlas_bridge_ctx.c
 // Atlas Bridge Context API v0.5 Implementation
 // Conway–Monster Atlas Upgrade Kit
 // 

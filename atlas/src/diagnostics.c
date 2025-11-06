@@ -1,4 +1,4 @@
-// atlas_core/src/diagnostics.c
+// atlas/src/diagnostics.c
 // Conway–Monster Atlas Upgrade Kit v1.1
 // Diagnostic and verification functions
 

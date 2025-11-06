@@ -1,4 +1,4 @@
-// atlas_core/src/co1_gates.c
+// atlas/src/co1_gates.c
 // Conway–Monster Atlas Upgrade Kit v1.1
 // Conway group Co1 gate operations
 

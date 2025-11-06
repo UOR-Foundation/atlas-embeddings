@@ -1,8 +1,8 @@
-// atlas_core/src/projectors.c
+// atlas/src/projectors.c
 // Conway–Monster Atlas Upgrade Kit v1.1
 // Projector implementations for various subspaces
 
-#include "../include/atlas_bridge.h"
+#include "atlas_bridge.h"
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>

@@ -1,4 +1,4 @@
-// atlas_core/src/atlas_bridge.c
+// atlas/src/atlas_bridge.c
 // Conway–Monster Atlas Upgrade Kit v1.1
 // Main bridge implementation for Atlas operations
 
