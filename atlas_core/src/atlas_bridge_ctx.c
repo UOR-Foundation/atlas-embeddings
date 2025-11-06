@@ -54,6 +54,7 @@ static const char* VERSION = "0.4.0";
 
 // Constants
 #define CERT_LIFT_FORMS_HEX_LIMIT 128  // Max bytes of lift forms to include in certificate
+#define IDEMPOTENCY_TOLERANCE_FACTOR 100.0  // Tolerance multiplier for matrix idempotency checks
 
 // Default E-twirl generators (16 generators for 8-qubit Pauli group)
 // These are carefully chosen to cover representative directions in the Pauli group
@@ -113,34 +114,48 @@ static void apply_pauli_z_single_avx2(double* state, size_t n, uint8_t qubit) {
     if (qubit >= 8) return;
     
     uint8_t mask = 1 << qubit;
-    __m256d neg_sign = _mm256_set1_pd(-1.0);
     
+    // Process in chunks of 4 doubles
     size_t i = 0;
-    // Process 4 doubles at a time with AVX2
-    for (; i + 3 < n; i += 4) {
+    size_t n_vec = (n / 4) * 4;  // Round down to multiple of 4
+    
+    // XOR mask for sign bit flipping: 0x8000000000000000
+    __m256d sign_flip = _mm256_set1_pd(-0.0);  // All sign bits set
+    
+    for (; i < n_vec; i += 4) {
+        // Check if any of the 4 elements need negation
         uint8_t byte_base = i % 256;
-        // Check if all 4 elements have the qubit set
-        int should_negate[4];
-        for (int j = 0; j < 4; j++) {
+        int need_flip = 0;
+        for (int j = 0; j < 4 && (i + j) < n; j++) {
             uint8_t byte = (byte_base + j) % 256;
-            should_negate[j] = (byte & mask) ? 1 : 0;
+            if (byte & mask) {
+                need_flip = 1;
+                break;
+            }
         }
         
-        // Load 4 doubles
-        __m256d vals = _mm256_loadu_pd(&state[i]);
-        
-        // Apply negation if needed (element-wise)
-        // Note: More efficient vectorization possible with gather/scatter
-        if (should_negate[0] || should_negate[1] || should_negate[2] || should_negate[3]) {
+        if (need_flip) {
+            // Load 4 doubles
+            __m256d vals = _mm256_loadu_pd(&state[i]);
+            
+            // Create blend mask based on which bytes have qubit bit set
+            double blend_mask[4];
             for (int j = 0; j < 4; j++) {
-                if (should_negate[j]) {
-                    state[i + j] = -state[i + j];
-                }
+                uint8_t byte = (byte_base + j) % 256;
+                blend_mask[j] = (byte & mask) ? -1.0 : 0.0;
             }
+            __m256d mask_vec = _mm256_loadu_pd(blend_mask);
+            
+            // Conditionally flip sign bits
+            __m256d flipped = _mm256_xor_pd(vals, sign_flip);
+            vals = _mm256_blendv_pd(vals, flipped, mask_vec);
+            
+            // Store back
+            _mm256_storeu_pd(&state[i], vals);
         }
     }
     
-    // Handle remaining elements
+    // Handle remaining elements with scalar code
     for (; i < n; i++) {
         uint8_t byte = i % 256;
         if (byte & mask) {
@@ -1171,7 +1186,7 @@ int atlas_ctx_load_p299_matrix(AtlasBridgeContext* ctx, const char* filepath) {
     free(result1);
     free(result2);
     
-    if (ref_norm > 1e-10 && diff_norm / ref_norm > ctx->config.epsilon * 100) {
+    if (ref_norm > 1e-10 && diff_norm / ref_norm > ctx->config.epsilon * IDEMPOTENCY_TOLERANCE_FACTOR) {
         // Matrix is not sufficiently idempotent
         free(matrix);
         return -1;
@@ -1190,12 +1205,12 @@ int atlas_ctx_load_co1_gates(AtlasBridgeContext* ctx, const char* filepath) {
     if (!ctx || !ctx->initialized || !filepath) return -1;
     
     // Open text file
+    // Format: one real coefficient per line, comments start with #
+    // NOTE: Current implementation stores only one double per generator (simplified)
+    //       Future versions may support full N*N real-valued gate matrices
+    //       For now, this serves as a real-valued coefficient per Co1 generator
     FILE* f = fopen(filepath, "r");
     if (!f) return -1;
-    
-    // Read file and parse real generator data
-    // Format: one generator per line, comments start with #
-    // Each line: index, real coefficients (space-separated)
     
     // Count non-comment lines first
     size_t line_count = 0;
@@ -1212,7 +1227,7 @@ int atlas_ctx_load_co1_gates(AtlasBridgeContext* ctx, const char* filepath) {
         return -1;
     }
     
-    // Allocate storage (simplified: one double per generator for now)
+    // Allocate storage: one double per generator (simplified representation)
     double* gens = (double*)malloc(line_count * sizeof(double));
     if (!gens) {
         fclose(f);
@@ -1226,7 +1241,7 @@ int atlas_ctx_load_co1_gates(AtlasBridgeContext* ctx, const char* filepath) {
         // Skip comments and blank lines
         if (buffer[0] == '#' || buffer[0] == '\n' || buffer[0] == '\0') continue;
         
-        // Parse real value (simplified: just read first double)
+        // Parse real value (one coefficient per line)
         double val;
         if (sscanf(buffer, "%lf", &val) == 1) {
             gens[gen_idx++] = val;

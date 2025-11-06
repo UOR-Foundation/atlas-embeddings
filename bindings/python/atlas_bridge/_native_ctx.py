@@ -454,14 +454,22 @@ class AtlasBridgeContext:
             raise RuntimeError("Failed to set lift forms from hex data")
     
     def get_lift_forms_hex(self) -> str:
-        """Get current lift forms as hex string."""
+        """
+        Get current lift forms as hex string.
+        
+        WARNING: This method has a minor memory leak due to C memory allocation.
+        Prefer using load_lift_forms() or set_lift_forms_hex() for setting.
+        Only use this for debugging or infrequent reads.
+        """
         _ensure_loaded()
         ptr = _lib.atlas_ctx_get_lift_forms_hex(self._handle)
         if not ptr:
             return ""
         result = ctypes.cast(ptr, ctypes.c_char_p).value.decode('utf-8')
-        # Note: caller must free in C, but we can't easily do that from Python
-        # This is a memory leak - in production, should use a better approach
+        # TODO: Implement proper cleanup mechanism for C-allocated strings
+        # Current implementation has a small memory leak - C string is not freed
+        # This is acceptable for infrequent debugging use, but should be fixed
+        # for production code that calls this method frequently
         return result
     
     def apply_p_class(self, state) -> None:

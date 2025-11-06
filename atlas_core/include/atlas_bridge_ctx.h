@@ -202,7 +202,10 @@ int atlas_ctx_load_lift_forms(AtlasBridgeContext* ctx, const char* filepath);
 // Returns 0 on success, -1 on error
 int atlas_ctx_set_lift_forms_hex(AtlasBridgeContext* ctx, const char* hex_data, size_t len);
 
-// Get current lift forms as hex string (caller must free)
+// Get current lift forms as hex string
+// Returns newly allocated string (caller must free with free())
+// WARNING: Python/FFI bindings should avoid this function due to memory management complexity
+//          Use atlas_ctx_load_lift_forms() or atlas_ctx_set_lift_forms_hex() instead
 // Returns NULL on error
 char* atlas_ctx_get_lift_forms_hex(const AtlasBridgeContext* ctx);
 
