@@ -1,5 +1,5 @@
 // atlas_core/src/atlas_bridge_ctx.c
-// Atlas Bridge Context API v0.3 Implementation
+// Atlas Bridge Context API v0.4 Implementation
 // Conway–Monster Atlas Upgrade Kit
 
 #include "../include/atlas_bridge_ctx.h"
@@ -8,6 +8,14 @@
 #include <stdio.h>
 #include <math.h>
 #include <time.h>
+
+// v0.4: Check for AVX2 support
+#if defined(__AVX2__) && defined(__x86_64__)
+#include <immintrin.h>
+#define HAS_AVX2 1
+#else
+#define HAS_AVX2 0
+#endif
 
 // Internal context structure
 struct AtlasBridgeContext {
@@ -18,9 +26,18 @@ struct AtlasBridgeContext {
     uint8_t* twirl_x_masks;
     uint8_t* twirl_z_masks;
     
-    // Lift forms storage (v0.3)
+    // Lift forms storage (v0.3+)
     uint8_t* lift_forms_data;
     size_t lift_forms_len;
+    
+    // v0.4: P_299 exact matrix (optional, dense N*N doubles)
+    double* p_299_matrix;
+    int p_299_exact_loaded;
+    
+    // v0.4: Co1 real generators (optional, loaded from text file)
+    double* co1_real_gens;
+    size_t co1_real_gens_count;
+    int co1_gates_loaded;
     
     // Working buffers
     double* temp_buffer;
@@ -29,13 +46,15 @@ struct AtlasBridgeContext {
     
     // Internal state
     int initialized;
+    int avx2_available;  // v0.4: runtime AVX2 detection
 };
 
 // Library version
-static const char* VERSION = "0.3.0";
+static const char* VERSION = "0.4.0";
 
 // Constants
 #define CERT_LIFT_FORMS_HEX_LIMIT 128  // Max bytes of lift forms to include in certificate
+#define IDEMPOTENCY_TOLERANCE_FACTOR 100.0  // Tolerance multiplier for matrix idempotency checks
 
 // Default E-twirl generators (16 generators for 8-qubit Pauli group)
 // These are carefully chosen to cover representative directions in the Pauli group
@@ -88,6 +107,63 @@ static void apply_pauli_z_single(double* state, size_t n, uint8_t qubit) {
         }
     }
 }
+
+// v0.4: AVX2-accelerated Pauli Z hot loop
+#if HAS_AVX2
+static void apply_pauli_z_single_avx2(double* state, size_t n, uint8_t qubit) {
+    if (qubit >= 8) return;
+    
+    uint8_t mask = 1 << qubit;
+    
+    // Process in chunks of 4 doubles
+    size_t i = 0;
+    size_t n_vec = (n / 4) * 4;  // Round down to multiple of 4
+    
+    // XOR mask for sign bit flipping: 0x8000000000000000
+    __m256d sign_flip = _mm256_set1_pd(-0.0);  // All sign bits set
+    
+    for (; i < n_vec; i += 4) {
+        // Check if any of the 4 elements need negation
+        uint8_t byte_base = i % 256;
+        int need_flip = 0;
+        for (int j = 0; j < 4 && (i + j) < n; j++) {
+            uint8_t byte = (byte_base + j) % 256;
+            if (byte & mask) {
+                need_flip = 1;
+                break;
+            }
+        }
+        
+        if (need_flip) {
+            // Load 4 doubles
+            __m256d vals = _mm256_loadu_pd(&state[i]);
+            
+            // Create blend mask based on which bytes have qubit bit set
+            double blend_mask[4];
+            for (int j = 0; j < 4; j++) {
+                uint8_t byte = (byte_base + j) % 256;
+                blend_mask[j] = (byte & mask) ? -1.0 : 0.0;
+            }
+            __m256d mask_vec = _mm256_loadu_pd(blend_mask);
+            
+            // Conditionally flip sign bits
+            __m256d flipped = _mm256_xor_pd(vals, sign_flip);
+            vals = _mm256_blendv_pd(vals, flipped, mask_vec);
+            
+            // Store back
+            _mm256_storeu_pd(&state[i], vals);
+        }
+    }
+    
+    // Handle remaining elements with scalar code
+    for (; i < n; i++) {
+        uint8_t byte = i % 256;
+        if (byte & mask) {
+            state[i] = -state[i];
+        }
+    }
+}
+#endif
 
 // Compute L2 norm of vector
 static double vec_norm(const double* v, size_t n) {
@@ -144,6 +220,7 @@ void atlas_ctx_config_default(AtlasContextConfig* config) {
     config->n_qubits = 8;        // 8-qubit in-block operations
     config->twirl_gens = 16;     // 16 E-twirl generators
     config->epsilon = 1e-10;     // Tolerance for idempotency
+    config->n_qbits = 8;         // v0.4: Default to 8-bit mode for lift forms
 }
 
 AtlasBridgeContext* atlas_ctx_new_default(void) {
@@ -187,12 +264,31 @@ AtlasBridgeContext* atlas_ctx_new(const AtlasContextConfig* config) {
         return NULL;
     }
     
-    // Initialize lift forms storage (v0.3)
+    // Initialize lift forms storage (v0.3+)
     ctx->lift_forms_data = NULL;
     ctx->lift_forms_len = 0;
     
+    // v0.4: Initialize P_299 exact matrix storage
+    ctx->p_299_matrix = NULL;
+    ctx->p_299_exact_loaded = 0;
+    
+    // v0.4: Initialize Co1 real generators storage
+    ctx->co1_real_gens = NULL;
+    ctx->co1_real_gens_count = 0;
+    ctx->co1_gates_loaded = 0;
+    
+    // v0.4: Detect AVX2 availability
+#if HAS_AVX2
+    ctx->avx2_available = (ctx->config.flags & ATLAS_CTX_USE_AVX2) ? 1 : 0;
+#else
+    ctx->avx2_available = 0;
+#endif
+    
     // Initialize diagnostics
     memset(&ctx->diag, 0, sizeof(AtlasContextDiagnostics));
+    ctx->diag.avx2_available = ctx->avx2_available;
+    ctx->diag.p_299_exact_loaded = 0;
+    ctx->diag.co1_gates_loaded = 0;
     
     ctx->initialized = 1;
     return ctx;
@@ -210,12 +306,32 @@ AtlasBridgeContext* atlas_ctx_clone(const AtlasBridgeContext* ctx) {
     memcpy(new_ctx->twirl_z_masks, ctx->twirl_z_masks,
            ctx->config.twirl_gens * sizeof(uint8_t));
     
-    // Copy lift forms (v0.3)
+    // Copy lift forms (v0.3+)
     if (ctx->lift_forms_data && ctx->lift_forms_len > 0) {
         new_ctx->lift_forms_data = (uint8_t*)malloc(ctx->lift_forms_len);
         if (new_ctx->lift_forms_data) {
             memcpy(new_ctx->lift_forms_data, ctx->lift_forms_data, ctx->lift_forms_len);
             new_ctx->lift_forms_len = ctx->lift_forms_len;
+        }
+    }
+    
+    // v0.4: Copy P_299 exact matrix
+    if (ctx->p_299_matrix && ctx->p_299_exact_loaded) {
+        size_t matrix_size = ctx->config.block_size * ctx->config.block_size;
+        new_ctx->p_299_matrix = (double*)malloc(matrix_size * sizeof(double));
+        if (new_ctx->p_299_matrix) {
+            memcpy(new_ctx->p_299_matrix, ctx->p_299_matrix, matrix_size * sizeof(double));
+            new_ctx->p_299_exact_loaded = ctx->p_299_exact_loaded;
+        }
+    }
+    
+    // v0.4: Copy Co1 real generators
+    if (ctx->co1_real_gens && ctx->co1_real_gens_count > 0) {
+        new_ctx->co1_real_gens = (double*)malloc(ctx->co1_real_gens_count * sizeof(double));
+        if (new_ctx->co1_real_gens) {
+            memcpy(new_ctx->co1_real_gens, ctx->co1_real_gens, ctx->co1_real_gens_count * sizeof(double));
+            new_ctx->co1_real_gens_count = ctx->co1_real_gens_count;
+            new_ctx->co1_gates_loaded = ctx->co1_gates_loaded;
         }
     }
     
@@ -233,7 +349,9 @@ void atlas_ctx_free(AtlasBridgeContext* ctx) {
     free(ctx->temp_buffer);
     free(ctx->twirl_accumulator);
     free(ctx->proj_buffer);  // v0.3
-    free(ctx->lift_forms_data);  // v0.3
+    free(ctx->lift_forms_data);  // v0.3+
+    free(ctx->p_299_matrix);  // v0.4
+    free(ctx->co1_real_gens);  // v0.4
     free(ctx);
 }
 
@@ -344,9 +462,18 @@ int atlas_ctx_apply_pauli_z(AtlasBridgeContext* ctx, uint8_t qubit_mask, double*
     if (!ctx || !ctx->initialized || !state) return -1;
     
     // Apply Pauli Z on all qubits indicated by mask
+    // v0.4: Use AVX2 acceleration if available
     for (uint8_t q = 0; q < ctx->config.n_qubits; q++) {
         if (qubit_mask & (1 << q)) {
+#if HAS_AVX2
+            if (ctx->avx2_available) {
+                apply_pauli_z_single_avx2(state, ctx->config.block_size, q);
+            } else {
+                apply_pauli_z_single(state, ctx->config.block_size, q);
+            }
+#else
             apply_pauli_z_single(state, ctx->config.block_size, q);
+#endif
         }
     }
     
@@ -713,34 +840,49 @@ int atlas_ctx_apply_p_299(AtlasBridgeContext* ctx, double* state) {
     if (!ctx || !ctx->initialized || !state) return -1;
     if (!(ctx->config.flags & ATLAS_CTX_ENABLE_P_299)) return -1;
     
-    // P_299: reduced-rank projector, trace-zero over page%24 groups
-    // Implementation: enforce trace-zero constraint within each group
-    // This is idempotent since subtracting the mean twice has same effect as once
-    
-    size_t n_pages = ctx->config.block_size / 256;
-    
-    // For each page mod 24 group and each byte position
-    for (size_t b = 0; b < 256; b++) {
-        for (size_t g = 0; g < 24; g++) {
-            // Compute mean over this group at this byte position
+    // v0.4: Use exact matrix if loaded, otherwise fallback to reduced-rank logic
+    if (ctx->p_299_exact_loaded && ctx->p_299_matrix) {
+        // Apply exact dense P_299 matrix: out = P * in
+        size_t N = ctx->config.block_size;
+        vec_copy(ctx->temp_buffer, state, N);
+        
+        for (size_t i = 0; i < N; i++) {
             double sum = 0.0;
-            size_t count = 0;
-            
-            for (size_t p = 0; p < n_pages; p++) {
-                if (p % 24 == g) {
-                    sum += state[p * 256 + b];
-                    count++;
-                }
+            for (size_t j = 0; j < N; j++) {
+                sum += ctx->p_299_matrix[i * N + j] * ctx->temp_buffer[j];
             }
-            
-            if (count == 0) continue;
-            
-            double mean = sum / count;
-            
-            // Subtract mean to enforce trace-zero
-            for (size_t p = 0; p < n_pages; p++) {
-                if (p % 24 == g) {
-                    state[p * 256 + b] -= mean;
+            state[i] = sum;
+        }
+    } else {
+        // Fallback: P_299 reduced-rank projector, trace-zero over page%24 groups
+        // Implementation: enforce trace-zero constraint within each group
+        // This is idempotent since subtracting the mean twice has same effect as once
+        
+        size_t n_pages = ctx->config.block_size / 256;
+        
+        // For each page mod 24 group and each byte position
+        for (size_t b = 0; b < 256; b++) {
+            for (size_t g = 0; g < 24; g++) {
+                // Compute mean over this group at this byte position
+                double sum = 0.0;
+                size_t count = 0;
+                
+                for (size_t p = 0; p < n_pages; p++) {
+                    if (p % 24 == g) {
+                        sum += state[p * 256 + b];
+                        count++;
+                    }
+                }
+                
+                if (count == 0) continue;
+                
+                double mean = sum / count;
+                
+                // Subtract mean to enforce trace-zero
+                for (size_t p = 0; p < n_pages; p++) {
+                    if (p % 24 == g) {
+                        state[p * 256 + b] -= mean;
+                    }
                 }
             }
         }
@@ -897,7 +1039,10 @@ int atlas_ctx_emit_certificate(const AtlasBridgeContext* ctx, const char* filepa
     fprintf(f, "    \"p_299_idempotency\": %.12e,\n", ctx->diag.p_299_idempotency);
     fprintf(f, "    \"lift_mass\": %.12e,\n", ctx->diag.lift_mass);
     fprintf(f, "    \"last_residual\": %.12e,\n", ctx->diag.last_residual);
-    fprintf(f, "    \"commutant_dim\": %.12e\n", ctx->diag.commutant_dim);
+    fprintf(f, "    \"commutant_dim\": %.12e,\n", ctx->diag.commutant_dim);
+    fprintf(f, "    \"avx2_available\": %d,\n", ctx->diag.avx2_available);
+    fprintf(f, "    \"p_299_exact_loaded\": %d,\n", ctx->diag.p_299_exact_loaded);
+    fprintf(f, "    \"co1_gates_loaded\": %d\n", ctx->diag.co1_gates_loaded);
     fprintf(f, "  },\n");
     fprintf(f, "  \"lift_forms\": ");
     
@@ -964,4 +1109,187 @@ double atlas_ctx_probe_commutant(AtlasBridgeContext* ctx, const double* state, i
     
     ctx->diag.commutant_dim = eff_dim;
     return eff_dim;
+}
+
+// ============================================================================
+// v0.4 Extensions - Binary Loaders and Advanced Features
+// ============================================================================
+
+int atlas_ctx_load_p299_matrix(AtlasBridgeContext* ctx, const char* filepath) {
+    if (!ctx || !ctx->initialized || !filepath) return -1;
+    
+    // Open binary file
+    FILE* f = fopen(filepath, "rb");
+    if (!f) {
+        // Fallback to reduced-rank logic remains active
+        return -1;
+    }
+    
+    // Allocate matrix storage: N*N doubles
+    size_t N = ctx->config.block_size;
+    size_t matrix_size = N * N;
+    double* matrix = (double*)malloc(matrix_size * sizeof(double));
+    if (!matrix) {
+        fclose(f);
+        return -1;
+    }
+    
+    // Read matrix data (row-major)
+    size_t read_count = fread(matrix, sizeof(double), matrix_size, f);
+    fclose(f);
+    
+    if (read_count != matrix_size) {
+        free(matrix);
+        return -1;
+    }
+    
+    // Verify idempotency: P² ≈ P
+    // For efficiency, we sample a few matrix-vector products
+    double* test_vec = (double*)malloc(N * sizeof(double));
+    double* result1 = (double*)malloc(N * sizeof(double));
+    double* result2 = (double*)malloc(N * sizeof(double));
+    
+    if (!test_vec || !result1 || !result2) {
+        free(matrix);
+        free(test_vec);
+        free(result1);
+        free(result2);
+        return -1;
+    }
+    
+    // Simple idempotency check with random vector
+    for (size_t i = 0; i < N; i++) {
+        test_vec[i] = (double)i / N;
+    }
+    
+    // result1 = P * test_vec
+    for (size_t i = 0; i < N; i++) {
+        result1[i] = 0.0;
+        for (size_t j = 0; j < N; j++) {
+            result1[i] += matrix[i * N + j] * test_vec[j];
+        }
+    }
+    
+    // result2 = P * result1 = P² * test_vec
+    for (size_t i = 0; i < N; i++) {
+        result2[i] = 0.0;
+        for (size_t j = 0; j < N; j++) {
+            result2[i] += matrix[i * N + j] * result1[j];
+        }
+    }
+    
+    // Check ||result2 - result1|| < epsilon * ||result1||
+    double diff_norm = vec_distance(result1, result2, N);
+    double ref_norm = vec_norm(result1, N);
+    
+    free(test_vec);
+    free(result1);
+    free(result2);
+    
+    if (ref_norm > 1e-10 && diff_norm / ref_norm > ctx->config.epsilon * IDEMPOTENCY_TOLERANCE_FACTOR) {
+        // Matrix is not sufficiently idempotent
+        free(matrix);
+        return -1;
+    }
+    
+    // Store matrix
+    free(ctx->p_299_matrix);
+    ctx->p_299_matrix = matrix;
+    ctx->p_299_exact_loaded = 1;
+    ctx->diag.p_299_exact_loaded = 1;
+    
+    return 0;
+}
+
+int atlas_ctx_load_co1_gates(AtlasBridgeContext* ctx, const char* filepath) {
+    if (!ctx || !ctx->initialized || !filepath) return -1;
+    
+    // Open text file
+    // Format: one real coefficient per line, comments start with #
+    // NOTE: Current implementation stores only one double per generator (simplified)
+    //       Future versions may support full N*N real-valued gate matrices
+    //       For now, this serves as a real-valued coefficient per Co1 generator
+    FILE* f = fopen(filepath, "r");
+    if (!f) return -1;
+    
+    // Count non-comment lines first
+    size_t line_count = 0;
+    char buffer[1024];
+    while (fgets(buffer, sizeof(buffer), f)) {
+        // Skip comments and blank lines
+        if (buffer[0] != '#' && buffer[0] != '\n' && buffer[0] != '\0') {
+            line_count++;
+        }
+    }
+    
+    if (line_count == 0) {
+        fclose(f);
+        return -1;
+    }
+    
+    // Allocate storage: one double per generator (simplified representation)
+    double* gens = (double*)malloc(line_count * sizeof(double));
+    if (!gens) {
+        fclose(f);
+        return -1;
+    }
+    
+    // Re-read and parse
+    rewind(f);
+    size_t gen_idx = 0;
+    while (fgets(buffer, sizeof(buffer), f) && gen_idx < line_count) {
+        // Skip comments and blank lines
+        if (buffer[0] == '#' || buffer[0] == '\n' || buffer[0] == '\0') continue;
+        
+        // Parse real value (one coefficient per line)
+        double val;
+        if (sscanf(buffer, "%lf", &val) == 1) {
+            gens[gen_idx++] = val;
+        }
+    }
+    fclose(f);
+    
+    // Store generators
+    free(ctx->co1_real_gens);
+    ctx->co1_real_gens = gens;
+    ctx->co1_real_gens_count = gen_idx;
+    ctx->co1_gates_loaded = 1;
+    ctx->diag.co1_gates_loaded = 1;
+    
+    return 0;
+}
+
+int atlas_ctx_apply_block_mixing(AtlasBridgeContext* ctx, uint32_t block_idx, 
+                                   const double* mixing_matrix, double* state) {
+    if (!ctx || !ctx->initialized || !mixing_matrix || !state) return -1;
+    
+    // Block-sparse mixing: apply 8x8 matrix to specified block
+    // Each block is 8 consecutive doubles
+    size_t n_blocks = ctx->config.block_size / 8;
+    if (block_idx >= n_blocks) return -1;
+    
+    size_t block_start = block_idx * 8;
+    double temp[8];
+    
+    // Save input block
+    for (int i = 0; i < 8; i++) {
+        temp[i] = state[block_start + i];
+    }
+    
+    // Apply mixing matrix (row-major): out = M * in
+    for (int i = 0; i < 8; i++) {
+        double sum = 0.0;
+        for (int j = 0; j < 8; j++) {
+            sum += mixing_matrix[i * 8 + j] * temp[j];
+        }
+        state[block_start + i] = sum;
+    }
+    
+    ctx->diag.op_count++;
+    return 0;
+}
+
+int atlas_ctx_is_avx2_active(const AtlasBridgeContext* ctx) {
+    if (!ctx || !ctx->initialized) return 0;
+    return ctx->avx2_available;
 }

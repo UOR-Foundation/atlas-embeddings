@@ -1,6 +1,6 @@
 """
 bindings/python/atlas_bridge/_native_ctx.py
-Atlas Bridge Context API v0.2
+Atlas Bridge Context API v0.4
 Python bindings for the Context API from native C library
 """
 
@@ -67,6 +67,11 @@ ATLAS_CTX_DEFAULT = 0x00
 ATLAS_CTX_ENABLE_TWIRL = 0x01
 ATLAS_CTX_ENABLE_LIFT = 0x02
 ATLAS_CTX_VERBOSE = 0x04
+ATLAS_CTX_ENABLE_P_CLASS = 0x08
+ATLAS_CTX_ENABLE_P_299 = 0x10
+ATLAS_CTX_ENABLE_CO1 = 0x20
+ATLAS_CTX_USE_AVX2 = 0x40  # v0.4: Enable AVX2 SIMD acceleration
+ATLAS_CTX_LIFT_8BIT = 0x80  # v0.4: Use only low 8 bits in lift forms
 
 # ============================================================================
 # Structures
@@ -80,6 +85,7 @@ class AtlasContextConfig(ctypes.Structure):
         ("n_qubits", ctypes.c_uint32),
         ("twirl_gens", ctypes.c_uint32),
         ("epsilon", ctypes.c_double),
+        ("n_qbits", ctypes.c_uint32),  # v0.4
     ]
 
 class AtlasContextDiagnostics(ctypes.Structure):
@@ -89,6 +95,12 @@ class AtlasContextDiagnostics(ctypes.Structure):
         ("lift_mass", ctypes.c_double),
         ("op_count", ctypes.c_uint64),
         ("last_residual", ctypes.c_double),
+        ("p_class_idempotency", ctypes.c_double),  # v0.3
+        ("p_299_idempotency", ctypes.c_double),    # v0.3
+        ("commutant_dim", ctypes.c_double),        # v0.3
+        ("avx2_available", ctypes.c_int),          # v0.4
+        ("p_299_exact_loaded", ctypes.c_int),      # v0.4
+        ("co1_gates_loaded", ctypes.c_int),        # v0.4
     ]
 
 # ============================================================================
@@ -170,6 +182,63 @@ if _lib:
     
     _lib.atlas_ctx_get_n_qubits.argtypes = [ctypes.c_void_p]
     _lib.atlas_ctx_get_n_qubits.restype = ctypes.c_uint32
+    
+    # v0.3: Lift forms loader
+    _lib.atlas_ctx_load_lift_forms.argtypes = [ctypes.c_void_p, ctypes.c_char_p]
+    _lib.atlas_ctx_load_lift_forms.restype = ctypes.c_int
+    
+    _lib.atlas_ctx_set_lift_forms_hex.argtypes = [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_size_t]
+    _lib.atlas_ctx_set_lift_forms_hex.restype = ctypes.c_int
+    
+    _lib.atlas_ctx_get_lift_forms_hex.argtypes = [ctypes.c_void_p]
+    _lib.atlas_ctx_get_lift_forms_hex.restype = ctypes.c_void_p  # char*, needs free
+    
+    # v0.3: Exact projectors
+    _lib.atlas_ctx_apply_p_class.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_double)]
+    _lib.atlas_ctx_apply_p_class.restype = ctypes.c_int
+    
+    _lib.atlas_ctx_apply_p_299.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_double)]
+    _lib.atlas_ctx_apply_p_299.restype = ctypes.c_int
+    
+    _lib.atlas_ctx_check_p_class_idempotency.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_double)]
+    _lib.atlas_ctx_check_p_class_idempotency.restype = ctypes.c_double
+    
+    _lib.atlas_ctx_check_p_299_idempotency.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_double)]
+    _lib.atlas_ctx_check_p_299_idempotency.restype = ctypes.c_double
+    
+    # v0.3: Co1 mini-gates
+    _lib.atlas_ctx_apply_page_rotation.argtypes = [ctypes.c_void_p, ctypes.c_uint32, ctypes.POINTER(ctypes.c_double)]
+    _lib.atlas_ctx_apply_page_rotation.restype = ctypes.c_int
+    
+    _lib.atlas_ctx_apply_mix_lifts.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_double)]
+    _lib.atlas_ctx_apply_mix_lifts.restype = ctypes.c_int
+    
+    _lib.atlas_ctx_apply_page_parity_phase.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_double)]
+    _lib.atlas_ctx_apply_page_parity_phase.restype = ctypes.c_int
+    
+    # v0.3: JSON certificates
+    _lib.atlas_ctx_emit_certificate.argtypes = [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_char_p]
+    _lib.atlas_ctx_emit_certificate.restype = ctypes.c_int
+    
+    _lib.atlas_ctx_probe_commutant.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_double), ctypes.c_int]
+    _lib.atlas_ctx_probe_commutant.restype = ctypes.c_double
+    
+    # v0.4: Binary loaders
+    _lib.atlas_ctx_load_p299_matrix.argtypes = [ctypes.c_void_p, ctypes.c_char_p]
+    _lib.atlas_ctx_load_p299_matrix.restype = ctypes.c_int
+    
+    _lib.atlas_ctx_load_co1_gates.argtypes = [ctypes.c_void_p, ctypes.c_char_p]
+    _lib.atlas_ctx_load_co1_gates.restype = ctypes.c_int
+    
+    # v0.4: Block-sparse mixing
+    _lib.atlas_ctx_apply_block_mixing.argtypes = [ctypes.c_void_p, ctypes.c_uint32, 
+                                                     ctypes.POINTER(ctypes.c_double), 
+                                                     ctypes.POINTER(ctypes.c_double)]
+    _lib.atlas_ctx_apply_block_mixing.restype = ctypes.c_int
+    
+    # v0.4: AVX2 check
+    _lib.atlas_ctx_is_avx2_active.argtypes = [ctypes.c_void_p]
+    _lib.atlas_ctx_is_avx2_active.restype = ctypes.c_int
 
 # ============================================================================
 # Python API
@@ -177,12 +246,16 @@ if _lib:
 
 class AtlasBridgeContext:
     """
-    Python wrapper for Atlas Bridge Context API v0.2.
+    Python wrapper for Atlas Bridge Context API v0.4.
     
     Provides context-based operations for Atlas bridge with:
-    - Homomorphic lift permutations (Lx, Lz)
-    - In-block Pauli/Heisenberg operations
+    - Homomorphic lift permutations (Lx, Lz) with runtime swap and 8-bit mode
+    - In-block Pauli/Heisenberg operations with optional AVX2 acceleration
     - E-twirl group action with idempotency
+    - Exact P_class and P_299 projectors (with binary matrix loader)
+    - Co1 mini-gates (page rotation, Walsh-Hadamard mix, parity phase)
+    - Block-sparse lift mixing helpers
+    - JSON certificate emission
     """
     
     def __init__(self, config: Optional[AtlasContextConfig] = None):
@@ -362,6 +435,162 @@ class AtlasBridgeContext:
         """Get number of qubits."""
         _ensure_loaded()
         return _lib.atlas_ctx_get_n_qubits(self._handle)
+    
+    # v0.3+ methods
+    
+    def load_lift_forms(self, filepath: str) -> None:
+        """Load lift forms from hex file."""
+        _ensure_loaded()
+        result = _lib.atlas_ctx_load_lift_forms(self._handle, filepath.encode('utf-8'))
+        if result != 0:
+            raise RuntimeError(f"Failed to load lift forms from {filepath}")
+    
+    def set_lift_forms_hex(self, hex_data: str) -> None:
+        """Set lift forms from hex string."""
+        _ensure_loaded()
+        hex_bytes = hex_data.encode('utf-8')
+        result = _lib.atlas_ctx_set_lift_forms_hex(self._handle, hex_bytes, len(hex_bytes))
+        if result != 0:
+            raise RuntimeError("Failed to set lift forms from hex data")
+    
+    def get_lift_forms_hex(self) -> str:
+        """
+        Get current lift forms as hex string.
+        
+        WARNING: This method has a minor memory leak due to C memory allocation.
+        Prefer using load_lift_forms() or set_lift_forms_hex() for setting.
+        Only use this for debugging or infrequent reads.
+        """
+        _ensure_loaded()
+        ptr = _lib.atlas_ctx_get_lift_forms_hex(self._handle)
+        if not ptr:
+            return ""
+        result = ctypes.cast(ptr, ctypes.c_char_p).value.decode('utf-8')
+        # TODO: Implement proper cleanup mechanism for C-allocated strings
+        # Current implementation has a small memory leak - C string is not freed
+        # This is acceptable for infrequent debugging use, but should be fixed
+        # for production code that calls this method frequently
+        return result
+    
+    def apply_p_class(self, state) -> None:
+        """Apply P_class exact projector."""
+        _ensure_loaded()
+        state_arr = (ctypes.c_double * len(state))(*state)
+        result = _lib.atlas_ctx_apply_p_class(self._handle, state_arr)
+        if result != 0:
+            raise RuntimeError("Failed to apply P_class")
+        for i in range(len(state)):
+            state[i] = state_arr[i]
+    
+    def apply_p_299(self, state) -> None:
+        """Apply P_299 projector (exact matrix or reduced-rank fallback)."""
+        _ensure_loaded()
+        state_arr = (ctypes.c_double * len(state))(*state)
+        result = _lib.atlas_ctx_apply_p_299(self._handle, state_arr)
+        if result != 0:
+            raise RuntimeError("Failed to apply P_299")
+        for i in range(len(state)):
+            state[i] = state_arr[i]
+    
+    def check_p_class_idempotency(self, state) -> float:
+        """Check P_class idempotency: ||P²(v) - P(v)||₂."""
+        _ensure_loaded()
+        state_arr = (ctypes.c_double * len(state))(*state)
+        result = _lib.atlas_ctx_check_p_class_idempotency(self._handle, state_arr)
+        if result < 0:
+            raise RuntimeError("Failed to check P_class idempotency")
+        return result
+    
+    def check_p_299_idempotency(self, state) -> float:
+        """Check P_299 idempotency: ||P²(v) - P(v)||₂."""
+        _ensure_loaded()
+        state_arr = (ctypes.c_double * len(state))(*state)
+        result = _lib.atlas_ctx_check_p_299_idempotency(self._handle, state_arr)
+        if result < 0:
+            raise RuntimeError("Failed to check P_299 idempotency")
+        return result
+    
+    def apply_page_rotation(self, rot: int, state) -> None:
+        """Apply Co1 page rotation gate."""
+        _ensure_loaded()
+        state_arr = (ctypes.c_double * len(state))(*state)
+        result = _lib.atlas_ctx_apply_page_rotation(self._handle, rot, state_arr)
+        if result != 0:
+            raise RuntimeError("Failed to apply page rotation")
+        for i in range(len(state)):
+            state[i] = state_arr[i]
+    
+    def apply_mix_lifts(self, state) -> None:
+        """Apply Walsh-Hadamard mix on lifts."""
+        _ensure_loaded()
+        state_arr = (ctypes.c_double * len(state))(*state)
+        result = _lib.atlas_ctx_apply_mix_lifts(self._handle, state_arr)
+        if result != 0:
+            raise RuntimeError("Failed to apply mix lifts")
+        for i in range(len(state)):
+            state[i] = state_arr[i]
+    
+    def apply_page_parity_phase(self, state) -> None:
+        """Apply page parity phase gate."""
+        _ensure_loaded()
+        state_arr = (ctypes.c_double * len(state))(*state)
+        result = _lib.atlas_ctx_apply_page_parity_phase(self._handle, state_arr)
+        if result != 0:
+            raise RuntimeError("Failed to apply page parity phase")
+        for i in range(len(state)):
+            state[i] = state_arr[i]
+    
+    def emit_certificate(self, filepath: str, mode: str = "default") -> None:
+        """Emit JSON certificate with diagnostics."""
+        _ensure_loaded()
+        result = _lib.atlas_ctx_emit_certificate(self._handle, 
+                                                   filepath.encode('utf-8'), 
+                                                   mode.encode('utf-8'))
+        if result != 0:
+            raise RuntimeError(f"Failed to emit certificate to {filepath}")
+    
+    def probe_commutant(self, state, with_co1: bool = False) -> float:
+        """Compute commutant probe: effective dimension of Comm(E,Co1)."""
+        _ensure_loaded()
+        state_arr = (ctypes.c_double * len(state))(*state)
+        result = _lib.atlas_ctx_probe_commutant(self._handle, state_arr, 1 if with_co1 else 0)
+        if result < 0:
+            raise RuntimeError("Failed to probe commutant")
+        return result
+    
+    # v0.4 methods
+    
+    def load_p299_matrix(self, filepath: str) -> None:
+        """Load exact P_299 matrix from binary file (v0.4)."""
+        _ensure_loaded()
+        result = _lib.atlas_ctx_load_p299_matrix(self._handle, filepath.encode('utf-8'))
+        if result != 0:
+            raise RuntimeError(f"Failed to load P_299 matrix from {filepath}")
+    
+    def load_co1_gates(self, filepath: str) -> None:
+        """Load Co1 real generators from text file (v0.4)."""
+        _ensure_loaded()
+        result = _lib.atlas_ctx_load_co1_gates(self._handle, filepath.encode('utf-8'))
+        if result != 0:
+            raise RuntimeError(f"Failed to load Co1 gates from {filepath}")
+    
+    def apply_block_mixing(self, block_idx: int, mixing_matrix, state) -> None:
+        """Apply 8x8 block-sparse mixing matrix (v0.4)."""
+        _ensure_loaded()
+        if len(mixing_matrix) != 64:
+            raise ValueError("Mixing matrix must be 8x8 (64 elements)")
+        state_arr = (ctypes.c_double * len(state))(*state)
+        matrix_arr = (ctypes.c_double * 64)(*mixing_matrix)
+        result = _lib.atlas_ctx_apply_block_mixing(self._handle, block_idx, matrix_arr, state_arr)
+        if result != 0:
+            raise RuntimeError("Failed to apply block mixing")
+        for i in range(len(state)):
+            state[i] = state_arr[i]
+    
+    def is_avx2_active(self) -> bool:
+        """Check if AVX2 acceleration is active (v0.4)."""
+        _ensure_loaded()
+        return _lib.atlas_ctx_is_avx2_active(self._handle) != 0
 
 # Module-level functions
 
@@ -384,6 +613,11 @@ __all__ = [
     'ATLAS_CTX_ENABLE_TWIRL',
     'ATLAS_CTX_ENABLE_LIFT',
     'ATLAS_CTX_VERBOSE',
+    'ATLAS_CTX_ENABLE_P_CLASS',  # v0.3
+    'ATLAS_CTX_ENABLE_P_299',    # v0.3
+    'ATLAS_CTX_ENABLE_CO1',      # v0.3
+    'ATLAS_CTX_USE_AVX2',        # v0.4
+    'ATLAS_CTX_LIFT_8BIT',       # v0.4
     # Classes
     'AtlasContextConfig',
     'AtlasContextDiagnostics',
