@@ -1,11 +1,14 @@
 // atlas_core/include/atlas_bridge_ctx.h
-// Atlas Bridge Context API v0.2
+// Atlas Bridge Context API v0.3
 // Conway–Monster Atlas Upgrade Kit
 //
 // Provides an opaque context-based API for Atlas bridge operations with:
-// - Homomorphic lift permutations via linear forms (Lx, Lz)
+// - Homomorphic lift permutations via linear forms (Lx, Lz) with runtime swap + hex file loader
 // - In-block 8-qubit Pauli/Heisenberg action (block size 12,288, reduced-rank byte axis)
 // - E-twirl group action over 16 generators with idempotency (projector stable)
+// - Exact idempotent P_class projector and reduced-rank P_299 projector (trace-zero)
+// - Co1 mini-gates API: page rotation, Walsh-Hadamard mix, parity phase
+// - JSON certificate emission with mode, spinlift, lift forms, projector residuals, commutant probes
 // - Context lifecycle management (new/clone/free)
 // - Configuration and diagnostics
 
@@ -27,6 +30,9 @@ typedef struct AtlasBridgeContext AtlasBridgeContext;
 #define ATLAS_CTX_ENABLE_TWIRL  0x01
 #define ATLAS_CTX_ENABLE_LIFT   0x02
 #define ATLAS_CTX_VERBOSE       0x04
+#define ATLAS_CTX_ENABLE_P_CLASS 0x08
+#define ATLAS_CTX_ENABLE_P_299   0x10
+#define ATLAS_CTX_ENABLE_CO1     0x20
 
 // Configuration parameters
 typedef struct {
@@ -43,6 +49,9 @@ typedef struct {
     double lift_mass;         // Accumulated mass after lift permutation
     uint64_t op_count;        // Number of operations performed
     double last_residual;     // Last computed residual
+    double p_class_idempotency;  // ||P_class^2 - P_class||_2
+    double p_299_idempotency;    // ||P_299^2 - P_299||_2
+    double commutant_dim;        // Effective dimension of Comm(E,Co1)
 } AtlasContextDiagnostics;
 
 // ============================================================================
@@ -172,34 +181,130 @@ uint32_t atlas_ctx_get_block_size(const AtlasBridgeContext* ctx);
 uint32_t atlas_ctx_get_n_qubits(const AtlasBridgeContext* ctx);
 
 // ============================================================================
+// Lift Forms Loader (v0.3)
+// ============================================================================
+
+// Load custom lift linear forms from hex file
+// filepath: Path to hex file containing 2^{1+24} embedding lift forms
+// Returns 0 on success, -1 on error
+int atlas_ctx_load_lift_forms(AtlasBridgeContext* ctx, const char* filepath);
+
+// Set lift forms from raw hex data
+// hex_data: Hex-encoded string of lift forms
+// len: Length of hex string
+// Returns 0 on success, -1 on error
+int atlas_ctx_set_lift_forms_hex(AtlasBridgeContext* ctx, const char* hex_data, size_t len);
+
+// Get current lift forms as hex string (caller must free)
+// Returns NULL on error
+char* atlas_ctx_get_lift_forms_hex(const AtlasBridgeContext* ctx);
+
+// ============================================================================
+// Exact Projectors (v0.3)
+// ============================================================================
+
+// Apply exact idempotent P_class projector
+// Projects to class-stable subspace
+// state: input/output vector of length block_size
+// Returns 0 on success, -1 on error
+int atlas_ctx_apply_p_class(AtlasBridgeContext* ctx, double* state);
+
+// Apply reduced-rank P_299 projector (trace-zero over page%24 groups)
+// Projects to trace-zero subspace
+// state: input/output vector of length block_size
+// Returns 0 on success, -1 on error
+int atlas_ctx_apply_p_299(AtlasBridgeContext* ctx, double* state);
+
+// Check P_class idempotency: computes ||P(P(v)) - P(v)||_2
+// state: test vector of length block_size
+// Returns idempotency measure (0.0 = perfect idempotency), -1.0 on error
+double atlas_ctx_check_p_class_idempotency(AtlasBridgeContext* ctx, const double* state);
+
+// Check P_299 idempotency: computes ||P(P(v)) - P(v)||_2
+// state: test vector of length block_size
+// Returns idempotency measure (0.0 = perfect idempotency), -1.0 on error
+double atlas_ctx_check_p_299_idempotency(AtlasBridgeContext* ctx, const double* state);
+
+// ============================================================================
+// Co1 Mini-Gates (v0.3)
+// ============================================================================
+
+// Apply page rotation gate
+// rot: Rotation amount (0-47 for 48 pages)
+// state: input/output vector of length block_size
+// Returns 0 on success, -1 on error
+int atlas_ctx_apply_page_rotation(AtlasBridgeContext* ctx, uint32_t rot, double* state);
+
+// Apply Walsh-Hadamard mix on lifts
+// Mixes spin-up and spin-down components via Walsh-Hadamard transform
+// state: input/output vector of length block_size
+// Returns 0 on success, -1 on error
+int atlas_ctx_apply_mix_lifts(AtlasBridgeContext* ctx, double* state);
+
+// Apply page parity phase gate
+// Applies phase based on parity of page index
+// state: input/output vector of length block_size
+// Returns 0 on success, -1 on error
+int atlas_ctx_apply_page_parity_phase(AtlasBridgeContext* ctx, double* state);
+
+// ============================================================================
+// JSON Certificates and Diagnostics (v0.3)
+// ============================================================================
+
+// Emit JSON certificate with diagnostics
+// filepath: Path to output JSON file
+// mode: Mode string (e.g., "spinlift", "commutant")
+// Returns 0 on success, -1 on error
+int atlas_ctx_emit_certificate(const AtlasBridgeContext* ctx, const char* filepath, const char* mode);
+
+// Compute commutant probe values (with/without Co1 gates)
+// Returns effective dimension of Comm(E,Co1), or -1.0 on error
+double atlas_ctx_probe_commutant(AtlasBridgeContext* ctx, const double* state, int with_co1);
+
+// ============================================================================
+// Utility Functions
+// ============================================================================
+
+// Get library version string
+const char* atlas_ctx_version(void);
+
+// Get block size for current context
+uint32_t atlas_ctx_get_block_size(const AtlasBridgeContext* ctx);
+
+// Get number of qubits for current context
+uint32_t atlas_ctx_get_n_qubits(const AtlasBridgeContext* ctx);
+
+// ============================================================================
 // Future Upgrade Notes (for maintainers)
 // ============================================================================
 //
-// TODO (12-qubit extension):
+// TODO (v0.4 - 12-qubit extension):
 //   - Extend Pauli operators from 8-qubit to full 12-qubit representation
 //   - Update block_size calculation for 12-qubit register
 //   - Modify twirl generators for expanded Hilbert space
 //
-// TODO (advanced lift forms):
+// TODO (v0.4 - advanced lift forms):
 //   - Implement composite lifts: L_xy = L_x ∘ L_z
 //   - Add parameterized lift families with continuous parameters
 //   - Support non-homomorphic lift variants for error analysis
 //
-// TODO (wiring Co1 gates):
-//   - Integrate Co1 gate family from atlas_bridge.h
-//   - Add context-aware Co1 application with twirl compatibility
-//   - Implement Co1-invariant projector subspaces
-//   - Cross-reference: see atlas_core/src/co1_gates.c for gate implementations
-//
-// TODO (performance optimizations):
-//   - SIMD vectorization for Pauli operations
+// TODO (v0.4 - performance optimizations):
+//   - SIMD vectorization for Pauli operations and projectors
 //   - Sparse matrix representations for large blocks
-//   - GPU acceleration hooks for twirl averaging
+//   - GPU acceleration hooks for twirl averaging and projector application
 //
-// TODO (certification):
-//   - Add certificate generation for twirl idempotency
+// TODO (v0.4 - certification enhancements):
 //   - Implement formal verification hooks for Lean4 proofs
 //   - Export witness data for external validation
+//   - Add certificate schema validation
+//
+// v0.3 CHANGES (current version):
+//   ✓ Added lift forms loader with hex file support
+//   ✓ Implemented exact P_class and P_299 projectors
+//   ✓ Added Co1 mini-gates API (page rotation, mix lifts, parity phase)
+//   ✓ Added JSON certificate emission with full diagnostics
+//   ✓ Extended unit tests for new features
+//   ✓ Maintained full backwards compatibility with v0.2
 
 #ifdef __cplusplus
 }
