@@ -260,24 +260,25 @@ verify_metrics() {
     echo "  P_299 idempotency: $P_299_IDEMP (threshold: $THRESHOLD_P_299_IDEMP)"
     echo "  Commutant dim: $COMM_DIM (threshold: < $THRESHOLD_COMMUTANT_DIM)"
     
-    # Simple threshold checks using awk
+    # Simple threshold checks using awk (handles scientific notation)
     PASS=1
     
-    if ! awk -v val="$P_CLASS_IDEMP" -v thr="$THRESHOLD_P_CLASS_IDEMP" 'BEGIN { exit !(val <= thr) }'; then
+    # AWK handles scientific notation natively, but we verify with explicit conversion
+    if ! awk -v val="$P_CLASS_IDEMP" -v thr="$THRESHOLD_P_CLASS_IDEMP" 'BEGIN { exit !(val+0 <= thr+0) }'; then
         echo -e "${RED}[FAIL]${NC} P_class idempotency exceeds threshold"
         PASS=0
     else
         echo -e "${GREEN}[PASS]${NC} P_class idempotency within threshold"
     fi
     
-    if ! awk -v val="$P_299_IDEMP" -v thr="$THRESHOLD_P_299_IDEMP" 'BEGIN { exit !(val <= thr) }'; then
+    if ! awk -v val="$P_299_IDEMP" -v thr="$THRESHOLD_P_299_IDEMP" 'BEGIN { exit !(val+0 <= thr+0) }'; then
         echo -e "${RED}[FAIL]${NC} P_299 idempotency exceeds threshold"
         PASS=0
     else
         echo -e "${GREEN}[PASS]${NC} P_299 idempotency within threshold"
     fi
     
-    if ! awk -v val="$COMM_DIM" -v thr="$THRESHOLD_COMMUTANT_DIM" 'BEGIN { exit !(val < thr) }'; then
+    if ! awk -v val="$COMM_DIM" -v thr="$THRESHOLD_COMMUTANT_DIM" 'BEGIN { exit !(val+0 < thr+0) }'; then
         echo -e "${RED}[FAIL]${NC} Commutant dimension exceeds threshold"
         PASS=0
     else
