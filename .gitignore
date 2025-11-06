@@ -64,11 +64,19 @@ __pycache__/
 *.pyc
 .venv/
 .ipynb_checkpoints/
+
+# Build artifacts
+build/
+*.so
 test_explosion
 test_projectors
 test_commutant
 tests_ctx
 tests_ctx_v03
+tests_ctx_v04
 test_spinlift_demo
 cert_generator
 *.o
+
+# Backup files
+*.backup

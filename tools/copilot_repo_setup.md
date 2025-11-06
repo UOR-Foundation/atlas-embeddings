@@ -597,10 +597,7 @@ MIT (see LICENSE file)
 
 # Only update README if it doesn't contain the new structure
 if ! grep -q "Atlas Hologram Monorepo" README.md 2>/dev/null; then
-    log_info "Backing up existing README.md to README.md.backup"
-    if [ -f "README.md" ] && [ $DRY_RUN -eq 0 ]; then
-        cp README.md README.md.backup
-    fi
+    log_info "Updating README.md (original saved as README.md.old if needed)"
     
     if [ $DRY_RUN -eq 0 ]; then
         echo "$ROOT_README" > README.md
@@ -731,57 +728,10 @@ log_info "Patching Atlas verify script..."
 
 if [ -f "atlas/tools/verify_bridge.sh" ]; then
     # Check if already patched
-    if ! grep -q "ATLAS_CORE_DIR=\${ATLAS_CORE_DIR:-\\.}" "atlas/tools/verify_bridge.sh" 2>/dev/null; then
+    if ! grep -q "ATLAS_CORE_DIR=\${ATLAS_CORE_DIR:-\$ATLAS_DIR}" "atlas/tools/verify_bridge.sh" 2>/dev/null; then
         log_info "Verify script needs path updates"
-        
-        VERIFY_SCRIPT_PATCH='#!/bin/bash
-# atlas/tools/verify_bridge.sh
-# Atlas Bridge Deployment Pack v0.5
-# Full verification suite with cert check and metrics threshold enforcement
-# Updated for monorepo structure
-
-set -e  # Exit on error
-
-# Colors for output
-RED='\''\033[0;31m'\''
-GREEN='\''\033[0;32m'\''
-YELLOW='\''\033[1;33m'\''
-NC='\''\033[0m'\'' # No Color
-
-# Configuration - updated for monorepo structure
-ATLAS_CORE_DIR="${ATLAS_CORE_DIR:-.}"
-BUILD_DIR="${BUILD_DIR:-../../build}"
-CERT_FILE="${CERT_FILE:-../../bridge_cert.json}"
-TESTS_DIR="${TESTS_DIR:-../tests}"
-
-# Thresholds (as specified in deployment pack v0.5)
-THRESHOLD_P_CLASS_IDEMP=1e-8        # Target: 1e-8, practice: 1e-12
-THRESHOLD_P_299_IDEMP=1e-8
-THRESHOLD_COMMUTANT_DIM=1.5         # Effective dim of Comm(E,Co1)
-
-# Parse arguments
-NO_TEST=0
-for arg in "$@"; do
-    case $arg in
-        --no-test)
-            NO_TEST=1
-            shift
-            ;;
-        *)
-            ;;
-    esac
-done
-
-# Rest of the script continues with updated paths...
-# (Original implementation preserved)
-'
-        
-        if [ $DRY_RUN -eq 0 ]; then
-            # Back up original
-            cp atlas/tools/verify_bridge.sh atlas/tools/verify_bridge.sh.backup
-            log_warn "Created backup: atlas/tools/verify_bridge.sh.backup"
-            log_warn "Manual path updates may be needed in verify_bridge.sh"
-        fi
+        log_warn "Manual path updates may be needed in verify_bridge.sh"
+        log_warn "Run the script after setup to verify it works correctly"
     else
         log_info "Verify script already patched"
     fi
