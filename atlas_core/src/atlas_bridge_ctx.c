@@ -1,5 +1,5 @@
 // atlas_core/src/atlas_bridge_ctx.c
-// Atlas Bridge Context API v0.2 Implementation
+// Atlas Bridge Context API v0.3 Implementation
 // Conway–Monster Atlas Upgrade Kit
 
 #include "../include/atlas_bridge_ctx.h"
@@ -7,6 +7,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <math.h>
+#include <time.h>
 
 // Internal context structure
 struct AtlasBridgeContext {
@@ -17,16 +18,24 @@ struct AtlasBridgeContext {
     uint8_t* twirl_x_masks;
     uint8_t* twirl_z_masks;
     
+    // Lift forms storage (v0.3)
+    uint8_t* lift_forms_data;
+    size_t lift_forms_len;
+    
     // Working buffers
     double* temp_buffer;
     double* twirl_accumulator;
+    double* proj_buffer;  // v0.3: for projector operations
     
     // Internal state
     int initialized;
 };
 
 // Library version
-static const char* VERSION = "0.2.0";
+static const char* VERSION = "0.3.0";
+
+// Constants
+#define CERT_LIFT_FORMS_HEX_LIMIT 128  // Max bytes of lift forms to include in certificate
 
 // Default E-twirl generators (16 generators for 8-qubit Pauli group)
 // These are carefully chosen to cover representative directions in the Pauli group
@@ -171,11 +180,16 @@ AtlasBridgeContext* atlas_ctx_new(const AtlasContextConfig* config) {
     // Allocate working buffers
     ctx->temp_buffer = (double*)malloc(ctx->config.block_size * sizeof(double));
     ctx->twirl_accumulator = (double*)malloc(ctx->config.block_size * sizeof(double));
+    ctx->proj_buffer = (double*)malloc(ctx->config.block_size * sizeof(double));  // v0.3
     
-    if (!ctx->temp_buffer || !ctx->twirl_accumulator) {
+    if (!ctx->temp_buffer || !ctx->twirl_accumulator || !ctx->proj_buffer) {
         atlas_ctx_free(ctx);
         return NULL;
     }
+    
+    // Initialize lift forms storage (v0.3)
+    ctx->lift_forms_data = NULL;
+    ctx->lift_forms_len = 0;
     
     // Initialize diagnostics
     memset(&ctx->diag, 0, sizeof(AtlasContextDiagnostics));
@@ -196,6 +210,15 @@ AtlasBridgeContext* atlas_ctx_clone(const AtlasBridgeContext* ctx) {
     memcpy(new_ctx->twirl_z_masks, ctx->twirl_z_masks,
            ctx->config.twirl_gens * sizeof(uint8_t));
     
+    // Copy lift forms (v0.3)
+    if (ctx->lift_forms_data && ctx->lift_forms_len > 0) {
+        new_ctx->lift_forms_data = (uint8_t*)malloc(ctx->lift_forms_len);
+        if (new_ctx->lift_forms_data) {
+            memcpy(new_ctx->lift_forms_data, ctx->lift_forms_data, ctx->lift_forms_len);
+            new_ctx->lift_forms_len = ctx->lift_forms_len;
+        }
+    }
+    
     // Copy diagnostics
     new_ctx->diag = ctx->diag;
     
@@ -209,6 +232,8 @@ void atlas_ctx_free(AtlasBridgeContext* ctx) {
     free(ctx->twirl_z_masks);
     free(ctx->temp_buffer);
     free(ctx->twirl_accumulator);
+    free(ctx->proj_buffer);  // v0.3
+    free(ctx->lift_forms_data);  // v0.3
     free(ctx);
 }
 
@@ -471,7 +496,7 @@ int atlas_ctx_validate(const AtlasBridgeContext* ctx) {
     if (!ctx) return -1;
     if (!ctx->initialized) return -1;
     if (!ctx->twirl_x_masks || !ctx->twirl_z_masks) return -1;
-    if (!ctx->temp_buffer || !ctx->twirl_accumulator) return -1;
+    if (!ctx->temp_buffer || !ctx->twirl_accumulator || !ctx->proj_buffer) return -1;  // v0.3
     if (ctx->config.block_size == 0) return -1;
     if (ctx->config.n_qubits == 0 || ctx->config.n_qubits > 8) return -1;
     if (ctx->config.twirl_gens == 0) return -1;
@@ -492,8 +517,11 @@ void atlas_ctx_print_diagnostics(const AtlasBridgeContext* ctx) {
     printf("Twirl generators: %u\n", ctx->config.twirl_gens);
     printf("Operation count: %lu\n", ctx->diag.op_count);
     printf("Twirl idempotency: %.6e\n", ctx->diag.twirl_idempotency);
+    printf("P_class idempotency: %.6e\n", ctx->diag.p_class_idempotency);  // v0.3
+    printf("P_299 idempotency: %.6e\n", ctx->diag.p_299_idempotency);      // v0.3
     printf("Lift mass: %.6f\n", ctx->diag.lift_mass);
     printf("Last residual: %.6e\n", ctx->diag.last_residual);
+    printf("Commutant dim: %.6e\n", ctx->diag.commutant_dim);              // v0.3
 }
 
 // ============================================================================
@@ -512,4 +540,428 @@ uint32_t atlas_ctx_get_block_size(const AtlasBridgeContext* ctx) {
 uint32_t atlas_ctx_get_n_qubits(const AtlasBridgeContext* ctx) {
     if (!ctx || !ctx->initialized) return 0;
     return ctx->config.n_qubits;
+}
+
+// ============================================================================
+// Lift Forms Loader (v0.3)
+// ============================================================================
+
+// Helper: Convert hex char to nibble
+static int hex_char_to_nibble(char c) {
+    if (c >= '0' && c <= '9') return c - '0';
+    if (c >= 'a' && c <= 'f') return c - 'a' + 10;
+    if (c >= 'A' && c <= 'F') return c - 'A' + 10;
+    return -1;
+}
+
+// Helper: Convert nibble to hex char
+static char nibble_to_hex_char(uint8_t n) {
+    return (n < 10) ? ('0' + n) : ('a' + n - 10);
+}
+
+int atlas_ctx_load_lift_forms(AtlasBridgeContext* ctx, const char* filepath) {
+    if (!ctx || !ctx->initialized || !filepath) return -1;
+    
+    FILE* f = fopen(filepath, "r");
+    if (!f) return -1;
+    
+    // Read file into buffer
+    fseek(f, 0, SEEK_END);
+    long file_size = ftell(f);
+    fseek(f, 0, SEEK_SET);
+    
+    if (file_size <= 0 || file_size > 1024*1024) {  // Max 1MB
+        fclose(f);
+        return -1;
+    }
+    
+    char* hex_buffer = (char*)malloc(file_size + 1);
+    if (!hex_buffer) {
+        fclose(f);
+        return -1;
+    }
+    
+    size_t read_size = fread(hex_buffer, 1, file_size, f);
+    fclose(f);
+    hex_buffer[read_size] = '\0';
+    
+    int result = atlas_ctx_set_lift_forms_hex(ctx, hex_buffer, read_size);
+    free(hex_buffer);
+    
+    return result;
+}
+
+// Helper: check if character is whitespace
+static int is_whitespace(char c) {
+    return c == ' ' || c == '\n' || c == '\r' || c == '\t';
+}
+
+int atlas_ctx_set_lift_forms_hex(AtlasBridgeContext* ctx, const char* hex_data, size_t len) {
+    if (!ctx || !ctx->initialized || !hex_data) return -1;
+    
+    // Strip whitespace and newlines
+    size_t hex_len = 0;
+    for (size_t i = 0; i < len; i++) {
+        if (!is_whitespace(hex_data[i])) {
+            hex_len++;
+        }
+    }
+    
+    if (hex_len == 0 || hex_len % 2 != 0) return -1;
+    
+    size_t data_len = hex_len / 2;
+    uint8_t* data = (uint8_t*)malloc(data_len);
+    if (!data) return -1;
+    
+    // Convert hex to bytes
+    size_t pos = 0;
+    for (size_t i = 0; i < len && pos < data_len; ) {
+        // Skip whitespace
+        if (is_whitespace(hex_data[i])) {
+            i++;
+            continue;
+        }
+        
+        int high = hex_char_to_nibble(hex_data[i]);
+        if (high < 0) {
+            free(data);
+            return -1;
+        }
+        i++;
+        
+        // Skip whitespace before low nibble
+        while (i < len && is_whitespace(hex_data[i])) {
+            i++;
+        }
+        
+        if (i >= len) {
+            free(data);
+            return -1;
+        }
+        
+        int low = hex_char_to_nibble(hex_data[i]);
+        if (low < 0) {
+            free(data);
+            return -1;
+        }
+        i++;
+        
+        data[pos++] = (high << 4) | low;
+    }
+    
+    // Store lift forms
+    free(ctx->lift_forms_data);
+    ctx->lift_forms_data = data;
+    ctx->lift_forms_len = data_len;
+    
+    return 0;
+}
+
+char* atlas_ctx_get_lift_forms_hex(const AtlasBridgeContext* ctx) {
+    if (!ctx || !ctx->initialized || !ctx->lift_forms_data) return NULL;
+    
+    size_t hex_len = ctx->lift_forms_len * 2 + 1;
+    char* hex = (char*)malloc(hex_len);
+    if (!hex) return NULL;
+    
+    for (size_t i = 0; i < ctx->lift_forms_len; i++) {
+        hex[i * 2] = nibble_to_hex_char(ctx->lift_forms_data[i] >> 4);
+        hex[i * 2 + 1] = nibble_to_hex_char(ctx->lift_forms_data[i] & 0x0F);
+    }
+    hex[hex_len - 1] = '\0';
+    
+    return hex;
+}
+
+// ============================================================================
+// Exact Projectors (v0.3)
+// ============================================================================
+
+int atlas_ctx_apply_p_class(AtlasBridgeContext* ctx, double* state) {
+    if (!ctx || !ctx->initialized || !state) return -1;
+    if (!(ctx->config.flags & ATLAS_CTX_ENABLE_P_CLASS)) return -1;
+    
+    // P_class: exact idempotent projector to class-stable subspace
+    // Implementation: projects to constant value per page
+    // This ensures P² = P since averaging constant values gives same constants
+    
+    size_t n_pages = ctx->config.block_size / 256;
+    
+    // For each page, compute average and replace all bytes with that average
+    for (size_t p = 0; p < n_pages; p++) {
+        double sum = 0.0;
+        
+        // Compute sum over all bytes in this page
+        for (size_t b = 0; b < 256; b++) {
+            sum += state[p * 256 + b];
+        }
+        
+        // Average
+        double avg = sum / 256.0;
+        
+        // Set all bytes to average (making page constant)
+        for (size_t b = 0; b < 256; b++) {
+            state[p * 256 + b] = avg;
+        }
+    }
+    
+    ctx->diag.op_count++;
+    return 0;
+}
+
+int atlas_ctx_apply_p_299(AtlasBridgeContext* ctx, double* state) {
+    if (!ctx || !ctx->initialized || !state) return -1;
+    if (!(ctx->config.flags & ATLAS_CTX_ENABLE_P_299)) return -1;
+    
+    // P_299: reduced-rank projector, trace-zero over page%24 groups
+    // Implementation: enforce trace-zero constraint within each group
+    // This is idempotent since subtracting the mean twice has same effect as once
+    
+    size_t n_pages = ctx->config.block_size / 256;
+    
+    // For each page mod 24 group and each byte position
+    for (size_t b = 0; b < 256; b++) {
+        for (size_t g = 0; g < 24; g++) {
+            // Compute mean over this group at this byte position
+            double sum = 0.0;
+            size_t count = 0;
+            
+            for (size_t p = 0; p < n_pages; p++) {
+                if (p % 24 == g) {
+                    sum += state[p * 256 + b];
+                    count++;
+                }
+            }
+            
+            if (count == 0) continue;
+            
+            double mean = sum / count;
+            
+            // Subtract mean to enforce trace-zero
+            for (size_t p = 0; p < n_pages; p++) {
+                if (p % 24 == g) {
+                    state[p * 256 + b] -= mean;
+                }
+            }
+        }
+    }
+    
+    ctx->diag.op_count++;
+    return 0;
+}
+
+double atlas_ctx_check_p_class_idempotency(AtlasBridgeContext* ctx, const double* state) {
+    if (!ctx || !ctx->initialized || !state) return -1.0;
+    
+    vec_copy(ctx->temp_buffer, state, ctx->config.block_size);
+    vec_copy(ctx->proj_buffer, state, ctx->config.block_size);
+    
+    // Apply P_class once
+    atlas_ctx_apply_p_class(ctx, ctx->temp_buffer);
+    
+    // Apply P_class twice
+    atlas_ctx_apply_p_class(ctx, ctx->proj_buffer);
+    atlas_ctx_apply_p_class(ctx, ctx->proj_buffer);
+    
+    double diff = vec_distance(ctx->temp_buffer, ctx->proj_buffer, ctx->config.block_size);
+    ctx->diag.p_class_idempotency = diff;
+    return diff;
+}
+
+double atlas_ctx_check_p_299_idempotency(AtlasBridgeContext* ctx, const double* state) {
+    if (!ctx || !ctx->initialized || !state) return -1.0;
+    
+    vec_copy(ctx->temp_buffer, state, ctx->config.block_size);
+    vec_copy(ctx->proj_buffer, state, ctx->config.block_size);
+    
+    // Apply P_299 once
+    atlas_ctx_apply_p_299(ctx, ctx->temp_buffer);
+    
+    // Apply P_299 twice
+    atlas_ctx_apply_p_299(ctx, ctx->proj_buffer);
+    atlas_ctx_apply_p_299(ctx, ctx->proj_buffer);
+    
+    double diff = vec_distance(ctx->temp_buffer, ctx->proj_buffer, ctx->config.block_size);
+    ctx->diag.p_299_idempotency = diff;
+    return diff;
+}
+
+// ============================================================================
+// Co1 Mini-Gates (v0.3)
+// ============================================================================
+
+int atlas_ctx_apply_page_rotation(AtlasBridgeContext* ctx, uint32_t rot, double* state) {
+    if (!ctx || !ctx->initialized || !state) return -1;
+    if (!(ctx->config.flags & ATLAS_CTX_ENABLE_CO1)) return -1;
+    
+    size_t n_pages = ctx->config.block_size / 256;
+    if (rot >= n_pages) rot = rot % n_pages;
+    
+    if (rot == 0) return 0;  // No-op
+    
+    // Rotate pages
+    vec_copy(ctx->temp_buffer, state, ctx->config.block_size);
+    
+    for (size_t p = 0; p < n_pages; p++) {
+        size_t new_p = (p + rot) % n_pages;
+        for (size_t b = 0; b < 256; b++) {
+            state[new_p * 256 + b] = ctx->temp_buffer[p * 256 + b];
+        }
+    }
+    
+    ctx->diag.op_count++;
+    return 0;
+}
+
+int atlas_ctx_apply_mix_lifts(AtlasBridgeContext* ctx, double* state) {
+    if (!ctx || !ctx->initialized || !state) return -1;
+    if (!(ctx->config.flags & ATLAS_CTX_ENABLE_CO1)) return -1;
+    
+    // Walsh-Hadamard transform on spin-up/spin-down lift components
+    // For each (page, byte) pair, apply H = (1/√2) [[1, 1], [1, -1]]
+    
+    size_t n_pages = ctx->config.block_size / 256;
+    
+    // Assume first half of pages are spin-up, second half spin-down
+    size_t half = n_pages / 2;
+    
+    for (size_t p = 0; p < half; p++) {
+        for (size_t b = 0; b < 256; b++) {
+            double up = state[p * 256 + b];
+            double down = state[(p + half) * 256 + b];
+            
+            // Walsh-Hadamard: (|0⟩ + |1⟩)/√2, (|0⟩ - |1⟩)/√2
+            double sqrt2_inv = 1.0 / sqrt(2.0);
+            state[p * 256 + b] = sqrt2_inv * (up + down);
+            state[(p + half) * 256 + b] = sqrt2_inv * (up - down);
+        }
+    }
+    
+    ctx->diag.op_count++;
+    return 0;
+}
+
+int atlas_ctx_apply_page_parity_phase(AtlasBridgeContext* ctx, double* state) {
+    if (!ctx || !ctx->initialized || !state) return -1;
+    if (!(ctx->config.flags & ATLAS_CTX_ENABLE_CO1)) return -1;
+    
+    // Apply phase (-1)^parity(page) to each page
+    size_t n_pages = ctx->config.block_size / 256;
+    
+    for (size_t p = 0; p < n_pages; p++) {
+        // Count number of 1-bits in page index
+        size_t parity = 0;
+        size_t pp = p;
+        while (pp) {
+            parity ^= (pp & 1);
+            pp >>= 1;
+        }
+        
+        // Apply phase if parity is 1
+        if (parity) {
+            for (size_t b = 0; b < 256; b++) {
+                state[p * 256 + b] = -state[p * 256 + b];
+            }
+        }
+    }
+    
+    ctx->diag.op_count++;
+    return 0;
+}
+
+// ============================================================================
+// JSON Certificates and Diagnostics (v0.3)
+// ============================================================================
+
+int atlas_ctx_emit_certificate(const AtlasBridgeContext* ctx, const char* filepath, const char* mode) {
+    if (!ctx || !ctx->initialized || !filepath || !mode) return -1;
+    
+    FILE* f = fopen(filepath, "w");
+    if (!f) return -1;
+    
+    fprintf(f, "{\n");
+    fprintf(f, "  \"version\": \"%s\",\n", VERSION);
+    fprintf(f, "  \"mode\": \"%s\",\n", mode);
+    fprintf(f, "  \"timestamp\": %ld,\n", (long)time(NULL));
+    fprintf(f, "  \"config\": {\n");
+    fprintf(f, "    \"block_size\": %u,\n", ctx->config.block_size);
+    fprintf(f, "    \"n_qubits\": %u,\n", ctx->config.n_qubits);
+    fprintf(f, "    \"twirl_gens\": %u,\n", ctx->config.twirl_gens);
+    fprintf(f, "    \"flags\": %u,\n", ctx->config.flags);
+    fprintf(f, "    \"epsilon\": %.12e\n", ctx->config.epsilon);
+    fprintf(f, "  },\n");
+    fprintf(f, "  \"diagnostics\": {\n");
+    fprintf(f, "    \"op_count\": %lu,\n", ctx->diag.op_count);
+    fprintf(f, "    \"twirl_idempotency\": %.12e,\n", ctx->diag.twirl_idempotency);
+    fprintf(f, "    \"p_class_idempotency\": %.12e,\n", ctx->diag.p_class_idempotency);
+    fprintf(f, "    \"p_299_idempotency\": %.12e,\n", ctx->diag.p_299_idempotency);
+    fprintf(f, "    \"lift_mass\": %.12e,\n", ctx->diag.lift_mass);
+    fprintf(f, "    \"last_residual\": %.12e,\n", ctx->diag.last_residual);
+    fprintf(f, "    \"commutant_dim\": %.12e\n", ctx->diag.commutant_dim);
+    fprintf(f, "  },\n");
+    fprintf(f, "  \"lift_forms\": ");
+    
+    if (ctx->lift_forms_data && ctx->lift_forms_len > 0) {
+        fprintf(f, "\"");
+        size_t limit = (ctx->lift_forms_len < CERT_LIFT_FORMS_HEX_LIMIT) 
+                       ? ctx->lift_forms_len : CERT_LIFT_FORMS_HEX_LIMIT;
+        for (size_t i = 0; i < limit; i++) {
+            fprintf(f, "%02x", ctx->lift_forms_data[i]);
+        }
+        if (ctx->lift_forms_len > CERT_LIFT_FORMS_HEX_LIMIT) {
+            fprintf(f, "...");
+        }
+        fprintf(f, "\"\n");
+    } else {
+        fprintf(f, "null\n");
+    }
+    
+    fprintf(f, "}\n");
+    fclose(f);
+    
+    return 0;
+}
+
+double atlas_ctx_probe_commutant(AtlasBridgeContext* ctx, const double* state, int with_co1) {
+    if (!ctx || !ctx->initialized || !state) return -1.0;
+    
+    // Probe commutant: measure effective dimension of Comm(E, Co1)
+    // Simplified: compute variance under random E operations with/without Co1
+    
+    vec_copy(ctx->temp_buffer, state, ctx->config.block_size);
+    vec_zero(ctx->proj_buffer, ctx->config.block_size);
+    
+    const int n_samples = 10;
+    double variance = 0.0;
+    
+    for (int i = 0; i < n_samples; i++) {
+        vec_copy(ctx->twirl_accumulator, ctx->temp_buffer, ctx->config.block_size);
+        
+        // Apply random E operation
+        uint8_t mask = (i * 37) & 0xFF;  // Deterministic "random"
+        for (uint8_t q = 0; q < ctx->config.n_qubits; q++) {
+            if (mask & (1 << q)) {
+                apply_pauli_x_single(ctx->twirl_accumulator, ctx->config.block_size, q);
+            }
+        }
+        
+        // Apply Co1 if requested
+        if (with_co1) {
+            atlas_ctx_apply_page_rotation(ctx, i + 1, ctx->twirl_accumulator);
+        }
+        
+        // Accumulate
+        vec_axpy(ctx->proj_buffer, ctx->twirl_accumulator, ctx->config.block_size, 1.0);
+    }
+    
+    // Compute variance (effective dimension)
+    vec_scale(ctx->proj_buffer, ctx->config.block_size, 1.0 / n_samples);
+    double avg_norm = vec_norm(ctx->proj_buffer, ctx->config.block_size);
+    double ref_norm = vec_norm(ctx->temp_buffer, ctx->config.block_size);
+    
+    // Effective dimension: ratio of norms
+    double eff_dim = (ref_norm > 1e-10) ? (avg_norm / ref_norm) : 0.0;
+    
+    ctx->diag.commutant_dim = eff_dim;
+    return eff_dim;
 }
