@@ -1,0 +1,53 @@
+# Atlas Hologram Monorepo Makefile
+# Root build orchestration for Atlas, Embeddings, Sigmatics
+
+.PHONY: all clean help atlas-build atlas-test atlas-cert
+
+# Default target
+all: atlas-build
+	@echo "Build complete. Run 'make atlas-test' to verify."
+
+# Atlas targets
+atlas-build:
+	@echo "Building Atlas core..."
+	@if [ -f atlas/tools/verify_bridge.sh ]; then \
+		cd atlas && bash tools/verify_bridge.sh --no-test || \
+		(cd .. && bash atlas/tools/verify_bridge.sh); \
+	else \
+		echo "Atlas verify script not found. Building manually..."; \
+		mkdir -p build; \
+		gcc -O2 -Wall -fPIC -Iatlas/include -c atlas/src/atlas_bridge_ctx.c -o build/atlas_bridge_ctx.o; \
+		gcc -shared -o atlas/lib/libatlas_bridge_ctx.so build/atlas_bridge_ctx.o -lm; \
+	fi
+
+atlas-test:
+	@echo "Testing Atlas core..."
+	@if [ -f atlas/tools/verify_bridge.sh ]; then \
+		cd atlas && bash tools/verify_bridge.sh || \
+		(cd .. && bash atlas/tools/verify_bridge.sh); \
+	else \
+		echo "Atlas verify script not found."; \
+		exit 1; \
+	fi
+
+atlas-cert: atlas-test
+	@echo "Certificate generated at bridge_cert.json"
+
+clean:
+	@echo "Cleaning build artifacts..."
+	rm -rf build/
+	rm -f bridge_cert.json
+	rm -f atlas/lib/*.so
+	@echo "Clean complete"
+
+help:
+	@echo "Atlas Hologram Monorepo - Available targets:"
+	@echo ""
+	@echo "  make all          - Build all components (default: atlas-build)"
+	@echo "  make atlas-build  - Build Atlas core library"
+	@echo "  make atlas-test   - Build and test Atlas with verification"
+	@echo "  make atlas-cert   - Generate bridge certificate"
+	@echo "  make clean        - Remove build artifacts"
+	@echo "  make help         - Show this help message"
+	@echo ""
+

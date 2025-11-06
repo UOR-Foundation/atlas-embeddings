@@ -5,6 +5,7 @@
 
 int main(int argc, char** argv) {
     const char* cert_path = argc > 1 ? argv[1] : "bridge_cert.json";
+    const char* artifacts_dir = argc > 2 ? argv[2] : "atlas/artifacts";
     
     // Create context with all features enabled
     AtlasContextConfig cfg;
@@ -19,22 +20,30 @@ int main(int argc, char** argv) {
         return 1;
     }
     
+    // Build paths to artifacts
+    char lift_path[256];
+    char p299_path[256];
+    char co1_path[256];
+    snprintf(lift_path, sizeof(lift_path), "%s/lift_forms.hex", artifacts_dir);
+    snprintf(p299_path, sizeof(p299_path), "%s/P_299_matrix.bin", artifacts_dir);
+    snprintf(co1_path, sizeof(co1_path), "%s/co1_gates.txt", artifacts_dir);
+    
     // Load lift forms if available
-    if (atlas_ctx_load_lift_forms(ctx, "lift_forms.hex") == 0) {
-        printf("Loaded lift forms from lift_forms.hex\n");
+    if (atlas_ctx_load_lift_forms(ctx, lift_path) == 0) {
+        printf("Loaded lift forms from %s\n", lift_path);
     } else {
         printf("Using default lift forms\n");
     }
     
     // Try to load P_299 matrix if available
-    if (atlas_ctx_load_p299_matrix(ctx, "P_299_matrix.bin") == 0) {
+    if (atlas_ctx_load_p299_matrix(ctx, p299_path) == 0) {
         printf("Loaded exact P_299 matrix\n");
     } else {
         printf("Using P_299 fallback logic\n");
     }
     
     // Try to load Co1 gates if available
-    if (atlas_ctx_load_co1_gates(ctx, "co1_gates.txt") == 0) {
+    if (atlas_ctx_load_co1_gates(ctx, co1_path) == 0) {
         printf("Loaded Co1 gates configuration\n");
     } else {
         printf("Using default Co1 gates\n");

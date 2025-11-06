@@ -1,0 +1,45 @@
+name: Atlas Bridge CI
+
+on:
+  push:
+    branches: [ main, develop, "copilot/**" ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y gcc make libopenblas-dev
+    
+    - name: Verify Atlas Bridge
+      run: |
+        bash atlas/tools/verify_bridge.sh
+    
+    - name: Upload certificate
+      uses: actions/upload-artifact@v3
+      with:
+        name: bridge-certificate
+        path: bridge_cert.json
+    
+    - name: Check certificate metrics
+      run: |
+        if [ ! -f bridge_cert.json ]; then
+          echo "Certificate not generated"
+          exit 1
+        fi
+        
+        # Verify certificate contains required fields
+        grep -q "p_class_idempotency" bridge_cert.json
+        grep -q "p_299_idempotency" bridge_cert.json
+        grep -q "commutant_dim" bridge_cert.json
+        
+        echo "Certificate validation passed"
+
