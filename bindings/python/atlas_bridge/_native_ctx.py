@@ -1,7 +1,13 @@
 """
 bindings/python/atlas_bridge/_native_ctx.py
-Atlas Bridge Context API v0.4
+Atlas Bridge Context API v0.5
 Python bindings for the Context API from native C library
+
+v0.5 Updates:
+- BLAS-accelerated matrix-vector operations (when available)
+- Enhanced artifact loading (lift_forms.hex, P_299_matrix.bin, co1_gates.txt)
+- Improved performance with optional BLAS backend
+- Full backward compatibility with v0.4
 """
 
 import ctypes
