@@ -1,4 +1,4 @@
-name: Atlas Bridge CI (v0.3)
+name: Atlas Bridge CI (v0.4)
 
 on:
   push:
@@ -66,13 +66,20 @@ jobs:
         # Clean up object files
         rm *.o
     
-    - name: Build atlas_bridge_ctx library (v0.3)
+    - name: Build atlas_bridge_ctx library (v0.4)
       working-directory: atlas_core
       env:
         CC: ${{ matrix.compiler }}
       run: |
-        # Build v0.3 context API library
-        $CC -c -fPIC -Iinclude src/atlas_bridge_ctx.c
+        # Build v0.4 context API library with AVX2 support
+        # Enable AVX2 on x86_64 Linux (will fallback gracefully on other platforms)
+        if [ "$RUNNER_OS" == "Linux" ]; then
+          CFLAGS="-mavx2"
+        else
+          CFLAGS=""
+        fi
+        
+        $CC -c -fPIC $CFLAGS -Iinclude src/atlas_bridge_ctx.c
         
         # Create shared library
         if [ "$RUNNER_OS" == "Linux" ]; then
@@ -118,7 +125,7 @@ jobs:
           atlas_core/src/diagnostics.c \
           -Iatlas_core/include -lm
     
-    - name: Build Context API tests (v0.3)
+    - name: Build Context API tests (v0.4)
       env:
         CC: ${{ matrix.compiler }}
       run: |
@@ -129,6 +136,16 @@ jobs:
         
         # Build v0.3 extended tests
         $CC -o tests_ctx_v03 tests/tests_ctx_v03.c \
+          atlas_core/src/atlas_bridge_ctx.c \
+          -Iatlas_core/include -lm
+        
+        # Build v0.4 extended tests (with AVX2 on Linux)
+        if [ "$RUNNER_OS" == "Linux" ]; then
+          CFLAGS="-mavx2"
+        else
+          CFLAGS=""
+        fi
+        $CC $CFLAGS -o tests_ctx_v04 tests/tests_ctx_v04.c \
           atlas_core/src/atlas_bridge_ctx.c \
           -Iatlas_core/include -lm
         
@@ -158,14 +175,19 @@ jobs:
         echo "Running v0.3 extended tests..."
         ./tests_ctx_v03
     
+    - name: Run Context API tests (v0.4 extended)
+      run: |
+        echo "Running v0.4 extended tests..."
+        ./tests_ctx_v04
+    
     - name: Run spinlift demo
       run: |
         echo "Running spinlift demo..."
         ./test_spinlift_demo
     
-    - name: Generate JSON certificate (v0.3)
+    - name: Generate JSON certificate (v0.4)
       run: |
-        # Create test certificate using v0.3 API
+        # Create test certificate using v0.4 API
         cat > /tmp/cert_generator.c << 'EOF'
 #include "atlas_core/include/atlas_bridge_ctx.h"
 #include <stdio.h>
@@ -175,7 +197,7 @@ int main() {
     AtlasContextConfig cfg;
     atlas_ctx_config_default(&cfg);
     cfg.flags = ATLAS_CTX_ENABLE_TWIRL | ATLAS_CTX_ENABLE_P_CLASS | 
-                ATLAS_CTX_ENABLE_P_299 | ATLAS_CTX_ENABLE_CO1;
+                ATLAS_CTX_ENABLE_P_299 | ATLAS_CTX_ENABLE_CO1 | ATLAS_CTX_USE_AVX2;
     
     AtlasBridgeContext* ctx = atlas_ctx_new(&cfg);
     
@@ -203,7 +225,14 @@ int main() {
 }
 EOF
         
-        ${{ matrix.compiler }} -o cert_generator /tmp/cert_generator.c \
+        # Compile with AVX2 on Linux
+        if [ "$RUNNER_OS" == "Linux" ]; then
+          CFLAGS="-mavx2"
+        else
+          CFLAGS=""
+        fi
+        
+        ${{ matrix.compiler }} $CFLAGS -o cert_generator /tmp/cert_generator.c \
           atlas_core/src/atlas_bridge_ctx.c \
           -Iatlas_core/include -lm
         
@@ -212,7 +241,7 @@ EOF
         echo "Certificate contents:"
         cat bridge_cert.json
     
-    - name: Upload JSON certificate artifact (v0.3)
+    - name: Upload JSON certificate artifact (v0.4)
       uses: actions/upload-artifact@v3
       with:
         name: bridge-certificate-${{ matrix.os }}-${{ matrix.compiler }}
