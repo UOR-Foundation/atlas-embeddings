@@ -68,4 +68,7 @@ test_explosion
 test_projectors
 test_commutant
 tests_ctx
+tests_ctx_v03
 test_spinlift_demo
+cert_generator
+*.o
