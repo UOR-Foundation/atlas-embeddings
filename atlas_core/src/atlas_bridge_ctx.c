@@ -1,6 +1,11 @@
 // atlas_core/src/atlas_bridge_ctx.c
-// Atlas Bridge Context API v0.4 Implementation
+// Atlas Bridge Context API v0.5 Implementation
 // Conway–Monster Atlas Upgrade Kit
+// 
+// v0.5 Enhancements:
+// - BLAS acceleration for large matrix-vector operations
+// - Real artifact integration (lift_forms.hex, P_299_matrix.bin, co1_gates.txt)
+// - Backward-compatible fallback for all features
 
 #include "../include/atlas_bridge_ctx.h"
 #include <stdlib.h>
@@ -8,6 +13,14 @@
 #include <stdio.h>
 #include <math.h>
 #include <time.h>
+
+// v0.5: BLAS support for matrix-vector operations
+#ifdef USE_BLAS
+#include <cblas.h>
+#define HAS_BLAS 1
+#else
+#define HAS_BLAS 0
+#endif
 
 // v0.4: Check for AVX2 support
 #if defined(__AVX2__) && defined(__x86_64__)
@@ -50,7 +63,7 @@ struct AtlasBridgeContext {
 };
 
 // Library version
-static const char* VERSION = "0.4.0";
+static const char* VERSION = "0.5.0";
 
 // Constants
 #define CERT_LIFT_FORMS_HEX_LIMIT 128  // Max bytes of lift forms to include in certificate
@@ -165,15 +178,6 @@ static void apply_pauli_z_single_avx2(double* state, size_t n, uint8_t qubit) {
 }
 #endif
 
-// Compute L2 norm of vector
-static double vec_norm(const double* v, size_t n) {
-    double sum = 0.0;
-    for (size_t i = 0; i < n; i++) {
-        sum += v[i] * v[i];
-    }
-    return sqrt(sum);
-}
-
 // Compute L2 distance between vectors
 static double vec_distance(const double* a, const double* b, size_t n) {
     double sum = 0.0;
@@ -196,16 +200,67 @@ static void vec_zero(double* v, size_t n) {
 
 // Scale vector
 static void vec_scale(double* v, size_t n, double alpha) {
+#if HAS_BLAS
+    cblas_dscal(n, alpha, v, 1);
+#else
     for (size_t i = 0; i < n; i++) {
         v[i] *= alpha;
     }
+#endif
 }
 
 // Add vector: dst += alpha * src
 static void vec_axpy(double* dst, const double* src, size_t n, double alpha) {
+#if HAS_BLAS
+    cblas_daxpy(n, alpha, src, 1, dst, 1);
+#else
     for (size_t i = 0; i < n; i++) {
         dst[i] += alpha * src[i];
     }
+#endif
+}
+
+// v0.5: Matrix-vector product: y = alpha * A * x + beta * y
+// A is N x N matrix in row-major order
+static void mat_vec_product(const double* A, const double* x, double* y, 
+                            size_t N, double alpha, double beta) {
+#if HAS_BLAS
+    // BLAS uses column-major, but we can use row-major with transposed operation
+    // For row-major A: y = alpha * A * x + beta * y
+    // This is equivalent to: y = alpha * A^T * x + beta * y in column-major
+    cblas_dgemv(CblasRowMajor, CblasNoTrans, N, N, alpha, A, N, x, 1, beta, y, 1);
+#else
+    // Fallback naive implementation
+    if (beta == 0.0) {
+        // Zero out y first
+        vec_zero(y, N);
+    } else if (beta != 1.0) {
+        // Scale y by beta
+        vec_scale(y, N, beta);
+    }
+    
+    // Compute y += alpha * A * x
+    for (size_t i = 0; i < N; i++) {
+        double sum = 0.0;
+        for (size_t j = 0; j < N; j++) {
+            sum += A[i * N + j] * x[j];
+        }
+        y[i] += alpha * sum;
+    }
+#endif
+}
+
+// v0.5: Compute L2 norm using BLAS when available
+static double vec_norm(const double* v, size_t n) {
+#if HAS_BLAS
+    return cblas_dnrm2(n, v, 1);
+#else
+    double sum = 0.0;
+    for (size_t i = 0; i < n; i++) {
+        sum += v[i] * v[i];
+    }
+    return sqrt(sum);
+#endif
 }
 
 // ============================================================================

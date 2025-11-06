@@ -2,12 +2,38 @@
 bindings/python/atlas_bridge/_native.py
 Conway–Monster Atlas Upgrade Kit v1.1
 Python bindings for native C atlas_bridge library
+
+⚠️  DEPRECATION WARNING (v0.5):
+This module provides legacy non-context-based API which is DEPRECATED.
+Please migrate to the new context-based API in _native_ctx.py
+
+Legacy API will be removed in v0.6. Use atlas_bridge._native_ctx instead.
+For migration guide, see: atlas_core/README_CONTEXT_API.md
+
+Example migration:
+  OLD: from atlas_bridge._native import lib
+       lib.e_apply(state, x_mask, z_mask)
+  
+  NEW: from atlas_bridge._native_ctx import AtlasCtx
+       ctx = AtlasCtx()
+       ctx.apply_pauli_x(x_mask, state)
+       ctx.apply_pauli_z(z_mask, state)
 """
 
 import ctypes
 import os
 import platform
+import warnings
 from typing import Optional, Tuple
+
+# Issue deprecation warning on module import
+warnings.warn(
+    "atlas_bridge._native is deprecated and will be removed in v0.6. "
+    "Please migrate to atlas_bridge._native_ctx (context-based API). "
+    "See atlas_core/README_CONTEXT_API.md for migration guide.",
+    DeprecationWarning,
+    stacklevel=2
+)
 
 # Determine library name based on platform
 def _get_library_name():

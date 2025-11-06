@@ -1,6 +1,13 @@
 // atlas_core/include/atlas_bridge_ctx.h
-// Atlas Bridge Context API v0.4
+// Atlas Bridge Context API v0.5
 // Conway–Monster Atlas Upgrade Kit
+//
+// v0.5 New Features:
+// - BLAS acceleration for large matrix-vector operations (optional, with fallback)
+// - Real artifact integration: lift_forms.hex, P_299_matrix.bin, co1_gates.txt
+// - Enhanced build system with BLAS detection (Makefile, CMake)
+// - Comprehensive verification suite with metrics threshold enforcement
+// - Full backward compatibility with v0.4
 //
 // Provides an opaque context-based API for Atlas bridge operations with:
 // - Homomorphic lift permutations via linear forms (Lx, Lz) with runtime swap + hex file loader (v0.4: 8-bit mode)
@@ -317,26 +324,36 @@ uint32_t atlas_ctx_get_n_qubits(const AtlasBridgeContext* ctx);
 // Future Upgrade Notes (for maintainers)
 // ============================================================================
 //
-// TODO (v0.5 - 12-qubit extension):
+// TODO (v0.6 - 12-qubit extension):
 //   - Extend Pauli operators from 8-qubit to full 12-qubit representation
 //   - Update block_size calculation for 12-qubit register
 //   - Modify twirl generators for expanded Hilbert space
 //
-// TODO (v0.5 - advanced lift forms):
+// TODO (v0.6 - advanced lift forms):
 //   - Implement composite lifts: L_xy = L_x ∘ L_z
 //   - Add parameterized lift families with continuous parameters
 //   - Support non-homomorphic lift variants for error analysis
 //
-// TODO (v0.5 - GPU acceleration):
+// TODO (v0.6 - GPU acceleration):
 //   - GPU acceleration hooks for twirl averaging and projector application
 //   - CUDA/OpenCL backend options
 //
-// TODO (v0.5 - certification enhancements):
+// TODO (v0.6 - certification enhancements):
 //   - Implement formal verification hooks for Lean4 proofs
 //   - Export witness data for external validation
 //   - Add certificate schema validation
 //
-// v0.4 CHANGES (current version):
+// v0.5 CHANGES (current version):
+//   ✓ Added BLAS acceleration for matrix-vector operations (optional, with fallback)
+//   ✓ Integrated real artifacts: lift_forms.hex, P_299_matrix.bin, co1_gates.txt
+//   ✓ Enhanced build system with BLAS detection (Makefile, CMake)
+//   ✓ Created tools/verify_bridge.sh verification suite with threshold enforcement
+//   ✓ Added .github/workflows/bridge.yml for CI certificate generation
+//   ✓ Updated Python, Rust, Node, Go bindings with deprecation warnings for legacy APIs
+//   ✓ Comprehensive documentation updates and usage guides
+//   ✓ Full backwards compatibility maintained with v0.4
+//
+// v0.4 CHANGES:
 //   ✓ Added lift forms loader with 8-bit mode support (N_QBITS=8)
 //   ✓ Implemented P_299 binary matrix loader (P_299_matrix.bin) with fallback
 //   ✓ Added Co1 real generator loader (co1_gates.txt) working with MAT gates

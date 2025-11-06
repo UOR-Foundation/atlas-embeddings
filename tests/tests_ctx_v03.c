@@ -488,7 +488,7 @@ void test_certificate_emission(void) {
     
     assert(read_size > 0);
     assert(strstr(buffer, "\"version\"") != NULL);
-    assert(strstr(buffer, "0.3.0") != NULL);
+    assert(strstr(buffer, "0.5.0") != NULL);  // v0.5 now
     assert(strstr(buffer, "\"mode\"") != NULL);
     assert(strstr(buffer, "\"diagnostics\"") != NULL);
     assert(strstr(buffer, "\"p_class_idempotency\"") != NULL);

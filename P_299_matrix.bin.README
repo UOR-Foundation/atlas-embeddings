@@ -1,0 +1,58 @@
+# P_299_matrix.bin - Exact Projector Matrix (Optional)
+# Atlas Bridge Deployment Pack v0.5
+
+## Overview
+This file contains the exact dense projector matrix P_299 for the Atlas Bridge.
+It is an OPTIONAL component - the system will fall back to reduced-rank trace-zero
+logic if this file is not present.
+
+## Format
+- Binary format: N*N doubles in row-major order
+- N = block_size (typically 12,288 or 98,304)
+- File size: N * N * sizeof(double) bytes
+- Endianness: native (same as compile platform)
+
+## Requirements
+- Matrix must be symmetric: P = P^T
+- Matrix must be idempotent: P^2 = P (within numerical tolerance)
+
+## Generation
+To generate this file, use the Sage/Sigmatics tools:
+
+```bash
+cd sigmatics
+sage export_p299_projector.sage --output=../P_299_matrix.bin
+```
+
+Or from Python with NumPy:
+```python
+import numpy as np
+
+N = 12288
+P_299 = generate_trace_zero_projector(N)  # Your implementation
+assert np.allclose(P_299, P_299.T), "Matrix must be symmetric"
+assert np.allclose(P_299 @ P_299, P_299), "Matrix must be idempotent"
+
+P_299.astype(np.float64).tofile('P_299_matrix.bin')
+```
+
+## Usage
+The atlas_bridge_ctx library will automatically load this file if present:
+
+```c
+AtlasBridgeContext* ctx = atlas_ctx_new(&cfg);
+int loaded = atlas_ctx_load_p299_matrix(ctx, "P_299_matrix.bin");
+if (loaded == 0) {
+    printf("Using exact P_299 matrix (better accuracy)\n");
+} else {
+    printf("Using fallback reduced-rank logic (faster)\n");
+}
+```
+
+## Performance Trade-offs
+- **With exact matrix**: O(N^2) memory, better numerical accuracy
+- **Fallback logic**: O(N) memory, faster execution, approximate
+
+## File not included
+This file is NOT included in the repository due to its large size.
+Generate it locally if high-precision P_299 projection is required.

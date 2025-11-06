@@ -1,0 +1,28 @@
+# Co1 Real Generator Configuration File
+# Atlas Bridge Deployment Pack v0.5
+# 
+# Format: One generator per line
+# Syntax: GENERATOR <index> <type> [parameters...]
+# Comments start with #, blank lines ignored
+#
+# Types:
+#   PAGE_ROT <rotation_amount>    - Page rotation gate (0-47)
+#   MAT <filepath>                 - Dense matrix gate from binary file (N*N doubles, row-major)
+#   PARITY_PHASE                   - Page parity phase gate
+#   WALSH_MIX                      - Walsh-Hadamard lift mixing
+#   REAL_COEFF <c0> <c1> ... <cN>  - Real coefficient linear combination
+
+# Default Co1 mini-gates (compatible with v0.3/v0.4 API)
+GENERATOR 0 PAGE_ROT 0
+GENERATOR 1 PAGE_ROT 12
+GENERATOR 2 PAGE_ROT 24
+GENERATOR 3 PARITY_PHASE
+GENERATOR 4 WALSH_MIX
+
+# Optional: Dense matrix gates (load from binary files)
+# GENERATOR 5 MAT co1_mat_gen5.bin
+# GENERATOR 6 MAT co1_mat_gen6.bin
+
+# Optional: Real coefficient generators for hybrid classical/quantum synthesis
+# GENERATOR 7 REAL_COEFF 1.0 0.0 0.707 0.707
+# GENERATOR 8 REAL_COEFF 0.5 0.5 0.5 0.5

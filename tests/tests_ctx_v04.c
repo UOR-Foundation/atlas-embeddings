@@ -375,12 +375,12 @@ void test_certificate_v04(void) {
     buffer[read_size] = '\0';
     fclose(f);
     
-    // Check for v0.4 fields
-    assert(strstr(buffer, "\"version\": \"0.4.0\"") != NULL);
+    // Check for v0.5 fields (updated from v0.4)
+    assert(strstr(buffer, "\"version\": \"0.5.0\"") != NULL);
     assert(strstr(buffer, "avx2_available") != NULL);
     assert(strstr(buffer, "p_299_exact_loaded") != NULL);
     assert(strstr(buffer, "co1_gates_loaded") != NULL);
-    printf("  ✓ Certificate contains v0.4 fields\n");
+    printf("  ✓ Certificate contains v0.5 fields\n");
     
     atlas_ctx_free(ctx);
     remove(cert_file);
