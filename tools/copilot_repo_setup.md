@@ -19,8 +19,8 @@ set -e  # Exit on error
 DRY_RUN=0
 NO_TEST=0
 
-for arg in "$@"; do
-    case $arg in
+while [[ $# -gt 0 ]]; do
+    case $1 in
         --dry-run)
             DRY_RUN=1
             shift
@@ -30,7 +30,7 @@ for arg in "$@"; do
             shift
             ;;
         *)
-            # Unknown argument
+            shift
             ;;
     esac
 done

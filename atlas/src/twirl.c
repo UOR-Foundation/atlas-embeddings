@@ -1,4 +1,4 @@
-// atlas_core/src/twirl.c
+// atlas/src/twirl.c
 // Conway–Monster Atlas Upgrade Kit v1.1
 // Twirling operations for symmetrization and averaging
 

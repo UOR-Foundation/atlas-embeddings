@@ -1,4 +1,4 @@
-// atlas_core/src/e_group.c
+// atlas/src/e_group.c
 // Conway–Monster Atlas Upgrade Kit v1.1
 // Elementary abelian 2-group (E ≅ 2^{12} × 2^{12}) operations
 

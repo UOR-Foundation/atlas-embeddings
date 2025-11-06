@@ -1,4 +1,4 @@
-// atlas_core/src/linalg_util.c
+// atlas/src/linalg_util.c
 // Conway–Monster Atlas Upgrade Kit v1.1
 // Linear algebra utilities for vector operations
 

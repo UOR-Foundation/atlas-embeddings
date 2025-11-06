@@ -1,4 +1,4 @@
-// atlas_core/include/atlas_bridge.h
+// atlas/include/atlas_bridge.h
 #ifndef ATLAS_BRIDGE_H
 #define ATLAS_BRIDGE_H
 #include <stdint.h>
