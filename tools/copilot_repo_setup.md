@@ -29,7 +29,14 @@ while [[ $# -gt 0 ]]; do
             NO_TEST=1
             shift
             ;;
+        -h|--help)
+            echo "Usage: $0 [--dry-run] [--no-test]"
+            echo "  --dry-run   Show what would be done without making changes"
+            echo "  --no-test   Skip running tests after setup"
+            exit 0
+            ;;
         *)
+            log_warn "Unknown argument: $1"
             shift
             ;;
     esac
