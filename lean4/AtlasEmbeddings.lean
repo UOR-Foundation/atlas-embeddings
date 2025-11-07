@@ -21,6 +21,16 @@ This is achievable because:
 - `AtlasEmbeddings.Embedding` - Atlas → E₈ embedding verification
 - `AtlasEmbeddings.Category` - ResGraph category and initiality
 - `AtlasEmbeddings.Groups` - Exceptional group constructions (G₂, F₄, E₆, E₇, E₈)
+- `AtlasEmbeddings.ELayer` - E-layer extraspecial group and Heisenberg formalization
+
+## Mathematical Foundation Modules
+
+- `Math.Heisenberg.Core` - Heisenberg group H(n) with cocycle multiplication
+- `Math.Heisenberg.StoneVonNeumannProof` - Stone-von Neumann theorem (axiomatized)
+- `Math.Heisenberg.SanityTests` - Basic property verification
+- `Math.Pauli.Commutator` - Pauli commutator relations
+- `Math.Clifford.Normalizer` - Clifford normalizer and symplectic group
+- `Math.Clifford.KernelProof` - Kernel theorem: Aut(H)/Inn ≅ Sp(2n, F₂)
 
 ## References
 
@@ -37,3 +47,14 @@ import AtlasEmbeddings.Groups
 import AtlasEmbeddings.CategoricalFunctors
 import AtlasEmbeddings.Completeness
 import AtlasEmbeddings.ActionFunctional
+
+-- Mathematical foundation modules for E-layer
+import Math.Heisenberg.Core
+import Math.Heisenberg.StoneVonNeumannProof
+import Math.Heisenberg.SanityTests
+import Math.Pauli.Commutator
+import Math.Clifford.Normalizer
+import Math.Clifford.KernelProof
+
+-- E-layer connection to Atlas
+import AtlasEmbeddings.ELayer
