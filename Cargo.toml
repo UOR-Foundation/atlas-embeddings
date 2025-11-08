@@ -78,6 +78,10 @@ harness = false
 name = "cartan_computation"
 harness = false
 
+[[bench]]
+name = "memory_efficiency"
+harness = false
+
 [package.metadata.docs.rs]
 all-features = true
 rustdoc-args = ["--html-in-header", "docs/katex-header.html", "--cfg", "docsrs"]
