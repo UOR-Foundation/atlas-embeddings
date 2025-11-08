@@ -1,0 +1,16 @@
+# Atlas Schedule Configuration for ACE Runtime
+# Used by scheduler.py for round-robin ACE execution
+
+# Number of classes
+n_classes = 12
+
+# Number of anchors per class
+n_anchors = 6
+
+# Number of columns
+n_columns = 768
+
+# ACE configuration
+lam_l1 = 0.1  # ℓ1 regularization parameter
+l1_weight_floor = 1e-6  # Minimum ℓ1 weight
+kkt_tol = 1e-6  # KKT tolerance for convergence
