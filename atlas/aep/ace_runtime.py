@@ -12,7 +12,7 @@ This module implements the ACE runtime with:
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Any
 import math
 
 from atlas.aep.ace import Budgets, ProjResult, project_dual_int, ace_accept
@@ -172,7 +172,7 @@ class ACERuntimeState:
     converged: bool = False
     convergence_threshold: int = 100  # Threshold for ∥T_{t+1} - T_t∥
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Validate state dimensions."""
         # Allow flexible dimensions for testing, but T and F must match
         if len(self.T) != len(self.F):
@@ -394,7 +394,7 @@ class ACERuntime:
 
         return True, None
 
-    def get_cauchy_convergence_certificate(self) -> Dict:
+    def get_cauchy_convergence_certificate(self) -> Dict[str, bool | int | str]:
         """Generate certificate for Cauchy convergence.
 
         Uses contraction history to prove convergence.
@@ -488,7 +488,7 @@ class BoundaryGroup:
         return self.unpack(r, idx_new)
 
 
-def generate_subgroup_certificate(bg: BoundaryGroup) -> Dict:
+def generate_subgroup_certificate(bg: BoundaryGroup) -> Dict[str, bool | str | int | List[Tuple[int, int]]]:
     """Generate certificate proving (Z/2)^{11} subgroup structure.
 
     Verifies:
@@ -511,8 +511,8 @@ def generate_subgroup_certificate(bg: BoundaryGroup) -> Dict:
                 }
 
     # 2. Check orbit sizes and disjointness
-    orbits = []
-    all_elements = set()
+    orbits: List[set[Tuple[int, int]]] = []
+    all_elements: set[Tuple[int, int]] = set()
     for anchor_p, anchor_b in bg.get_anchors():
         orbit = set()
         for u in range(bg.group_order):
@@ -607,7 +607,7 @@ def create_audit_bundle(
     state: ACERuntimeState,
     bg: BoundaryGroup,
     schedule: FairSchedule,
-) -> Dict:
+) -> Dict[str, Any]:
     """Create audit bundle with all certificates and logs.
 
     Returns comprehensive audit record including:
