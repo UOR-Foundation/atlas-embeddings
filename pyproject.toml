@@ -1,5 +1,13 @@
 [build-system]
-requires = ["setuptools", "wheel"]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "atlas-hologram"
+version = "0.1.0"
+description = "Atlas Hologram with Multiplicity Core Architecture"
+authors = [{name = "UOR Foundation"}]
+requires-python = ">=3.10"
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
