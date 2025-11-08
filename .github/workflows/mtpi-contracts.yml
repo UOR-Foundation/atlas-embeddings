@@ -1,0 +1,126 @@
+name: MTPI Contracts CI
+
+on:
+  push:
+    paths:
+      - 'packages/mtpi-contracts/**'
+      - '.github/workflows/mtpi-contracts.yml'
+  pull_request:
+    paths:
+      - 'packages/mtpi-contracts/**'
+      - '.github/workflows/mtpi-contracts.yml'
+
+jobs:
+  smoke-test:
+    name: Smoke Test - Compile, Deploy, E2E
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        working-directory: packages/mtpi-contracts
+        run: npm ci
+
+      - name: Compile contracts
+        working-directory: packages/mtpi-contracts
+        run: npm run compile
+
+      - name: Verify ABI export
+        working-directory: packages/mtpi-contracts
+        run: |
+          if [ ! -f "src/abi/MTPI.json" ]; then
+            echo "ERROR: ABI file not found"
+            exit 1
+          fi
+          echo "✓ ABI file exported successfully"
+
+      - name: Start Anvil (Hardhat node)
+        working-directory: packages/mtpi-contracts
+        run: |
+          npx hardhat node > /tmp/hardhat-node.log 2>&1 &
+          echo $! > /tmp/hardhat-node.pid
+          sleep 5
+
+      - name: Deploy to local network
+        working-directory: packages/mtpi-contracts
+        run: npm run deploy:local
+
+      - name: Verify deployment
+        working-directory: packages/mtpi-contracts
+        run: |
+          if [ ! -f "deployments/local.json" ]; then
+            echo "ERROR: Deployment file not found"
+            exit 1
+          fi
+          echo "✓ Deployment file created successfully"
+          cat deployments/local.json
+
+      - name: Run E2E tests
+        working-directory: packages/mtpi-contracts
+        run: npm run test:e2e
+
+      - name: Stop Hardhat node
+        if: always()
+        run: |
+          if [ -f /tmp/hardhat-node.pid ]; then
+            kill $(cat /tmp/hardhat-node.pid) || true
+          fi
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mtpi-contracts-artifacts
+          path: |
+            packages/mtpi-contracts/src/abi/
+            packages/mtpi-contracts/deployments/
+            packages/mtpi-contracts/artifacts/contracts/MTPI.sol/MTPI.json
+
+  compile-verify:
+    name: Verify Solidity 0.8.27 Compatibility
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        working-directory: packages/mtpi-contracts
+        run: npm ci
+
+      - name: Verify Solidity version
+        working-directory: packages/mtpi-contracts
+        run: |
+          echo "Checking Solidity version in contracts..."
+          if ! grep -q "pragma solidity 0.8.27" contracts/MTPI.sol; then
+            echo "ERROR: Contract does not use Solidity 0.8.27"
+            exit 1
+          fi
+          echo "✓ Contract uses Solidity 0.8.27"
+
+      - name: Compile with Solidity 0.8.27
+        working-directory: packages/mtpi-contracts
+        run: npm run compile
+
+      - name: Verify compilation success
+        working-directory: packages/mtpi-contracts
+        run: |
+          if [ ! -d "artifacts/contracts/MTPI.sol" ]; then
+            echo "ERROR: Compilation failed - artifacts not found"
+            exit 1
+          fi
+          echo "✓ Compilation successful with Solidity 0.8.27"

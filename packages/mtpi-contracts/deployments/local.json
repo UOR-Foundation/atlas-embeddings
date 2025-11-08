@@ -1,0 +1,13 @@
+{
+  "network": "local",
+  "chainId": 31337,
+  "contractName": "MTPI",
+  "address": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+  "deployer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+  "timestamp": "2025-11-08T15:28:02.264Z",
+  "blockNumber": 0,
+  "constructor": {
+    "name": "Atlas MTPI",
+    "version": "1.0.0"
+  }
+}
