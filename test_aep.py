@@ -67,6 +67,43 @@ def test_ethics_commutation():
     print(f"  ✓ Commutator norm: {result['comm_norm']}")
     print(f"  ✓ Proof verified: {result['verified']}")
     
+    # Test 2: Fail case (forbidden channel violations)
+    print("\n2. Testing FAIL case (forbidden channel violations)...")
+    
+    # Temporarily replace delta_channels.json with violations
+    evidence_dir = aep_dir / "evidence"
+    backup = evidence_dir / "delta_channels_backup.json"
+    original = evidence_dir / "delta_channels.json"
+    fail_data = {
+        "channel_a": 0.0,
+        "Δ/forbidden_1": 1.5e-10,  # Violation
+        "forbidden/test": 2.3e-11,  # Violation
+        "allowed/channel": 1e-15
+    }
+    
+    # Backup and replace
+    import shutil
+    shutil.copy(original, backup)
+    with open(original, "w") as f:
+        json.dump(fail_data, f)
+    
+    try:
+        exit_code, result = run_aep(aep_dir)
+        
+        assert exit_code == 2, f"Expected exit code 2, got {exit_code}"
+        assert result["status"] == "fail", f"Expected status 'fail', got {result['status']}"
+        assert result["ok_forbidden_channels"] is False, "Forbidden channels check should fail"
+        assert len(result["delta_violations"]) == 2, f"Expected 2 violations, got {len(result['delta_violations'])}"
+        
+        print("  ✓ Exit code: 2 (correctly failed)")
+        print(f"  ✓ Status: {result['status']}")
+        print(f"  ✓ Violations detected: {len(result['delta_violations'])}")
+        
+    finally:
+        # Restore original
+        shutil.copy(backup, original)
+        backup.unlink()
+    
     print("\n✅ ethics_commutation tests passed!")
 
 
