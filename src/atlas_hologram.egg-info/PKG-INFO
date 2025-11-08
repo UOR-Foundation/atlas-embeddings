@@ -1,0 +1,9 @@
+Metadata-Version: 2.4
+Name: atlas-hologram
+Version: 0.1.0
+Summary: Atlas Hologram with Multiplicity Core Architecture
+Author: UOR Foundation
+Requires-Python: >=3.10
+License-File: LICENSE
+License-File: LICENSE-MIT
+Dynamic: license-file
