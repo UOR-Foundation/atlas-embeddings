@@ -3,7 +3,7 @@ from multiplicity_core.quantizer import Z96Quantizer
 
 
 def test_python_z96_matches_mod96_and_quantizer():
-    q = Z96Quantizer(scale=1.0, offset=0.0)
+    q = Z96Quantizer(scale=1, offset=0)
     for b in range(256):
         assert classify_byte_mod96(b) == (b % 96)
         assert classify_byte_mod96(b) == q.quantize(b)
