@@ -10,6 +10,35 @@ This module implements:
 - Hecke operators (H_m, T_m) in weight-0 replicability form
 - Faber/replicability polynomials P_m
 - McKay-Thompson series API (1A class = J-function)
+
+Example Usage:
+    >>> from atlas.aep.moonshine_integration import j_J_series, McKayThompson
+    >>> j, J = j_J_series(N=200)
+    >>> MT = McKayThompson.identity_J(200)
+    >>> coeffs = MT.coefficients(3)  # [196884, 21493760, 864299970]
+
+    >>> from atlas.aep.moonshine_integration import Faber, hecke_H_m
+    >>> for m in range(2, 11):
+    ...     _, Pm_J = Faber.Pm_evaluate(J, m, nmin=-m, nmax=100)
+    ...     Hm_J = hecke_H_m(J, m, nmin=-m, nmax=100)
+    ...     assert all(Pm_J.coeff(n) == Hm_J.coeff(n) for n in range(-m, 101))
+
+Mathematical Definitions:
+    - Divisor sum: σ_k(n) = Σ_{d|n} d^k
+    - Eisenstein: E_4(q) = 1 + 240·Σ_{n≥1} σ_3(n)·q^n
+    - Discriminant: Δ(q) = q·∏_{n≥1} (1-q^n)^24
+    - j-function: j = E_4³/Δ
+    - J-function: J = j - 744
+    - U_d operator: (U_d f)(q) = Σ a_{dn}·q^n
+    - V_a operator: (V_a f)(q) = Σ a_n·q^{an}
+    - Hecke (weight 0): H_m(f) = Σ_{ad=m} d·V_a U_d f
+    - Normalized Hecke: T_m = (1/m)·H_m
+    - Replicability: For J, P_m(J) = H_m(J) where P_m is monic degree m
+
+Validation Status:
+    ✓ J-function matches known coefficients (principal part q^{-1}, c_1=196884, ...)
+    ✓ Replicability property P_m(J) = H_m(J) verified for m = 2..10
+    ⚠ Non-1A classes require seed coefficient data (interface ready)
 """
 
 from __future__ import annotations
