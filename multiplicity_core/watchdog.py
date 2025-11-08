@@ -26,17 +26,17 @@ class WatchdogViolation(Exception):
     pass
 
 
-def _to_list(arr: ArrayLike) -> List[float]:
+def _to_list(arr: ArrayLike) -> Any:  # Returns List[float] or List[List[float]]
     """Convert array-like to list."""
     if hasattr(arr, 'tolist'):
-        return arr.tolist()
+        return arr.tolist()  # type: ignore
     elif isinstance(arr, list):
         # Handle nested lists (matrices)
-        if arr and isinstance(arr[0], (list, tuple)) or hasattr(arr[0], 'tolist'):
-            return [_to_list(row) for row in arr]
+        if arr and (isinstance(arr[0], (list, tuple)) or hasattr(arr[0], 'tolist')):
+            return [_to_list(row) for row in arr]  # type: ignore
         return list(arr)
     else:
-        return list(arr)
+        return list(arr)  # type: ignore
 
 
 def _allclose(a: List[float], b: List[float], atol: float = 1e-8) -> bool:
@@ -160,9 +160,9 @@ class Watchdog:
         """
         t_ms = now_ms if now_ms is not None else _now_epoch_ms()
         x_prev = store.current
-        x_next = _to_list(next_state)
-        M_list = _to_list(M)
-        E_list = _to_list(E_alpha)
+        x_next: List[float] = _to_list(next_state)  # type: ignore
+        M_list: List[List[float]] = _to_list(M)  # type: ignore
+        E_list: List[List[float]] = _to_list(E_alpha)  # type: ignore
 
         # 1. Sovereignty check
         sigma_val = self.sigma(actor_id, t_ms)
@@ -300,21 +300,21 @@ def _demo_sigma(actor_id: str, t_ms: int) -> int:
     return 1 if actor_id == "alice" else 0
 
 
-def _example():
+def _example() -> None:
     # Try to import numpy, fall back to local stub
     try:
         import sys
         sys.path.insert(0, "/home/runner/.local/lib/python3.12/site-packages")
-        import numpy as np
+        import numpy as np  # type: ignore
     except:
         # Fall back to stub or lists
         class np:  # type: ignore
             @staticmethod
-            def array(x):
+            def array(x: Any) -> Any:  # type: ignore
                 return list(x) if not isinstance(x, list) else x
             
             @staticmethod
-            def diag(x):
+            def diag(x: Any) -> Any:  # type: ignore
                 n = len(x)
                 return [[x[i] if i == j else 0.0 for j in range(n)] for i in range(n)]
     

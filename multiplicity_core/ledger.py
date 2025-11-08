@@ -21,7 +21,7 @@ def _blake2b_hex(data: bytes) -> str:
 
 
 class Ledger:
-    def __init__(self):
+    def __init__(self) -> None:
         self._entries: List[Dict[str, Any]] = []
 
     def append(self, entry: Dict[str, Any]) -> str:

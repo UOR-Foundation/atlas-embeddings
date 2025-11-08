@@ -31,7 +31,7 @@ class Proof:
 
 
 class ProofManager:
-    def __init__(self):
+    def __init__(self) -> None:
         self._store: Dict[str, Proof] = {}
 
     def generate(self, kind: str, payload: Dict[str, Any]) -> Proof:
