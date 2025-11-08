@@ -87,6 +87,14 @@ Symbolic algebra and orchestration layer using Sage/Python.
 
 🚧 Planned component - stubs available.
 
+### Atlas-Embedding Proofs (AEPs)
+Deterministic proof systems for validating computational invariants:
+
+- **ethics_commutation**: Validates commutation relations and forbidden channel writes
+- **sovereignty_gate**: Enforces identity sovereignty and access control
+
+See individual AEP directories for documentation and usage.
+
 ## Makefile Targets
 
 Build targets:

@@ -1,0 +1,13 @@
+# kernel.atlas (TOML syntax)
+
+[kernel]
+name = "sovereignty_gate"
+version = "1"
+resources.device = "auto"
+
+[context]
+# source may override via env AEP_ACTOR_ID
+actor_id = "alice"
+
+[probes]
+forbidden_patterns = ["Δ/*", "forbidden/*"]

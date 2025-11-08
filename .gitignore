@@ -97,3 +97,13 @@ packages/mtpi-contracts/coverage.json
 !packages/mtpi-contracts/tsconfig.json
 !packages/mtpi-contracts/vitest.config.ts
 !packages/mtpi-contracts/artifacts/contracts/**/*.json
+
+# AEP output and test files
+aep_*/out/
+aep_*/ops/*_fail.npy
+aep_*/ops/*_test.npy
+
+# Keep AEP evidence and configuration files
+!aep_*/evidence/*.json
+!aep_*/aep.toml
+!aep_*/kernel.atlas

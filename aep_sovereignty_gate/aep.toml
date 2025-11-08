@@ -1,0 +1,19 @@
+# Atlas-Embedding Proof: sovereignty_gate
+
+[claim]
+id = "aep.sovereignty_gate.v1"
+kind = "lawful_compute"
+description = "Assert Σ_i(t)=1 for the acting identity; assert zero deltas on forbidden channels."
+runner = "runner.py"
+kernel = "kernel.atlas"
+
+[policy]
+# If a plugin is provided, runner imports and calls sigma(actor_id: str, t_ms: int)->int
+sigma_plugin = "sigma_plugin.py"  # optional, relative path
+allowed_ids = ["alice"]  # used only if plugin is absent
+
+[evidence]
+channels = { path = "evidence/delta_channels.json", required = true }
+
+[forbidden]
+channels = ["Δ/*", "forbidden/*"]
