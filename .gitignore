@@ -80,3 +80,16 @@ cert_generator
 
 # Backup files
 *.backup
+
+# Hardhat / Solidity artifacts
+node_modules/
+packages/mtpi-contracts/artifacts/
+packages/mtpi-contracts/cache/
+packages/mtpi-contracts/typechain-types/
+packages/mtpi-contracts/.env
+packages/mtpi-contracts/coverage/
+packages/mtpi-contracts/coverage.json
+
+# Keep deployment info and ABIs
+!packages/mtpi-contracts/deployments/*.json
+!packages/mtpi-contracts/src/abi/*.json
