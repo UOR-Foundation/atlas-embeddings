@@ -93,3 +93,7 @@ packages/mtpi-contracts/coverage.json
 # Keep deployment info and ABIs
 !packages/mtpi-contracts/deployments/*.json
 !packages/mtpi-contracts/src/abi/*.json
+!packages/mtpi-contracts/package.json
+!packages/mtpi-contracts/tsconfig.json
+!packages/mtpi-contracts/vitest.config.ts
+!packages/mtpi-contracts/artifacts/contracts/**/*.json

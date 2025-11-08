@@ -1,0 +1,28 @@
+{
+  "name": "@atlas-hologram/mtpi-contracts",
+  "version": "0.1.0",
+  "description": "MTPI Smart Contracts for Atlas Hologram",
+  "private": true,
+  "scripts": {
+    "compile": "node scripts/compile-manual.js",
+    "clean": "rm -rf artifacts cache src/abi/* deployments/*",
+    "test": "hardhat test",
+    "test:e2e": "vitest run",
+    "deploy:local": "node scripts/deploy-direct.js",
+    "deploy:sepolia": "NETWORK_URL=$SEPOLIA_RPC_URL NETWORK_NAME=sepolia node scripts/deploy-direct.js",
+    "node": "hardhat node"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "@types/node": "^20.0.0",
+    "hardhat": "^2.19.0",
+    "solc": "^0.8.27",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.0.0",
+    "vitest": "^1.0.0"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.0.0",
+    "ethers": "^6.15.0"
+  }
+}
