@@ -1,0 +1,21 @@
+# kernel.atlas (TOML syntax)
+
+[kernel]
+name = "ethics_commutation"
+version = "1"
+resources.device = "auto"  # auto|cpu|gpu
+
+[operators]
+# Paths are relative to this file
+M = "ops/M.npy"
+E_alpha = "ops/E_alpha.npy"
+
+[probes]
+# Runner will read Δ-channel magnitudes from evidence file and match against these patterns
+forbidden_patterns = ["Δ/*", "forbidden/*"]
+
+[context]
+# Optional state digests or identifiers attached by the caller
+pre_state_id = ""
+post_state_id = ""
+actor_id = ""  # may be overridden by env AEP_ACTOR_ID

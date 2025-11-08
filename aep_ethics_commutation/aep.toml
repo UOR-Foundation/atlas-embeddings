@@ -1,0 +1,27 @@
+# Atlas-Embedding Proof: ethics_commutation
+
+[claim]
+id = "aep.ethics_commutation.v1"
+kind = "lawful_compute"
+description = "Assert [M,E_α] == 0 between pre→post, and no writes on forbidden Δ-channels."
+runner = "runner.py"
+kernel = "kernel.atlas"
+
+[constraints]
+atol = 1e-12
+# absolute tolerance for commutator norm and Δ-channel magnitudes
+
+[evidence]
+# Optional resonance snapshots; runners will fail if required=true and files missing
+resonance_pre = { path = "evidence/resonance_pre.npy", required = false }
+resonance_post = { path = "evidence/resonance_post.npy", required = false }
+# Δ-channel vector or dict of norms
+channels = { path = "evidence/delta_channels.json", required = true }
+
+[forbidden]
+# Names or glob patterns of Δ-channels that must be zero
+channels = ["Δ/*", "forbidden/*"]
+
+[backend]
+# array backend: "numpy" or "cupy" for GPU. Defaults to numpy if unset.
+array = "numpy"
