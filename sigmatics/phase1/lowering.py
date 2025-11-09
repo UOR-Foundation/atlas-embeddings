@@ -86,19 +86,19 @@ def lower(script: str, src_name: str = "inline") -> Dict[str, Any]:
     # Deterministic normalization: stable sort by original span, then canonicalize keys
     canonical = json.loads(stable_json_dumps({"words": words}))
     
-    # For hash computation, create a version without span information
-    # This ensures identical semantic content produces identical hash
-    words_without_spans = []
+    # For hash computation, create a version with ONLY semantic content (op + args)
+    # This ensures identical semantic content produces identical hash,
+    # regardless of source file names or span positions
+    semantic_words = []
     for word in words:
-        word_copy = {
+        semantic_word = {
             "op": word["op"],
-            "args": word["args"],
-            "meta": {"src": word["meta"]["src"]}
+            "args": word["args"]
         }
-        words_without_spans.append(word_copy)
+        semantic_words.append(semantic_word)
     
-    canonical_for_hash = json.loads(stable_json_dumps({"words": words_without_spans}))
-    lowering_hash = sha1(stable_json_dumps(canonical_for_hash))
+    canonical_semantic = json.loads(stable_json_dumps({"words": semantic_words}))
+    lowering_hash = sha1(stable_json_dumps(canonical_semantic))
     
     return {"lowered": canonical, "lowering_hash": lowering_hash}
 
