@@ -6,8 +6,8 @@ on:
     paths:
       - 'atlas/**'
       - 'tests/**'
-      - 'bindings/**'
-      - 'tools/verify_bridge.sh'
+      - 'atlas/bindings/**'
+      - 'embeddings/tools/verify_bridge.sh'
       - '.github/workflows/bridge.yml'
       - 'CMakeLists.txt'
       - 'lift_forms.hex'
@@ -17,8 +17,8 @@ on:
     paths:
       - 'atlas/**'
       - 'tests/**'
-      - 'bindings/**'
-      - 'tools/verify_bridge.sh'
+      - 'atlas/bindings/**'
+      - 'embeddings/tools/verify_bridge.sh'
 
 jobs:
   build-and-verify:
@@ -65,7 +65,7 @@ jobs:
           export USE_BLAS=no
         fi
         
-        bash tools/verify_bridge.sh
+        bash atlas/tools/verify_bridge.sh
     
     - name: Display certificate
       run: |
@@ -158,7 +158,7 @@ jobs:
         
         # Test context API (should work)
         python3 -c "
-from bindings.python.atlas_bridge._native_ctx import AtlasContextConfig, atlas_ctx_new, atlas_ctx_free
+from atlas_bridge._native_ctx import AtlasContextConfig, atlas_ctx_new, atlas_ctx_free
 import ctypes
 cfg = AtlasContextConfig()
 cfg.flags = 0
@@ -175,7 +175,7 @@ print('Context API test: OK')
 import warnings
 warnings.simplefilter('always', DeprecationWarning)
 try:
-    from bindings.python.atlas_bridge._native import lib
+    from atlas_bridge._native import lib
     print('Legacy API loaded (with deprecation warning expected above)')
 except:
     print('Legacy API import failed (expected if library not built)')

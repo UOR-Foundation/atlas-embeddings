@@ -6,14 +6,14 @@ on:
     paths:
       - 'atlas/**'
       - 'tests/test*.c'
-      - 'bindings/python/atlas_bridge/**'
+      - 'atlas/bindings/python/atlas_bridge/**'
       - '.github/workflows/atlas-bridge.yml'
   pull_request:
     branches: [ main, develop ]
     paths:
       - 'atlas/**'
       - 'tests/test*.c'
-      - 'bindings/python/atlas_bridge/**'
+      - 'atlas/bindings/python/atlas_bridge/**'
 
 jobs:
   build-and-test:
@@ -273,8 +273,8 @@ EOF
         fi
         
         # Run Python examples (if they exist)
-        if [ -f bindings/python/atlas_bridge/examples/run_all.py ]; then
-          python3 bindings/python/atlas_bridge/examples/run_all.py
+        if [ -f atlas/bindings/python/atlas_bridge/examples/run_all.py ]; then
+          python3 atlas/bindings/python/atlas_bridge/examples/run_all.py
         else
           echo "Python examples not found, skipping"
         fi

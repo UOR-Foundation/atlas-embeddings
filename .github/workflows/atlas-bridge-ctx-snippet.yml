@@ -94,9 +94,12 @@
           export DYLD_LIBRARY_PATH="${PWD}/atlas/lib:$DYLD_LIBRARY_PATH"
         fi
         
+        # Add Python bindings to path
+        export PYTHONPATH="${PWD}/atlas/bindings/python:$PYTHONPATH"
+        
         # Test Python bindings import
         python3 -c "
-from bindings.python.atlas_bridge._native_ctx import get_version, get_default_config
+from atlas_bridge._native_ctx import get_version, get_default_config
 print(f'Context API version: {get_version()}')
 cfg = get_default_config()
 print(f'Default block size: {cfg.block_size}')
@@ -172,5 +175,5 @@ EOF
 #    - 'atlas/**'
 #    - 'tests/tests_ctx.c'
 #    - 'tests/test_spinlift_demo.c'
-#    - 'bindings/python/atlas_bridge/_native_ctx.py'
+#    - 'atlas/bindings/python/atlas_bridge/_native_ctx.py'
 #    - '.github/workflows/atlas-bridge.yml'
