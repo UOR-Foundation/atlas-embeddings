@@ -1,0 +1,948 @@
+//! NOTE: All operations in this file are temporarily stubbed during Phase 0 migration.
+//! They will be implemented with ISA Programs in Phase 1.
+
+//! Sigmatics-Based Mathematical Operations (Zero-Overhead)
+//!
+//! This implementation uses direct Sigmatics generator construction for all math operations.
+//! Operations bypass parsing/canonicalization for maximum performance.
+//!
+//! ## Key Features
+//!
+//! 1. **Zero-Overhead Execution**: Direct GeneratorCall construction (no parsing)
+//! 2. **Class-based execution**: Operates on 96-class system
+//! 3. **Built-in instrumentation**: Operation timing metrics
+//! 4. **Performance**: ~100-500ns latency vs ~5-6µs with string parsing
+//!
+//! ## Architecture
+//!
+//! ```text
+//! Buffer Operation → Direct GeneratorCall Construction
+//!   → execute_generators() → ClassMemory (bypasses parsing/canonicalization)
+//! ```
+
+use crate::address_mapping::fits_in_class;
+use crate::buffer::{Buffer, MemoryPool};
+use crate::error::{Error, Result};
+use crate::executor::Executor;
+use crate::instrumentation::ExecutionMetrics;
+
+// ============================================================================
+// Helper Functions
+// ============================================================================
+
+/// Validate that buffers have correct size
+fn validate_buffers<T: bytemuck::Pod>(buffers: &[&Buffer<T>], n: usize, op_name: &str) -> Result<()> {
+    for (i, buf) in buffers.iter().enumerate() {
+        if buf.len() < n {
+            return Err(Error::InvalidOperation(format!(
+                "{} buffer {} too small: len={}, need={}",
+                op_name,
+                i,
+                buf.len(),
+                n
+            )));
+        }
+    }
+    Ok(())
+}
+
+// ============================================================================
+// Binary Vector Operations
+// ============================================================================
+
+/// Vector addition: c[i] = a[i] + b[i]
+///
+/// Sigmatics-based implementation using merge generator.
+///
+/// ## Architecture
+///
+/// Compiles to: `merge@c{a}[c{b},c{c}]` where class_c = class_a + class_b
+///
+/// ## Performance
+///
+/// - Canonical circuit execution on ClassMemory
+/// - Reduction: ~75% fewer ops after canonicalization (typical)
+///
+/// # Example
+///
+/// ```text
+/// use hologram_core::{Executor, ops};
+///
+/// let mut exec = Executor::new()?;
+/// let a = exec.allocate::<f32>(3072)?;
+/// let b = exec.allocate::<f32>(3072)?;
+/// let mut c = exec.allocate::<f32>(3072)?;
+///
+/// ops::math::vector_add(&mut exec, &a, &b, &mut c, 3072)?;
+/// ```
+#[tracing::instrument(skip(exec, a, b, c), fields(
+    n = n,
+    elem_size = std::mem::size_of::<T>(),
+    total_bytes = n * std::mem::size_of::<T>(),
+    type_name = std::any::type_name::<T>()
+))]
+pub fn vector_add<T: bytemuck::Pod>(
+    exec: &mut Executor,
+    a: &Buffer<T>,
+    b: &Buffer<T>,
+    c: &mut Buffer<T>,
+    n: usize,
+) -> Result<()> {
+    let start = std::time::Instant::now();
+
+    validate_buffers(&[a, b, c], n, "vector_add")?;
+
+    // Try inline kernel first for f32 (zero-overhead execution)
+    // Only for sizes that fit in class memory (3072 elements max)
+    if std::any::type_name::<T>() == "f32" && n <= 3072 {
+        if let Err(e) = try_inline_vector_add(exec, a, b, c, n) {
+            tracing::debug!("Inline kernel not available, falling back to Sigmatics: {}", e);
+        } else {
+            // Instrumentation
+            let metrics = ExecutionMetrics::new("vector_add", n, start);
+            metrics.log();
+            return Ok(());
+        }
+    }
+
+    // ISA-based implementation using Atlas ISA Program
+    let class_a = a.class_index();
+    let class_b = b.class_index();
+    let class_c = c.class_index();
+    let ty = crate::isa_builder::type_from_rust_type::<T>();
+
+    // Check if we can use PhiCoordinate addressing (cache-resident boundary pools)
+    let use_phi = a.pool() == MemoryPool::Boundary
+        && b.pool() == MemoryPool::Boundary
+        && c.pool() == MemoryPool::Boundary
+        && fits_in_class::<T>(n);
+
+    let program = if use_phi {
+        // PhiCoordinate path: cache-resident (5-10x speedup expected)
+        tracing::debug!("Using PhiCoordinate addressing for cache-resident execution");
+        crate::isa_builder::build_elementwise_binary_op_phi(class_a, class_b, class_c, n, ty, |dst, src1, src2| {
+            hologram_backends::Instruction::ADD { ty, dst, src1, src2 }
+        })?
+    } else {
+        // BufferOffset path: DRAM fallback
+        let handle_a = exec.get_buffer_handle(class_a)?.id();
+        let handle_b = exec.get_buffer_handle(class_b)?.id();
+        let handle_c = exec.get_buffer_handle(class_c)?.id();
+        crate::isa_builder::build_elementwise_binary_op(handle_a, handle_b, handle_c, n, ty, |dst, src1, src2| {
+            hologram_backends::Instruction::ADD { ty, dst, src1, src2 }
+        })?
+    };
+
+    // Execute ISA program via backend
+    let config = hologram_backends::LaunchConfig::default();
+    exec.backend
+        .write()
+        .execute_program(&program, &config)
+        .map_err(|e| Error::InvalidOperation(format!("Backend execution failed: {}", e)))?;
+
+    // Instrumentation
+    let metrics = ExecutionMetrics::new("vector_add", n, start);
+    metrics.log();
+
+    tracing::debug!(
+        duration_us = metrics.total_duration_us,
+        ops_per_second = metrics.ops_per_second(),
+        memory_bandwidth_gbps = metrics.memory_bandwidth_gbps(),
+        "vector_add_complete"
+    );
+
+    Ok(())
+}
+
+/// Try to use inline kernel for vector_add (f32 only)
+fn try_inline_vector_add<T: bytemuck::Pod>(
+    exec: &mut Executor,
+    a: &Buffer<T>,
+    b: &Buffer<T>,
+    c: &mut Buffer<T>,
+    n: usize,
+) -> Result<()> {
+    // Only f32 is supported by inline kernels
+    if std::any::type_name::<T>() != "f32" {
+        return Err(crate::error::Error::InvalidOperation(
+            "Inline kernels only support f32".into(),
+        ));
+    }
+
+    // Get raw pointers to buffer memory
+    // Safety: These pointers are only used for the duration of this function
+    // and the inline kernel does not retain them
+    let a_ptr = exec.get_buffer_ptr(a)?;
+    let b_ptr = exec.get_buffer_ptr(b)?;
+    let c_ptr = exec.get_buffer_mut_ptr(c)?;
+
+    // Call inline SIMD kernel
+    // Safety: Pointers are valid for n elements as guaranteed by buffer allocation
+    crate::kernel::inline::vector_add(a_ptr as *const f32, b_ptr as *const f32, c_ptr as *mut f32, n);
+
+    Ok(())
+}
+
+/// Vector subtraction: c[i] = a[i] - b[i]
+///
+/// Sigmatics-based implementation using split generator.
+#[tracing::instrument(skip(exec, a, b, c), fields(
+    n = n,
+    elem_size = std::mem::size_of::<T>(),
+    total_bytes = n * std::mem::size_of::<T>(),
+    type_name = std::any::type_name::<T>()
+))]
+pub fn vector_sub<T: bytemuck::Pod>(
+    exec: &mut Executor,
+    a: &Buffer<T>,
+    b: &Buffer<T>,
+    c: &mut Buffer<T>,
+    n: usize,
+) -> Result<()> {
+    let start = std::time::Instant::now();
+
+    validate_buffers(&[a, b, c], n, "vector_sub")?;
+
+    let class_a = a.class_index();
+    let class_b = b.class_index();
+    let class_c = c.class_index();
+    let ty = crate::isa_builder::type_from_rust_type::<T>();
+
+    // Check if we can use PhiCoordinate addressing (cache-resident boundary pools)
+    let use_phi = a.pool() == MemoryPool::Boundary
+        && b.pool() == MemoryPool::Boundary
+        && c.pool() == MemoryPool::Boundary
+        && fits_in_class::<T>(n);
+
+    let program = if use_phi {
+        // PhiCoordinate path: cache-resident (5-10x speedup expected)
+        tracing::debug!("Using PhiCoordinate addressing for cache-resident execution");
+        crate::isa_builder::build_elementwise_binary_op_phi(class_a, class_b, class_c, n, ty, |dst, src1, src2| {
+            hologram_backends::Instruction::SUB { ty, dst, src1, src2 }
+        })?
+    } else {
+        // BufferOffset path: DRAM fallback
+        let handle_a = exec.get_buffer_handle(class_a)?.id();
+        let handle_b = exec.get_buffer_handle(class_b)?.id();
+        let handle_c = exec.get_buffer_handle(class_c)?.id();
+        crate::isa_builder::build_elementwise_binary_op(handle_a, handle_b, handle_c, n, ty, |dst, src1, src2| {
+            hologram_backends::Instruction::SUB { ty, dst, src1, src2 }
+        })?
+    };
+
+    // Execute ISA program via backend
+    let config = hologram_backends::LaunchConfig::default();
+    exec.backend
+        .write()
+        .execute_program(&program, &config)
+        .map_err(|e| Error::InvalidOperation(format!("Backend execution failed: {}", e)))?;
+
+    let metrics = ExecutionMetrics::new("vector_sub", n, start);
+    metrics.log();
+
+    Ok(())
+}
+
+/// Vector multiplication: c[i] = a[i] * b[i]
+///
+/// Element-wise multiplication using sigmatics.
+#[tracing::instrument(skip(exec, a, b, c), fields(
+    n = n,
+    elem_size = std::mem::size_of::<T>(),
+    total_bytes = n * std::mem::size_of::<T>(),
+    type_name = std::any::type_name::<T>()
+))]
+pub fn vector_mul<T: bytemuck::Pod>(
+    exec: &mut Executor,
+    a: &Buffer<T>,
+    b: &Buffer<T>,
+    c: &mut Buffer<T>,
+    n: usize,
+) -> Result<()> {
+    let start = std::time::Instant::now();
+
+    validate_buffers(&[a, b, c], n, "vector_mul")?;
+
+    let class_a = a.class_index();
+    let class_b = b.class_index();
+    let class_c = c.class_index();
+    let ty = crate::isa_builder::type_from_rust_type::<T>();
+
+    // Check if we can use PhiCoordinate addressing (cache-resident boundary pools)
+    let use_phi = a.pool() == MemoryPool::Boundary
+        && b.pool() == MemoryPool::Boundary
+        && c.pool() == MemoryPool::Boundary
+        && fits_in_class::<T>(n);
+
+    let program = if use_phi {
+        // PhiCoordinate path: cache-resident (5-10x speedup expected)
+        tracing::debug!("Using PhiCoordinate addressing for cache-resident execution");
+        crate::isa_builder::build_elementwise_binary_op_phi(class_a, class_b, class_c, n, ty, |dst, src1, src2| {
+            hologram_backends::Instruction::MUL { ty, dst, src1, src2 }
+        })?
+    } else {
+        // BufferOffset path: DRAM fallback
+        let handle_a = exec.get_buffer_handle(class_a)?.id();
+        let handle_b = exec.get_buffer_handle(class_b)?.id();
+        let handle_c = exec.get_buffer_handle(class_c)?.id();
+        crate::isa_builder::build_elementwise_binary_op(handle_a, handle_b, handle_c, n, ty, |dst, src1, src2| {
+            hologram_backends::Instruction::MUL { ty, dst, src1, src2 }
+        })?
+    };
+
+    // Execute ISA program via backend
+    let config = hologram_backends::LaunchConfig::default();
+    exec.backend
+        .write()
+        .execute_program(&program, &config)
+        .map_err(|e| Error::InvalidOperation(format!("Backend execution failed: {}", e)))?;
+
+    let metrics = ExecutionMetrics::new("vector_mul", n, start);
+    metrics.log();
+
+    Ok(())
+}
+
+/// Vector division: c[i] = a[i] / b[i]
+///
+/// Element-wise division using sigmatics.
+#[tracing::instrument(skip(exec, a, b, c), fields(
+    n = n,
+    elem_size = std::mem::size_of::<T>(),
+    total_bytes = n * std::mem::size_of::<T>(),
+    type_name = std::any::type_name::<T>()
+))]
+pub fn vector_div<T: bytemuck::Pod>(
+    exec: &mut Executor,
+    a: &Buffer<T>,
+    b: &Buffer<T>,
+    c: &mut Buffer<T>,
+    n: usize,
+) -> Result<()> {
+    let start = std::time::Instant::now();
+
+    validate_buffers(&[a, b, c], n, "vector_div")?;
+
+    let class_a = a.class_index();
+    let class_b = b.class_index();
+    let class_c = c.class_index();
+    let ty = crate::isa_builder::type_from_rust_type::<T>();
+
+    // Check if we can use PhiCoordinate addressing (cache-resident boundary pools)
+    let use_phi = a.pool() == MemoryPool::Boundary
+        && b.pool() == MemoryPool::Boundary
+        && c.pool() == MemoryPool::Boundary
+        && fits_in_class::<T>(n);
+
+    let program = if use_phi {
+        // PhiCoordinate path: cache-resident (5-10x speedup expected)
+        tracing::debug!("Using PhiCoordinate addressing for cache-resident execution");
+        crate::isa_builder::build_elementwise_binary_op_phi(class_a, class_b, class_c, n, ty, |dst, src1, src2| {
+            hologram_backends::Instruction::DIV { ty, dst, src1, src2 }
+        })?
+    } else {
+        // BufferOffset path: DRAM fallback
+        let handle_a = exec.get_buffer_handle(class_a)?.id();
+        let handle_b = exec.get_buffer_handle(class_b)?.id();
+        let handle_c = exec.get_buffer_handle(class_c)?.id();
+        crate::isa_builder::build_elementwise_binary_op(handle_a, handle_b, handle_c, n, ty, |dst, src1, src2| {
+            hologram_backends::Instruction::DIV { ty, dst, src1, src2 }
+        })?
+    };
+
+    // Execute ISA program via backend
+    let config = hologram_backends::LaunchConfig::default();
+    exec.backend
+        .write()
+        .execute_program(&program, &config)
+        .map_err(|e| Error::InvalidOperation(format!("Backend execution failed: {}", e)))?;
+
+    let metrics = ExecutionMetrics::new("vector_div", n, start);
+    metrics.log();
+
+    Ok(())
+}
+
+// ============================================================================
+// Unary Vector Operations
+// ============================================================================
+
+/// Element-wise minimum: c[i] = min(a[i], b[i])
+#[tracing::instrument(skip(exec, a, b, c), fields(n = n))]
+pub fn min<T: bytemuck::Pod>(
+    exec: &mut Executor,
+    a: &Buffer<T>,
+    b: &Buffer<T>,
+    c: &mut Buffer<T>,
+    n: usize,
+) -> Result<()> {
+    let start = std::time::Instant::now();
+
+    validate_buffers(&[a, b, c], n, "min")?;
+
+    let class_a = a.class_index();
+    let class_b = b.class_index();
+    let class_c = c.class_index();
+    let ty = crate::isa_builder::type_from_rust_type::<T>();
+
+    // Check if we can use PhiCoordinate addressing (cache-resident boundary pools)
+    let use_phi = a.pool() == MemoryPool::Boundary
+        && b.pool() == MemoryPool::Boundary
+        && c.pool() == MemoryPool::Boundary
+        && fits_in_class::<T>(n);
+
+    let program = if use_phi {
+        // PhiCoordinate path: cache-resident (5-10x speedup expected)
+        tracing::debug!("Using PhiCoordinate addressing for cache-resident execution");
+        crate::isa_builder::build_elementwise_binary_op_phi(class_a, class_b, class_c, n, ty, |dst, src1, src2| {
+            hologram_backends::Instruction::MIN { ty, dst, src1, src2 }
+        })?
+    } else {
+        // BufferOffset path: DRAM fallback
+        let handle_a = exec.get_buffer_handle(class_a)?.id();
+        let handle_b = exec.get_buffer_handle(class_b)?.id();
+        let handle_c = exec.get_buffer_handle(class_c)?.id();
+        crate::isa_builder::build_elementwise_binary_op(handle_a, handle_b, handle_c, n, ty, |dst, src1, src2| {
+            hologram_backends::Instruction::MIN { ty, dst, src1, src2 }
+        })?
+    };
+
+    // Execute ISA program via backend
+    let config = hologram_backends::LaunchConfig::default();
+    exec.backend
+        .write()
+        .execute_program(&program, &config)
+        .map_err(|e| Error::InvalidOperation(format!("Backend execution failed: {}", e)))?;
+
+    let metrics = ExecutionMetrics::new("min", n, start);
+    metrics.log();
+
+    Ok(())
+}
+
+/// Element-wise maximum: c[i] = max(a[i], b[i])
+#[tracing::instrument(skip(exec, a, b, c), fields(n = n))]
+pub fn max<T: bytemuck::Pod>(
+    exec: &mut Executor,
+    a: &Buffer<T>,
+    b: &Buffer<T>,
+    c: &mut Buffer<T>,
+    n: usize,
+) -> Result<()> {
+    let start = std::time::Instant::now();
+
+    validate_buffers(&[a, b, c], n, "max")?;
+
+    let class_a = a.class_index();
+    let class_b = b.class_index();
+    let class_c = c.class_index();
+    let ty = crate::isa_builder::type_from_rust_type::<T>();
+
+    // Check if we can use PhiCoordinate addressing (cache-resident boundary pools)
+    let use_phi = a.pool() == MemoryPool::Boundary
+        && b.pool() == MemoryPool::Boundary
+        && c.pool() == MemoryPool::Boundary
+        && fits_in_class::<T>(n);
+
+    let program = if use_phi {
+        // PhiCoordinate path: cache-resident (5-10x speedup expected)
+        tracing::debug!("Using PhiCoordinate addressing for cache-resident execution");
+        crate::isa_builder::build_elementwise_binary_op_phi(class_a, class_b, class_c, n, ty, |dst, src1, src2| {
+            hologram_backends::Instruction::MAX { ty, dst, src1, src2 }
+        })?
+    } else {
+        // BufferOffset path: DRAM fallback
+        let handle_a = exec.get_buffer_handle(class_a)?.id();
+        let handle_b = exec.get_buffer_handle(class_b)?.id();
+        let handle_c = exec.get_buffer_handle(class_c)?.id();
+        crate::isa_builder::build_elementwise_binary_op(handle_a, handle_b, handle_c, n, ty, |dst, src1, src2| {
+            hologram_backends::Instruction::MAX { ty, dst, src1, src2 }
+        })?
+    };
+
+    // Execute ISA program via backend
+    let config = hologram_backends::LaunchConfig::default();
+    exec.backend
+        .write()
+        .execute_program(&program, &config)
+        .map_err(|e| Error::InvalidOperation(format!("Backend execution failed: {}", e)))?;
+
+    let metrics = ExecutionMetrics::new("max", n, start);
+    metrics.log();
+
+    Ok(())
+}
+
+/// Element-wise absolute value: c[i] = |a[i]|
+#[tracing::instrument(skip(exec, a, c), fields(n = n))]
+pub fn abs<T: bytemuck::Pod>(exec: &mut Executor, a: &Buffer<T>, c: &mut Buffer<T>, n: usize) -> Result<()> {
+    let start = std::time::Instant::now();
+
+    validate_buffers(&[a, c], n, "abs")?;
+
+    let class_a = a.class_index();
+    let class_c = c.class_index();
+    let ty = crate::isa_builder::type_from_rust_type::<T>();
+
+    // Check if we can use PhiCoordinate addressing (cache-resident boundary pools)
+    let use_phi = a.pool() == MemoryPool::Boundary
+        && c.pool() == MemoryPool::Boundary
+        && fits_in_class::<T>(n);
+
+    let program = if use_phi {
+        // PhiCoordinate path: cache-resident (5-10x speedup expected)
+        tracing::debug!("Using PhiCoordinate addressing for cache-resident execution");
+        crate::isa_builder::build_elementwise_unary_op_phi(class_a, class_c, n, ty, |dst, src| {
+            hologram_backends::Instruction::ABS { ty, dst, src }
+        })?
+    } else {
+        // BufferOffset path: DRAM fallback
+        let handle_a = exec.get_buffer_handle(class_a)?.id();
+        let handle_c = exec.get_buffer_handle(class_c)?.id();
+        crate::isa_builder::build_elementwise_unary_op(handle_a, handle_c, n, ty, |dst, src| {
+            hologram_backends::Instruction::ABS { ty, dst, src }
+        })?
+    };
+
+    // Execute ISA program via backend
+    let config = hologram_backends::LaunchConfig::default();
+    exec.backend
+        .write()
+        .execute_program(&program, &config)
+        .map_err(|e| Error::InvalidOperation(format!("Backend execution failed: {}", e)))?;
+
+    let metrics = ExecutionMetrics::new("abs", n, start);
+    metrics.log();
+
+    Ok(())
+}
+
+/// Element-wise negation: c[i] = -a[i]
+#[tracing::instrument(skip(exec, a, c), fields(n = n))]
+pub fn neg<T: bytemuck::Pod>(exec: &mut Executor, a: &Buffer<T>, c: &mut Buffer<T>, n: usize) -> Result<()> {
+    let start = std::time::Instant::now();
+
+    validate_buffers(&[a, c], n, "neg")?;
+
+    let class_a = a.class_index();
+    let class_c = c.class_index();
+    let ty = crate::isa_builder::type_from_rust_type::<T>();
+
+    // Check if we can use PhiCoordinate addressing (cache-resident boundary pools)
+    let use_phi = a.pool() == MemoryPool::Boundary
+        && c.pool() == MemoryPool::Boundary
+        && fits_in_class::<T>(n);
+
+    let program = if use_phi {
+        // PhiCoordinate path: cache-resident (5-10x speedup expected)
+        tracing::debug!("Using PhiCoordinate addressing for cache-resident execution");
+        crate::isa_builder::build_elementwise_unary_op_phi(class_a, class_c, n, ty, |dst, src| {
+            hologram_backends::Instruction::NEG { ty, dst, src }
+        })?
+    } else {
+        // BufferOffset path: DRAM fallback
+        let handle_a = exec.get_buffer_handle(class_a)?.id();
+        let handle_c = exec.get_buffer_handle(class_c)?.id();
+        crate::isa_builder::build_elementwise_unary_op(handle_a, handle_c, n, ty, |dst, src| {
+            hologram_backends::Instruction::NEG { ty, dst, src }
+        })?
+    };
+
+    // Execute ISA program via backend
+    let config = hologram_backends::LaunchConfig::default();
+    exec.backend
+        .write()
+        .execute_program(&program, &config)
+        .map_err(|e| Error::InvalidOperation(format!("Backend execution failed: {}", e)))?;
+
+    let metrics = ExecutionMetrics::new("neg", n, start);
+    metrics.log();
+
+    Ok(())
+}
+
+/// ReLU activation: c[i] = max(0, a[i])
+#[tracing::instrument(skip(exec, a, c), fields(n = n))]
+pub fn relu<T: bytemuck::Pod>(exec: &mut Executor, a: &Buffer<T>, c: &mut Buffer<T>, n: usize) -> Result<()> {
+    let start = std::time::Instant::now();
+
+    validate_buffers(&[a, c], n, "relu")?;
+
+    let class_a = a.class_index();
+    let class_c = c.class_index();
+    let ty = crate::isa_builder::type_from_rust_type::<T>();
+
+    // Check if we can use PhiCoordinate addressing (cache-resident boundary pools)
+    let use_phi = a.pool() == MemoryPool::Boundary
+        && c.pool() == MemoryPool::Boundary
+        && fits_in_class::<T>(n);
+
+    // Build ISA program: c[i] = max(0, a[i])
+    // ReLU implemented as: load a[i], load 0 (immediate), max, store
+    let mut program = hologram_backends::Program::new();
+    let elem_size = ty.size_bytes();
+
+    // Compute zero as bit-packed immediate value
+    let zero_bits = if std::any::type_name::<T>() == "f32" {
+        0.0f32.to_bits() as u64
+    } else if std::any::type_name::<T>() == "f64" {
+        0.0f64.to_bits()
+    } else if std::any::type_name::<T>() == "i32" {
+        0i32 as u64
+    } else if std::any::type_name::<T>() == "i64" {
+        0i64 as u64
+    } else {
+        0u64
+    };
+
+    if use_phi {
+        // PhiCoordinate path: cache-resident (5-10x speedup expected)
+        tracing::debug!("Using PhiCoordinate addressing for cache-resident execution");
+
+        for i in 0..n {
+            let offset = i * elem_size;
+            let addr_a = crate::address_mapping::offset_to_phi_coordinate(class_a, offset)?;
+            let addr_c = crate::address_mapping::offset_to_phi_coordinate(class_c, offset)?;
+
+            // Load a[i] into r1 (PhiCoordinate → cache)
+            program.instructions.push(hologram_backends::Instruction::LDG {
+                ty,
+                dst: hologram_backends::Register::new(1),
+                addr: addr_a,
+            });
+
+            // Create zero in r2 using MOV_IMM
+            program.instructions.push(hologram_backends::Instruction::MOV_IMM {
+                ty,
+                dst: hologram_backends::Register::new(2),
+                value: zero_bits,
+            });
+
+            // r3 = max(r1, r2) = max(a[i], 0)
+            program.instructions.push(hologram_backends::Instruction::MAX {
+                ty,
+                dst: hologram_backends::Register::new(3),
+                src1: hologram_backends::Register::new(1),
+                src2: hologram_backends::Register::new(2),
+            });
+
+            // Store r3 to c[i] (PhiCoordinate → cache)
+            program.instructions.push(hologram_backends::Instruction::STG {
+                ty,
+                src: hologram_backends::Register::new(3),
+                addr: addr_c,
+            });
+        }
+    } else {
+        // BufferOffset path: DRAM fallback
+        let handle_a = exec.get_buffer_handle(class_a)?.id();
+        let handle_c = exec.get_buffer_handle(class_c)?.id();
+
+        for i in 0..n {
+            let offset = i * elem_size;
+
+            // Load a[i] into r1
+            program.instructions.push(hologram_backends::Instruction::LDG {
+                ty,
+                dst: hologram_backends::Register::new(1),
+                addr: hologram_backends::Address::BufferOffset {
+                    handle: handle_a,
+                    offset,
+                },
+            });
+
+            // Create zero in r2 using MOV_IMM
+            program.instructions.push(hologram_backends::Instruction::MOV_IMM {
+                ty,
+                dst: hologram_backends::Register::new(2),
+                value: zero_bits,
+            });
+
+            // r3 = max(r1, r2) = max(a[i], 0)
+            program.instructions.push(hologram_backends::Instruction::MAX {
+                ty,
+                dst: hologram_backends::Register::new(3),
+                src1: hologram_backends::Register::new(1),
+                src2: hologram_backends::Register::new(2),
+            });
+
+            // Store r3 to c[i]
+            program.instructions.push(hologram_backends::Instruction::STG {
+                ty,
+                src: hologram_backends::Register::new(3),
+                addr: hologram_backends::Address::BufferOffset {
+                    handle: handle_c,
+                    offset,
+                },
+            });
+        }
+    }
+
+    // Execute ISA program via backend
+    let config = hologram_backends::LaunchConfig::default();
+    exec.backend
+        .write()
+        .execute_program(&program, &config)
+        .map_err(|e| Error::InvalidOperation(format!("Backend execution failed: {}", e)))?;
+
+    let metrics = ExecutionMetrics::new("relu", n, start);
+    metrics.log();
+
+    Ok(())
+}
+
+/// Clip values to range: c[i] = clamp(a[i], min_val, max_val)
+///
+/// Clamps input values to the range [min_val, max_val]:
+/// - Values below min_val are set to min_val
+/// - Values above max_val are set to max_val
+/// - Values within range are unchanged
+///
+/// # Example
+///
+/// ```text
+/// let mut exec = Executor::new()?;
+/// let a = exec.allocate::<f32>(1024)?;
+/// let mut c = exec.allocate::<f32>(1024)?;
+///
+/// // Clip values to [-1.0, 1.0]
+/// clip(&mut exec, &a, &mut c, -1.0f32, 1.0f32, 1024)?;
+/// ```
+pub fn clip<T: bytemuck::Pod + Copy + std::fmt::Debug>(
+    exec: &mut Executor,
+    a: &Buffer<T>,
+    c: &mut Buffer<T>,
+    min_val: T,
+    max_val: T,
+    n: usize,
+) -> Result<()> {
+    let start = std::time::Instant::now();
+
+    validate_buffers(&[a, c], n, "clip")?;
+
+    // Allocate temporary buffers for min/max constants and intermediate result
+    let mut min_buf = exec.allocate::<T>(n)?;
+    let mut max_buf = exec.allocate::<T>(n)?;
+    let mut temp = exec.allocate::<T>(n)?;
+
+    // Fill with constant values
+    crate::ops::memory::fill(exec, &mut min_buf, min_val)?;
+    crate::ops::memory::fill(exec, &mut max_buf, max_val)?;
+
+    // Step 1: temp = max(a, min_val)
+    max(exec, a, &min_buf, &mut temp, n)?;
+
+    // Step 2: c = min(temp, max_val)
+    min(exec, &temp, &max_buf, c, n)?;
+
+    let metrics = ExecutionMetrics::new("clip", n, start);
+    metrics.log();
+
+    Ok(())
+}
+
+/// Scalar addition: c[i] = a[i] + scalar
+///
+/// Adds a constant scalar value to all elements of the input buffer.
+///
+/// # Example
+///
+/// ```text
+/// let mut exec = Executor::new()?;
+/// let a = exec.allocate::<f32>(1024)?;
+/// let mut c = exec.allocate::<f32>(1024)?;
+///
+/// // Add 2.5 to all elements
+/// scalar_add(&mut exec, &a, &mut c, 2.5f32, 1024)?;
+/// ```
+pub fn scalar_add<T: bytemuck::Pod + Copy + std::fmt::Debug>(
+    exec: &mut Executor,
+    a: &Buffer<T>,
+    c: &mut Buffer<T>,
+    scalar: T,
+    n: usize,
+) -> Result<()> {
+    let start = std::time::Instant::now();
+
+    validate_buffers(&[a, c], n, "scalar_add")?;
+
+    // Create buffer filled with scalar value
+    let mut scalar_buf = exec.allocate::<T>(n)?;
+    crate::ops::memory::fill(exec, &mut scalar_buf, scalar)?;
+
+    // Perform vector addition: c = a + scalar_buf
+    vector_add(exec, a, &scalar_buf, c, n)?;
+
+    let metrics = ExecutionMetrics::new("scalar_add", n, start);
+    metrics.log();
+
+    Ok(())
+}
+
+/// Scalar multiplication: c[i] = a[i] * scalar
+///
+/// Multiplies all elements of the input buffer by a constant scalar value.
+///
+/// # Example
+///
+/// ```text
+/// let mut exec = Executor::new()?;
+/// let a = exec.allocate::<f32>(1024)?;
+/// let mut c = exec.allocate::<f32>(1024)?;
+///
+/// // Multiply all elements by 2.0
+/// scalar_mul(&mut exec, &a, &mut c, 2.0f32, 1024)?;
+/// ```
+pub fn scalar_mul<T: bytemuck::Pod + Copy + std::fmt::Debug>(
+    exec: &mut Executor,
+    a: &Buffer<T>,
+    c: &mut Buffer<T>,
+    scalar: T,
+    n: usize,
+) -> Result<()> {
+    let start = std::time::Instant::now();
+
+    validate_buffers(&[a, c], n, "scalar_mul")?;
+
+    // Create buffer filled with scalar value
+    let mut scalar_buf = exec.allocate::<T>(n)?;
+    crate::ops::memory::fill(exec, &mut scalar_buf, scalar)?;
+
+    // Perform vector multiplication: c = a * scalar_buf
+    vector_mul(exec, a, &scalar_buf, c, n)?;
+
+    let metrics = ExecutionMetrics::new("scalar_mul", n, start);
+    metrics.log();
+
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_vector_add() -> Result<()> {
+        // Load kernels before testing
+        use hologram_codegen::register_all_kernels_from_directory;
+        let _ = register_all_kernels_from_directory("../../target/kernel-libs");
+
+        let mut exec = Executor::new()?;
+
+        // Allocate buffers
+        let mut a = exec.allocate::<f32>(3072)?;
+        let mut b = exec.allocate::<f32>(3072)?;
+        let mut c = exec.allocate::<f32>(3072)?;
+
+        // Initialize data
+        let data_a: Vec<f32> = (0..3072).map(|i| i as f32).collect();
+        let data_b: Vec<f32> = (0..3072).map(|i| (i * 2) as f32).collect();
+
+        a.copy_from_slice(&mut exec, &data_a)?;
+        b.copy_from_slice(&mut exec, &data_b)?;
+
+        // Execute vector_add
+        vector_add(&mut exec, &a, &b, &mut c, 3072)?;
+
+        // Verify results
+        let result = c.to_vec(&exec)?;
+        assert_eq!(result[0], 0.0); // 0 + 0
+        assert_eq!(result[1], 3.0); // 1 + 2
+        assert_eq!(result[2], 6.0); // 2 + 4
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_clip() -> Result<()> {
+        let mut exec = Executor::new()?;
+
+        // Allocate buffers
+        let mut a = exec.allocate::<f32>(10)?;
+        let mut c = exec.allocate::<f32>(10)?;
+
+        // Initialize data with values outside and inside the clip range
+        let data: Vec<f32> = vec![-5.0, -1.5, -1.0, -0.5, 0.0, 0.5, 1.0, 1.5, 2.0, 5.0];
+        a.copy_from_slice(&mut exec, &data)?;
+
+        // Clip to [-1.0, 1.0]
+        clip(&mut exec, &a, &mut c, -1.0f32, 1.0f32, 10)?;
+
+        // Verify results
+        let result = c.to_vec(&exec)?;
+        assert_eq!(result[0], -1.0); // -5.0 clamped to -1.0
+        assert_eq!(result[1], -1.0); // -1.5 clamped to -1.0
+        assert_eq!(result[2], -1.0); // -1.0 unchanged
+        assert_eq!(result[3], -0.5); // -0.5 unchanged
+        assert_eq!(result[4], 0.0); // 0.0 unchanged
+        assert_eq!(result[5], 0.5); // 0.5 unchanged
+        assert_eq!(result[6], 1.0); // 1.0 unchanged
+        assert_eq!(result[7], 1.0); // 1.5 clamped to 1.0
+        assert_eq!(result[8], 1.0); // 2.0 clamped to 1.0
+        assert_eq!(result[9], 1.0); // 5.0 clamped to 1.0
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_scalar_add() -> Result<()> {
+        // Load kernels before testing
+        use hologram_codegen::register_all_kernels_from_directory;
+        let _ = register_all_kernels_from_directory("../../target/kernel-libs");
+
+        let mut exec = Executor::new()?;
+
+        // Allocate buffers
+        let mut a = exec.allocate::<f32>(8)?;
+        let mut c = exec.allocate::<f32>(8)?;
+
+        // Initialize data
+        let data: Vec<f32> = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0];
+        a.copy_from_slice(&mut exec, &data)?;
+
+        // Add 2.5 to all elements
+        scalar_add(&mut exec, &a, &mut c, 2.5f32, 8)?;
+
+        // Verify results
+        let result = c.to_vec(&exec)?;
+        assert_eq!(result[0], 3.5); // 1.0 + 2.5
+        assert_eq!(result[1], 4.5); // 2.0 + 2.5
+        assert_eq!(result[2], 5.5); // 3.0 + 2.5
+        assert_eq!(result[3], 6.5); // 4.0 + 2.5
+        assert_eq!(result[4], 7.5); // 5.0 + 2.5
+        assert_eq!(result[5], 8.5); // 6.0 + 2.5
+        assert_eq!(result[6], 9.5); // 7.0 + 2.5
+        assert_eq!(result[7], 10.5); // 8.0 + 2.5
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_scalar_mul() -> Result<()> {
+        let mut exec = Executor::new()?;
+
+        // Allocate buffers
+        let mut a = exec.allocate::<f32>(8)?;
+        let mut c = exec.allocate::<f32>(8)?;
+
+        // Initialize data
+        let data: Vec<f32> = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0];
+        a.copy_from_slice(&mut exec, &data)?;
+
+        // Multiply all elements by 2.0
+        scalar_mul(&mut exec, &a, &mut c, 2.0f32, 8)?;
+
+        // Verify results
+        let result = c.to_vec(&exec)?;
+        assert_eq!(result[0], 2.0); // 1.0 * 2.0
+        assert_eq!(result[1], 4.0); // 2.0 * 2.0
+        assert_eq!(result[2], 6.0); // 3.0 * 2.0
+        assert_eq!(result[3], 8.0); // 4.0 * 2.0
+        assert_eq!(result[4], 10.0); // 5.0 * 2.0
+        assert_eq!(result[5], 12.0); // 6.0 * 2.0
+        assert_eq!(result[6], 14.0); // 7.0 * 2.0
+        assert_eq!(result[7], 16.0); // 8.0 * 2.0
+
+        Ok(())
+    }
+}
