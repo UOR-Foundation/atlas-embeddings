@@ -16,7 +16,7 @@ Matrix-vector operations now support BLAS acceleration for improved performance:
 
 **Build with BLAS:**
 ```bash
-cd atlas_core
+cd atlas
 make USE_BLAS=auto  # Auto-detect (default)
 make USE_BLAS=yes   # Force BLAS (fails if not found)
 make USE_BLAS=no    # Disable BLAS
@@ -79,7 +79,7 @@ atlas_ctx_load_co1_gates(ctx, "co1_gates.txt");
 
 ### 3. Enhanced Build System
 
-**Makefile** (atlas_core/Makefile):
+**Makefile** (atlas/Makefile):
 - Automatic BLAS detection
 - AVX2 support detection
 - Static and shared library builds
@@ -91,10 +91,10 @@ atlas_ctx_load_co1_gates(ctx, "co1_gates.txt");
 
 ### 4. Verification Suite
 
-**tools/verify_bridge.sh**: Comprehensive verification with threshold enforcement
+**atlas/tools/verify_bridge.sh**: Comprehensive verification with threshold enforcement
 
 ```bash
-bash tools/verify_bridge.sh
+bash atlas/tools/verify_bridge.sh
 ```
 
 Performs:
@@ -198,12 +198,12 @@ atlas_ctx_free(ctx);
 
 ## Migration Checklist
 
-- [ ] Update build system to use `atlas_core/Makefile` or `CMakeLists.txt`
+- [ ] Update build system to use `atlas/Makefile` or `CMakeLists.txt`
 - [ ] Create `lift_forms.hex` file (required for real runs)
 - [ ] Optionally create `P_299_matrix.bin` and `co1_gates.txt`
 - [ ] Update code to use context-based API
 - [ ] Add deprecation warning handling for legacy API usage
-- [ ] Test with `tools/verify_bridge.sh`
+- [ ] Test with `atlas/tools/verify_bridge.sh`
 - [ ] Update CI to use `.github/workflows/bridge.yml`
 - [ ] Verify certificate generation and metrics
 
@@ -249,11 +249,11 @@ make USE_BLAS=yes
 
 **Solution:** Rebuild library and tests:
 ```bash
-cd atlas_core
+cd atlas
 make clean
 make
 cd ..
-bash tools/verify_bridge.sh
+bash atlas/tools/verify_bridge.sh
 ```
 
 ### Certificate Generation Fails
@@ -268,8 +268,8 @@ bash tools/verify_bridge.sh
 ## Support
 
 For issues or questions:
-1. Check `atlas_core/README_v04.md` for detailed API docs
-2. Run `tools/verify_bridge.sh` for diagnostics
+1. Check `atlas/README_v04.md` for detailed API docs
+2. Run `atlas/tools/verify_bridge.sh` for diagnostics
 3. Review `.github/workflows/bridge.yml` for CI examples
 
 ## Version Timeline

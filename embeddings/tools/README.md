@@ -40,14 +40,13 @@ bash tools/copilot_repo_setup.md --dry-run --no-test
 ### What It Does
 
 1. **Creates Directory Structure:**
-   - `atlas/` - Core C library with src/, include/, tests/, tools/, bindings/
+   - `atlas/` - Core C library with src/, include/, tools/, bindings/
    - `embeddings/` - Data embedding layer (stubs)
    - `sigmatics/` - Symbolic algebra layer (stubs)
 
 2. **Moves Files (Git-Aware):**
-   - Moves `atlas_core/src/*` to `atlas/src/`
-   - Moves `atlas_core/include/*` to `atlas/include/`
-   - Copies test files to `atlas/tests/`
+   - Organizes files within `atlas/`
+   - Copies test files to root `tests/` directory
    - Copies verify_bridge.sh to `atlas/tools/`
    - Copies bindings to `atlas/bindings/`
 

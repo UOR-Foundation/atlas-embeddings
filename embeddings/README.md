@@ -19,8 +19,9 @@ Capabilities:
 
 ## Directory Structure
 
-- `src/` - Core embedding implementations
-- `tests/` - Embedding tests
+- `src/` - Core embedding implementations (Python package)
+- `core/`, `e8/`, `lie/`, etc. - Rust implementation modules
+- `../tests/` - Test suite (at repository root level)
 - `examples/` - Usage examples
 - `docs/` - Detailed documentation
 

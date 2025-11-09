@@ -12,7 +12,7 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 # Configuration
-ATLAS_CORE_DIR="${ATLAS_CORE_DIR:-atlas_core}"
+ATLAS_CORE_DIR="${ATLAS_CORE_DIR:-atlas}"
 BUILD_DIR="${BUILD_DIR:-build}"
 CERT_FILE="${CERT_FILE:-bridge_cert.json}"
 TESTS_DIR="${TESTS_DIR:-tests}"

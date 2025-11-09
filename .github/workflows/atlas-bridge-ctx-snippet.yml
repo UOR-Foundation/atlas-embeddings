@@ -27,7 +27,7 @@
         fi
     
     - name: Build Context API library
-      working-directory: atlas_core
+      working-directory: atlas
       env:
         CC: ${{ matrix.compiler }}
       run: |
@@ -50,13 +50,13 @@
       run: |
         # Build self-tests
         $CC -o tests_ctx tests/tests_ctx.c \
-          atlas_core/src/atlas_bridge_ctx.c \
-          -Iatlas_core/include -lm
+          atlas/src/atlas_bridge_ctx.c \
+          -Iatlas/include -lm
         
         # Build spinlift demo
         $CC -o test_spinlift_demo tests/test_spinlift_demo.c \
-          atlas_core/src/atlas_bridge_ctx.c \
-          -Iatlas_core/include -lm
+          atlas/src/atlas_bridge_ctx.c \
+          -Iatlas/include -lm
     
     - name: Run Context API self-tests
       run: |
@@ -89,14 +89,17 @@
       run: |
         # Make library discoverable
         if [ "$RUNNER_OS" == "Linux" ]; then
-          export LD_LIBRARY_PATH="${PWD}/atlas_core/lib:$LD_LIBRARY_PATH"
+          export LD_LIBRARY_PATH="${PWD}/atlas/lib:$LD_LIBRARY_PATH"
         elif [ "$RUNNER_OS" == "macOS" ]; then
-          export DYLD_LIBRARY_PATH="${PWD}/atlas_core/lib:$DYLD_LIBRARY_PATH"
+          export DYLD_LIBRARY_PATH="${PWD}/atlas/lib:$DYLD_LIBRARY_PATH"
         fi
+        
+        # Add Python bindings to path
+        export PYTHONPATH="${PWD}/atlas/bindings/python:$PYTHONPATH"
         
         # Test Python bindings import
         python3 -c "
-from bindings.python.atlas_bridge._native_ctx import get_version, get_default_config
+from atlas_bridge._native_ctx import get_version, get_default_config
 print(f'Context API version: {get_version()}')
 cfg = get_default_config()
 print(f'Default block size: {cfg.block_size}')
@@ -111,7 +114,7 @@ print('✓ Python bindings work!')
         echo "Benchmarking Context API operations..."
         
         cat > /tmp/bench_ctx.c << 'EOF'
-#include "atlas_core/include/atlas_bridge_ctx.h"
+#include "atlas/include/atlas_bridge_ctx.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -151,8 +154,8 @@ int main() {
 EOF
         
         $CC -o /tmp/bench_ctx /tmp/bench_ctx.c \
-          atlas_core/src/atlas_bridge_ctx.c \
-          -Iatlas_core/include -lm
+          atlas/src/atlas_bridge_ctx.c \
+          -Iatlas/include -lm
         
         /tmp/bench_ctx
     
@@ -169,8 +172,8 @@ EOF
 # 1. Add the above job to the existing workflow
 # 2. Create dependency: test-context-api job should run after build-and-test
 # 3. Both jobs should share the same trigger paths:
-#    - 'atlas_core/**'
+#    - 'atlas/**'
 #    - 'tests/tests_ctx.c'
 #    - 'tests/test_spinlift_demo.c'
-#    - 'bindings/python/atlas_bridge/_native_ctx.py'
+#    - 'atlas/bindings/python/atlas_bridge/_native_ctx.py'
 #    - '.github/workflows/atlas-bridge.yml'

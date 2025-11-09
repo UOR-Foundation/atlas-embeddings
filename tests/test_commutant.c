@@ -2,7 +2,7 @@
 // Conway–Monster Atlas Upgrade Kit v1.1
 // Test suite for commutant operations and group actions
 
-#include "../atlas_core/include/atlas_bridge.h"
+#include "../atlas/include/atlas_bridge.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>

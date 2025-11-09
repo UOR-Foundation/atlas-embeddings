@@ -10,7 +10,7 @@
 // - 8-bit lift forms mode
 // - Runtime lift forms swap
 
-#include "../atlas_core/include/atlas_bridge_ctx.h"
+#include "../atlas/include/atlas_bridge_ctx.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

@@ -36,7 +36,7 @@ This checklist ensures all v0.5 components are properly integrated and functiona
 
 ### Build System
 
-- [x] **atlas_core/Makefile** created
+- [x] **atlas/Makefile** created
   - [x] Automatic BLAS detection
   - [x] AVX2 detection
   - [x] USE_BLAS variable (auto/yes/no)
@@ -53,7 +53,7 @@ This checklist ensures all v0.5 components are properly integrated and functiona
 
 ### Verification Suite
 
-- [x] **tools/verify_bridge.sh** created
+- [x] **atlas/tools/verify_bridge.sh** created
   - [x] BLAS detection logic
   - [x] Library compilation
   - [x] Test executable building
@@ -186,7 +186,7 @@ Run these commands to verify the build system:
 
 ```bash
 # Makefile build
-cd atlas_core
+cd atlas
 make clean
 make USE_BLAS=auto
 make static
@@ -206,7 +206,7 @@ ctest
 ### Verification Suite
 
 ```bash
-bash tools/verify_bridge.sh
+bash atlas/tools/verify_bridge.sh
 ```
 
 **Expected:**
@@ -238,7 +238,7 @@ cat bridge_cert.json
 
 ```bash
 # Python
-export LD_LIBRARY_PATH="${PWD}/atlas_core/lib:$LD_LIBRARY_PATH"
+export LD_LIBRARY_PATH="${PWD}/atlas/lib:$LD_LIBRARY_PATH"
 python3 -c "from bindings.python.atlas_bridge._native_ctx import AtlasContext; ctx = AtlasContext(); print(f'Version: {ctx.version}')"
 
 # Expected: Version: 0.5.0
@@ -290,7 +290,7 @@ Run these to verify BLAS acceleration is working:
 
 ```bash
 # With BLAS
-cd atlas_core
+cd atlas
 make clean
 make USE_BLAS=yes
 # Run benchmark
@@ -316,9 +316,9 @@ make USE_BLAS=no
 ### Critical Files
 
 Maintainers should monitor these files closely:
-- `atlas_core/src/atlas_bridge_ctx.c` - Core implementation
-- `atlas_core/include/atlas_bridge_ctx.h` - Public API
-- `tools/verify_bridge.sh` - Verification suite
+- `atlas/src/atlas_bridge_ctx.c` - Core implementation
+- `atlas/include/atlas_bridge_ctx.h` - Public API
+- `atlas/tools/verify_bridge.sh` - Verification suite
 - `.github/workflows/bridge.yml` - CI configuration
 
 ### BLAS Support

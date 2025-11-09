@@ -9,7 +9,7 @@
 // - JSON certificate emission
 // - Commutant probes
 
-#include "../atlas_core/include/atlas_bridge_ctx.h"
+#include "../atlas/include/atlas_bridge_ctx.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

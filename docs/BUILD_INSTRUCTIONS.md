@@ -7,7 +7,7 @@
 The easiest way to build, test, and verify Atlas Bridge:
 
 ```bash
-bash tools/verify_bridge.sh
+bash atlas/tools/verify_bridge.sh
 ```
 
 This script:
@@ -22,7 +22,7 @@ This script:
 Build the library using the Makefile:
 
 ```bash
-cd atlas_core
+cd atlas
 make              # Build with auto-detected BLAS
 make USE_BLAS=no  # Build without BLAS
 make USE_BLAS=yes # Force BLAS (fails if not found)
@@ -81,21 +81,21 @@ brew install openblas  # Optional: BLAS support
 
 #### Debug Build
 ```bash
-cd atlas_core
+cd atlas
 make clean
 CFLAGS="-g -O0" make
 ```
 
 #### Release Build
 ```bash
-cd atlas_core
+cd atlas
 make clean
 make  # Default is optimized (-O2)
 ```
 
 #### With BLAS Acceleration
 ```bash
-cd atlas_core
+cd atlas
 make USE_BLAS=auto  # Auto-detect (default)
 # OR
 cmake -DUSE_BLAS=ON ..
@@ -103,7 +103,7 @@ cmake -DUSE_BLAS=ON ..
 
 #### Without BLAS (Portable)
 ```bash
-cd atlas_core
+cd atlas
 make USE_BLAS=no
 # OR
 cmake -DUSE_BLAS=OFF ..
@@ -111,7 +111,7 @@ cmake -DUSE_BLAS=OFF ..
 
 #### Static Library
 ```bash
-cd atlas_core
+cd atlas
 make static
 ```
 
@@ -153,10 +153,10 @@ Python bindings use the C library via ctypes (no build needed):
 
 ```bash
 # Ensure C library is built
-cd atlas_core && make
+cd atlas && make
 
 # Set library path
-export LD_LIBRARY_PATH="${PWD}/atlas_core/lib:$LD_LIBRARY_PATH"
+export LD_LIBRARY_PATH="${PWD}/atlas/lib:$LD_LIBRARY_PATH"
 
 # Test Python bindings
 python3 -c "from bindings.python.atlas_bridge._native_ctx import AtlasContext; print('OK')"
@@ -173,8 +173,8 @@ cargo build --release
 # Run tests
 cargo test
 
-# Note: Ensure atlas_core library is built and in library path
-export LD_LIBRARY_PATH="$PWD/../../../atlas_core/lib:$LD_LIBRARY_PATH"
+# Note: Ensure atlas library is built and in library path
+export LD_LIBRARY_PATH="$PWD/../../../atlas/lib:$LD_LIBRARY_PATH"
 ```
 
 ### Node.js Bindings
@@ -189,7 +189,7 @@ npm install
 node -e "const {AtlasContext} = require('./index.js'); console.log('OK');"
 
 # Note: Set library path
-export LD_LIBRARY_PATH="$PWD/../../../atlas_core/lib:$LD_LIBRARY_PATH"
+export LD_LIBRARY_PATH="$PWD/../../../atlas/lib:$LD_LIBRARY_PATH"
 ```
 
 ### Go Bindings
@@ -198,8 +198,8 @@ export LD_LIBRARY_PATH="$PWD/../../../atlas_core/lib:$LD_LIBRARY_PATH"
 cd bindings/go/atlas_bridge
 
 # Ensure library path is set
-export LD_LIBRARY_PATH="$PWD/../../../atlas_core/lib:$LD_LIBRARY_PATH"
-export CGO_LDFLAGS="-L$PWD/../../../atlas_core/lib"
+export LD_LIBRARY_PATH="$PWD/../../../atlas/lib:$LD_LIBRARY_PATH"
+export CGO_LDFLAGS="-L$PWD/../../../atlas/lib"
 
 # Build
 go build
@@ -259,13 +259,13 @@ EOF
 ### Run All Tests
 
 ```bash
-bash tools/verify_bridge.sh
+bash atlas/tools/verify_bridge.sh
 ```
 
 ### Run Individual Test Suites
 
 ```bash
-cd atlas_core
+cd atlas
 make
 
 # Build tests manually
@@ -293,7 +293,7 @@ ctest --output-on-failure
 ### System-wide Installation
 
 ```bash
-cd atlas_core
+cd atlas
 sudo make install
 # Installs to /usr/local/lib and /usr/local/include/atlas_bridge
 ```
@@ -301,7 +301,7 @@ sudo make install
 ### Custom Prefix
 
 ```bash
-cd atlas_core
+cd atlas
 make install PREFIX=$HOME/.local
 # Installs to ~/.local/lib and ~/.local/include/atlas_bridge
 
@@ -327,10 +327,10 @@ make install
 **Solution:**
 ```bash
 # Add library directory to path
-export LD_LIBRARY_PATH="${PWD}/atlas_core/lib:$LD_LIBRARY_PATH"
+export LD_LIBRARY_PATH="${PWD}/atlas/lib:$LD_LIBRARY_PATH"
 
 # Or install system-wide
-cd atlas_core
+cd atlas
 sudo make install
 sudo ldconfig
 ```
@@ -346,7 +346,7 @@ sudo apt-get install libopenblas-dev  # Ubuntu/Debian
 brew install openblas                  # macOS
 
 # Verify detection
-cd atlas_core
+cd atlas
 make clean
 make
 # Should see: "Found OpenBLAS via pkg-config" or "Found CBLAS headers"
@@ -365,7 +365,7 @@ gcc --version  # Needs gcc 4.8+ for C11
 
 2. Clean build:
 ```bash
-cd atlas_core
+cd atlas
 make clean
 make
 ```
@@ -401,7 +401,7 @@ The repository includes `.github/workflows/bridge.yml` for automated builds and 
 Local simulation:
 ```bash
 # Run the same checks as CI
-bash tools/verify_bridge.sh
+bash atlas/tools/verify_bridge.sh
 
 # Check certificate
 cat bridge_cert.json
@@ -412,7 +412,7 @@ cat bridge_cert.json
 ### Enable All Optimizations
 
 ```bash
-cd atlas_core
+cd atlas
 make clean
 CFLAGS="-O3 -march=native -mavx2" make USE_BLAS=yes
 ```
@@ -433,7 +433,7 @@ gprof your_program gmon.out > analysis.txt
 ### For ARM
 ```bash
 export CC=arm-linux-gnueabihf-gcc
-cd atlas_core
+cd atlas
 make
 ```
 
@@ -448,9 +448,9 @@ make
 After building:
 
 1. Read `MIGRATION_v0.5.md` for usage guide
-2. Check `atlas_core/README_v04.md` for API documentation
+2. Check `atlas/README_v04.md` for API documentation
 3. Review examples in `bindings/*/atlas_bridge/`
-4. Run `tools/verify_bridge.sh` to verify installation
+4. Run `atlas/tools/verify_bridge.sh` to verify installation
 
 ## Support
 
@@ -458,4 +458,4 @@ For build issues:
 - Check prerequisites are installed
 - Review error messages carefully
 - Try simpler configuration (no BLAS, no AVX2)
-- Consult `atlas_core/README_v04.md` for detailed API docs
+- Consult `atlas/README_v04.md` for detailed API docs

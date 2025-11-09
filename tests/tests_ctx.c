@@ -2,7 +2,7 @@
 // Atlas Bridge Context API v0.2 Self-Tests
 // Conway–Monster Atlas Upgrade Kit
 
-#include "../atlas_core/include/atlas_bridge_ctx.h"
+#include "../atlas/include/atlas_bridge_ctx.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

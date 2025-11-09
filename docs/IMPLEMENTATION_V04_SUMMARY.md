@@ -6,7 +6,7 @@ Successfully implemented Atlas Bridge Context API v0.4 with all requested featur
 
 ## Implementation Completed
 
-### 1. Core API Updates (atlas_core/include/atlas_bridge_ctx.h)
+### 1. Core API Updates (atlas/include/atlas_bridge_ctx.h)
 
 - ✅ Updated version to 0.4.0
 - ✅ Added new configuration flags: `ATLAS_CTX_USE_AVX2`, `ATLAS_CTX_LIFT_8BIT`
@@ -19,7 +19,7 @@ Successfully implemented Atlas Bridge Context API v0.4 with all requested featur
   - `atlas_ctx_is_avx2_active()` - Runtime AVX2 detection
 - ✅ Comprehensive inline documentation with file format specs and performance notes
 
-### 2. Implementation (atlas_core/src/atlas_bridge_ctx.c)
+### 2. Implementation (atlas/src/atlas_bridge_ctx.c)
 
 - ✅ **Lift Forms Loader**:
   - Runtime swap support via `atlas_ctx_set_lift_forms_hex()`
@@ -77,7 +77,7 @@ Successfully implemented Atlas Bridge Context API v0.4 with all requested featur
 - ✅ Artifact upload for certificates
 - ✅ Backward compatibility verification (v0.2 and v0.3 tests)
 
-### 6. Documentation (atlas_core/README_v04.md)
+### 6. Documentation (atlas/README_v04.md)
 
 - ✅ Complete feature overview
 - ✅ File format specifications for all binary/text files
@@ -188,7 +188,7 @@ Total:              30/30 tests passed ✓
 
 ### C API
 ```c
-#include "atlas_core/include/atlas_bridge_ctx.h"
+#include "atlas/include/atlas_bridge_ctx.h"
 // All functions prefixed with atlas_ctx_
 // Returns 0 on success, -1 on error
 ```

@@ -53,13 +53,13 @@ ctx, _ := atlas_bridge.NewAtlasContext(nil)
 All bindings require the Atlas Bridge C library to be built:
 
 ```bash
-cd ../atlas_core
+cd ../atlas
 make
 ```
 
 Set library path:
 ```bash
-export LD_LIBRARY_PATH="${PWD}/../atlas_core/lib:$LD_LIBRARY_PATH"
+export LD_LIBRARY_PATH="${PWD}/../atlas/lib:$LD_LIBRARY_PATH"
 ```
 
 ## Features
@@ -95,8 +95,8 @@ ctx.apply_pauli_x(x, state)
 
 - **Build Instructions**: `../BUILD_INSTRUCTIONS.md`
 - **Migration Guide**: `../MIGRATION_v0.5.md`
-- **API Documentation**: `../atlas_core/README_v04.md`
-- **C Header**: `../atlas_core/include/atlas_bridge_ctx.h`
+- **API Documentation**: `../atlas/README_v04.md`
+- **C Header**: `../atlas/include/atlas_bridge_ctx.h`
 
 ## Examples
 
@@ -169,7 +169,7 @@ cd go/atlas_bridge && go test
 ## Support
 
 For issues with bindings:
-1. Ensure C library is built: `cd ../atlas_core && make`
+1. Ensure C library is built: `cd ../atlas && make`
 2. Check library path is set correctly
 3. Review language-specific build requirements
 4. Consult `../MIGRATION_v0.5.md` for examples

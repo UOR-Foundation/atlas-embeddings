@@ -5,13 +5,13 @@ Successfully implemented the Atlas Bridge Context API v0.2 as specified in the p
 
 ## Implementation Status
 
-### ✅ Core API (atlas_core/include/atlas_bridge_ctx.h)
+### ✅ Core API (atlas/include/atlas_bridge_ctx.h)
 - Opaque context handle (`AtlasBridgeContext`)
 - Context lifecycle: `new`, `clone`, `free`
 - Configuration management with flags
 - Diagnostics structure for monitoring
 
-### ✅ Implementation (atlas_core/src/atlas_bridge_ctx.c)
+### ✅ Implementation (atlas/src/atlas_bridge_ctx.c)
 - **Homomorphic lift permutations:**
   - `Lx`: Bit-reversal permutation (involutive: Lx² = I)
   - `Lz`: Gray code permutation
@@ -65,7 +65,7 @@ Demonstrates:
 - Python bindings testing
 - Performance benchmarking
 
-### ✅ Documentation (atlas_core/README_CONTEXT_API.md)
+### ✅ Documentation (atlas/README_CONTEXT_API.md)
 - Complete API reference
 - Usage examples in C and Python
 - Test results
@@ -156,13 +156,13 @@ Demonstrates:
 ## Files Created/Modified
 
 ### New Files (9)
-1. `atlas_core/include/atlas_bridge_ctx.h` - API header
-2. `atlas_core/src/atlas_bridge_ctx.c` - Implementation
+1. `atlas/include/atlas_bridge_ctx.h` - API header
+2. `atlas/src/atlas_bridge_ctx.c` - Implementation
 3. `tests/tests_ctx.c` - Self-test suite
 4. `tests/test_spinlift_demo.c` - Demo program
 5. `bindings/python/atlas_bridge/_native_ctx.py` - Python bindings
 6. `bindings/python/atlas_bridge/examples/context_api_example.py` - Python example
-7. `atlas_core/README_CONTEXT_API.md` - Documentation
+7. `atlas/README_CONTEXT_API.md` - Documentation
 8. `.github/workflows/atlas-bridge-ctx-snippet.yml` - CI workflow
 9. `.gitignore` - Updated with test binaries
 
@@ -170,9 +170,9 @@ Demonstrates:
 1. `.gitignore` - Added test binary patterns
 
 ### Legacy Files (Untouched)
-- `atlas_core/include/atlas_bridge.h` - Original header
-- `atlas_core/src/atlas_bridge.c` - Original implementation
-- All other atlas_core source files
+- `atlas/include/atlas_bridge.h` - Original header
+- `atlas/src/atlas_bridge.c` - Original implementation
+- All other atlas source files
 
 ## Performance Characteristics
 

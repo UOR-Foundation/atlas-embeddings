@@ -181,14 +181,14 @@ All pass:
    - Sample data for testing
 
 ### Updated Documents
-1. **`atlas_core/README_CONTEXT_API.md`**
+1. **`atlas/README_CONTEXT_API.md`**
    - Updated to v0.3
    - New API reference sections
    - Extended test results
    - Certificate example
    - Migration guide from v0.2
 
-2. **`atlas_core/include/atlas_bridge_ctx.h`**
+2. **`atlas/include/atlas_bridge_ctx.h`**
    - New API functions documented
    - New configuration flags
    - Extended diagnostics structure
@@ -218,15 +218,15 @@ All pass:
 ## File Changes Summary
 
 ### Core Implementation
-- `atlas_core/include/atlas_bridge_ctx.h` - v0.3 API header (extended)
-- `atlas_core/src/atlas_bridge_ctx.c` - v0.3 implementation (+370 lines)
+- `atlas/include/atlas_bridge_ctx.h` - v0.3 API header (extended)
+- `atlas/src/atlas_bridge_ctx.c` - v0.3 implementation (+370 lines)
 
 ### Testing
 - `tests/tests_ctx_v03.c` - New v0.3 test suite (530 lines)
 - `tests/tests_ctx.c` - Unchanged (backwards compatibility verified)
 
 ### Documentation
-- `atlas_core/README_CONTEXT_API.md` - Updated for v0.3
+- `atlas/README_CONTEXT_API.md` - Updated for v0.3
 - `LIFT_FORMS_README.md` - New guide (171 lines)
 - `lift_forms.hex.example` - New example file
 

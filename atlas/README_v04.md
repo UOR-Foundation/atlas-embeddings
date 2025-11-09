@@ -234,7 +234,7 @@ Certificates now include v0.4 metadata:
 ### Standard Build (No AVX2)
 
 ```bash
-cd atlas_core
+cd atlas
 mkdir -p lib
 
 # Compile
@@ -250,7 +250,7 @@ gcc -dynamiclib -o lib/libatlas_bridge_ctx.dylib atlas_bridge_ctx.o -lm
 ### Build with AVX2 Acceleration
 
 ```bash
-cd atlas_core
+cd atlas
 
 # Compile with AVX2 support
 gcc -c -fPIC -mavx2 -Iinclude src/atlas_bridge_ctx.c
@@ -264,18 +264,18 @@ gcc -shared -o lib/libatlas_bridge_ctx.so atlas_bridge_ctx.o -lm
 ```bash
 # v0.2 compatibility tests
 gcc -o tests_ctx tests/tests_ctx.c \
-    atlas_core/src/atlas_bridge_ctx.c \
-    -Iatlas_core/include -lm
+    atlas/src/atlas_bridge_ctx.c \
+    -Iatlas/include -lm
 
 # v0.3 extended tests
 gcc -o tests_ctx_v03 tests/tests_ctx_v03.c \
-    atlas_core/src/atlas_bridge_ctx.c \
-    -Iatlas_core/include -lm
+    atlas/src/atlas_bridge_ctx.c \
+    -Iatlas/include -lm
 
 # v0.4 extended tests (with AVX2)
 gcc -mavx2 -o tests_ctx_v04 tests/tests_ctx_v04.c \
-    atlas_core/src/atlas_bridge_ctx.c \
-    -Iatlas_core/include -lm
+    atlas/src/atlas_bridge_ctx.c \
+    -Iatlas/include -lm
 
 # Run tests
 ./tests_ctx        # v0.2 compatibility
@@ -478,8 +478,8 @@ cfg.block_size = 4096;  // Smaller block
 
 ## Support and Documentation
 
-- **Header**: `atlas_core/include/atlas_bridge_ctx.h`
-- **Implementation**: `atlas_core/src/atlas_bridge_ctx.c`
+- **Header**: `atlas/include/atlas_bridge_ctx.h`
+- **Implementation**: `atlas/src/atlas_bridge_ctx.c`
 - **Tests**: `tests/tests_ctx_v04.c`
 - **Python Bindings**: `bindings/python/atlas_bridge/_native_ctx.py`
 - **CI Workflow**: `.github/workflows/atlas-bridge.yml`
