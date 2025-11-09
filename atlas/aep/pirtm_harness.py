@@ -18,7 +18,7 @@ import pirtm_adapter
 import pirtm_proofs
 
 
-def main():
+def main() -> None:
     """Demonstrate PIRTM update, proof generation, and reversal."""
     # Setup
     d = 64
