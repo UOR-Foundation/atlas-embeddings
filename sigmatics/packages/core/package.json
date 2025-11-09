@@ -1,0 +1,89 @@
+{
+  "name": "@uor-foundation/sigmatics",
+  "version": "0.3.2",
+  "description": "Sigmatics: the Atlas Sigil Algebra reference implementation from the UOR Foundation",
+  "author": "UOR Foundation <info@uor.foundation> (https://uor.foundation)",
+  "homepage": "https://github.com/UOR-Foundation/sigmatics#readme",
+  "bugs": {
+    "url": "https://github.com/UOR-Foundation/sigmatics/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/UOR-Foundation/sigmatics.git",
+    "directory": "packages/core"
+  },
+  "funding": {
+    "type": "foundation",
+    "url": "https://uor.foundation"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "sideEffects": false,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./lexer": {
+      "types": "./dist/lexer/index.d.ts",
+      "require": "./dist/lexer/index.js",
+      "default": "./dist/lexer/index.js"
+    },
+    "./parser": {
+      "types": "./dist/parser/index.d.ts",
+      "require": "./dist/parser/index.js",
+      "default": "./dist/parser/index.js"
+    },
+    "./evaluator": {
+      "types": "./dist/evaluator/index.d.ts",
+      "require": "./dist/evaluator/index.js",
+      "default": "./dist/evaluator/index.js"
+    },
+    "./class-system": {
+      "types": "./dist/class-system/index.d.ts",
+      "require": "./dist/class-system/index.js",
+      "default": "./dist/class-system/index.js"
+    },
+    "./types": {
+      "types": "./dist/types/index.d.ts",
+      "require": "./dist/types/index.js",
+      "default": "./dist/types/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "ts-node --project tsconfig.test.json test/index.ts",
+    "watch": "tsc --watch"
+  },
+  "keywords": [
+    "sigmatics",
+    "atlas",
+    "sigil",
+    "algebra",
+    "symbolic-computation",
+    "formal-methods",
+    "verification",
+    "resonance",
+    "universal-language",
+    "uor"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.0.0"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ]
+}
