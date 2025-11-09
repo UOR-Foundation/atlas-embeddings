@@ -1,0 +1,26 @@
+[package]
+name = "ccm-symmetry"
+version = "0.1.0"
+edition = "2021"
+authors = ["UOR Contributors"]
+description = "Symmetry group actions and invariant theory for CCM"
+license = "MIT"
+repository = "https://github.com/UOR-Foundation/PrimeOS"
+
+[dependencies]
+ccm-core = { path = "../ccm-core" }
+ccm-coherence = { path = "../ccm-coherence" }
+ccm-embedding = { path = "../ccm-embedding" }
+num-traits = { version = "0.2", default-features = false }
+num-complex = { version = "0.4", default-features = false }
+serde = { version = "1.0", default-features = false, optional = true, features = ["derive"] }
+
+[features]
+default = ["std"]
+std = ["ccm-core/std", "num-traits/std", "serde?/std"]
+alloc = ["ccm-core/alloc", "serde?/alloc"]
+serde = ["dep:serde"]
+
+[dev-dependencies]
+serde_json = "1.0"
+hashbrown = "0.15"
