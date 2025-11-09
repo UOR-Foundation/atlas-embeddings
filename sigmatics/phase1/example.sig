@@ -1,0 +1,10 @@
+mark@{"p":3,"r":1,"mode":"delta"};
+rho[17];
+copy;
+swap@c_d;
+split@ℓ:int;
+merge;
+quote;
+~;
+evaluate;
+mu[5];

@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SigmaticsWordV0",
+  "description": "A single word in the Sigmatics DSL after lowering",
+  "type": "object",
+  "properties": {
+    "op": {
+      "type": "string",
+      "enum": [
+        "copy",
+        "swap",
+        "mirror",
+        "merge",
+        "split",
+        "mark",
+        "quote",
+        "evaluate",
+        "control"
+      ],
+      "description": "Operation name"
+    },
+    "args": {
+      "type": "object",
+      "description": "Operation arguments (structure varies by op)"
+    },
+    "meta": {
+      "type": "object",
+      "properties": {
+        "src": {
+          "type": "string",
+          "description": "Source file name"
+        },
+        "span": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          },
+          "minItems": 2,
+          "maxItems": 2,
+          "description": "Source span [start, end] in characters"
+        }
+      },
+      "required": ["src", "span"]
+    }
+  },
+  "required": ["op", "args", "meta"]
+}
