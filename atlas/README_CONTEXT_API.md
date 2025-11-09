@@ -17,8 +17,8 @@ The Atlas Bridge Context API v0.3 provides a modern, context-based interface for
 ## Files
 
 ### Core Implementation
-- `atlas_core/include/atlas_bridge_ctx.h` - C header with complete API
-- `atlas_core/src/atlas_bridge_ctx.c` - Implementation
+- `atlas/include/atlas_bridge_ctx.h` - C header with complete API
+- `atlas/src/atlas_bridge_ctx.c` - Implementation
 
 ### Tests and Demos
 - `tests/tests_ctx.c` - Comprehensive self-test suite (10 tests, v0.2 compatibility)
@@ -37,7 +37,7 @@ The Atlas Bridge Context API v0.3 provides a modern, context-based interface for
 ### C Library
 
 ```bash
-cd atlas_core
+cd atlas
 mkdir -p lib
 
 # Compile
@@ -54,13 +54,13 @@ gcc -dynamiclib -o lib/libatlas_bridge_ctx.dylib atlas_bridge_ctx.o -lm
 
 ```bash
 # Build and run self-tests
-gcc -o tests_ctx tests/tests_ctx.c atlas_core/src/atlas_bridge_ctx.c \
-    -Iatlas_core/include -lm
+gcc -o tests_ctx tests/tests_ctx.c atlas/src/atlas_bridge_ctx.c \
+    -Iatlas/include -lm
 ./tests_ctx
 
 # Build and run spinlift demo
 gcc -o test_spinlift_demo tests/test_spinlift_demo.c \
-    atlas_core/src/atlas_bridge_ctx.c -Iatlas_core/include -lm
+    atlas/src/atlas_bridge_ctx.c -Iatlas/include -lm
 ./test_spinlift_demo
 ```
 
@@ -300,7 +300,7 @@ The spinlift demo shows:
 - Integrate Co1 gate family from `atlas_bridge.h`
 - Add context-aware Co1 application with twirl compatibility
 - Implement Co1-invariant projector subspaces
-- Cross-reference: see `atlas_core/src/co1_gates.c` for gate implementations
+- Cross-reference: see `atlas/src/co1_gates.c` for gate implementations
 
 ### Performance Optimizations
 - SIMD vectorization for Pauli operations

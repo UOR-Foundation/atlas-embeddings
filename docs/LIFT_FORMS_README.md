@@ -36,7 +36,7 @@ Lines starting with `#` are treated as comments (ignored during parsing).
 ### C API
 
 ```c
-#include "atlas_core/include/atlas_bridge_ctx.h"
+#include "atlas/include/atlas_bridge_ctx.h"
 
 // Create context
 AtlasBridgeContext* ctx = atlas_ctx_new_default();
@@ -174,6 +174,6 @@ AtlasBridgeContext* ctx = atlas_ctx_new(&cfg);
 
 ## References
 
-- [Atlas Bridge Context API Documentation](atlas_core/README_CONTEXT_API.md)
+- [Atlas Bridge Context API Documentation](atlas/README_CONTEXT_API.md)
 - [Sigmatics Lift Form Generators](sigmatics/README.md)
 - [v0.3 Release Notes](CHANGELOG.md)
