@@ -1,200 +1,151 @@
-# Atlas Bridge Context API v0.2 - Implementation Summary
+# GEMM and MatVec Implementation Summary
 
-## Overview
-Successfully implemented the Atlas Bridge Context API v0.2 as specified in the problem statement. This is a complete, production-ready implementation with comprehensive testing and documentation.
+## Completed Work
 
-## Implementation Status
+### 1. Marked Inline Kernel Functions as Unsafe
 
-### ✅ Core API (atlas/include/atlas_bridge_ctx.h)
-- Opaque context handle (`AtlasBridgeContext`)
-- Context lifecycle: `new`, `clone`, `free`
-- Configuration management with flags
-- Diagnostics structure for monitoring
+- **File**: `crates/hologram-core/src/kernel/inline.rs`
+- **Changes**: All inline kernel functions that take raw pointers are now marked `pub unsafe fn`
+- **Functions updated**:
+  - `vector_add`
+  - `vector_mul`
+  - `vector_sub`
+  - `relu`
+  - `sigmoid`
+  - `tanh`
+  - `gelu`
+  - `softmax`
+  - `gemv_f32`
+  - `gemm_f32`
 
-### ✅ Implementation (atlas/src/atlas_bridge_ctx.c)
-- **Homomorphic lift permutations:**
-  - `Lx`: Bit-reversal permutation (involutive: Lx² = I)
-  - `Lz`: Gray code permutation
-  - Both preserve L2 norm (permutations)
-  - Commute with Pauli operations (homomorphic property)
+### 2. Updated Call Sites to Use Unsafe Blocks
 
-- **In-block 8-qubit Pauli/Heisenberg action:**
-  - Block size: 12,288 (48 pages × 256 bytes)
-  - Reduced-rank operations on byte axis
-  - Pauli X: bit-flip permutations
-  - Pauli Z: phase applications
-  - Heisenberg: σ_i · σ_j = X_iX_j + Y_iY_j + Z_iZ_j
-  - Verified relations: X² = I, Z² = I, XZ = -ZX
+- **Files Updated**:
+  - `crates/hologram-core/src/ops/activation.rs` - Wrapped all inline kernel calls in `unsafe` blocks
+  - `crates/hologram-core/src/ops/math.rs` - Wrapped `vector_add` call in `unsafe` block
 
-- **E-twirl group action:**
-  - 16 pre-computed generators
-  - Idempotent projector: T² = T (verified to machine precision)
-  - Averaging over group elements
-  - Configurable generator set
+### 3. Implemented GEMM and MatVec Handle-Based Wrappers
 
-### ✅ Self-Tests (tests/tests_ctx.c)
-10 comprehensive tests, all passing:
-1. Context lifecycle (new/clone/free)
-2. Configuration management
-3. Homomorphic lift permutations
-4. Pauli operator relations
-5. E-twirl idempotency
-6. Twirl generator queries
-7. Heisenberg exchange operator
-8. Diagnostics and counters
-9. Version and utilities
-10. Combined operations
+- **File Created**: `crates/hologram-ffi/src/linalg.rs`
+- **Functions Implemented**:
+  - `gemm_f32()` - General Matrix Multiplication with handle-based API
+  - `matvec_f32()` - Matrix-Vector Multiplication with handle-based API
 
-### ✅ Demo Program (tests/test_spinlift_demo.c)
-Demonstrates:
-- Lift-mass redistribution after twirl (~80% reduction)
-- Perfect twirl idempotency (||T² - T|| = 0)
-- Norm preservation by lift operations
-- Concentration changes through operations
+### 4. Updated UDL Interface
 
-### ✅ Python Bindings (bindings/python/atlas_bridge/_native_ctx.py)
-- Complete ctypes wrapper
-- Object-oriented interface (`AtlasBridgeContext` class)
-- Error handling with exceptions
-- Example script demonstrating usage
+- **File**: `crates/hologram-ffi/src/hologram_ffi.udl`
+- **Added**:
 
-### ✅ CI Workflow (.github/workflows/atlas-bridge-ctx-snippet.yml)
-- Build and test on Ubuntu and macOS
-- Multiple compilers (gcc, clang)
-- Memory leak checking with valgrind
-- Python bindings testing
-- Performance benchmarking
+  ```udl
+  /// General Matrix Multiplication: C = A * B
+  /// A is m×k, B is k×n, C is m×n
+  void gemm_f32(u64 executor_handle, u64 a_handle, u64 b_handle, u64 c_handle, u32 m, u32 n, u32 k);
 
-### ✅ Documentation (atlas/README_CONTEXT_API.md)
-- Complete API reference
-- Usage examples in C and Python
-- Test results
-- Future upgrade paths documented
+  /// Matrix-Vector Multiplication: y = A * x
+  /// A is m×n matrix, x is n-element vector, y is m-element vector
+  void matvec_f32(u64 executor_handle, u64 a_handle, u64 x_handle, u64 y_handle, u32 m, u32 n);
+  ```
 
-## Key Technical Details
+### 5. Updated FFI Library Exports
 
-### Block Size Calculation
-- **12,288** = 48 pages × 256 bytes/page
-- Each byte represents 8-qubit state in computational basis
-- Reduced-rank operations on byte axis for efficiency
+- **File**: `crates/hologram-ffi/src/lib.rs`
+- **Changes**:
+  - Added `mod linalg;`
+  - Added `pub use linalg::{gemm_f32, matvec_f32};`
 
-### E-Twirl Generators
-16 carefully chosen generators covering:
-- Identity (0x00, 0x00)
-- Single-qubit Paulis (0x01-0x80)
-- Multi-qubit combinations
-- Full register (0xFF, 0xFF)
+### 6. Regenerated Language Bindings
 
-### Idempotency Achievement
-- T² = T verified to machine precision (< 1e-15)
-- Implemented via exact averaging over finite group
-- No accumulation of numerical errors
+- **Generated**: Python bindings updated with GEMM and MatVec functions
+- **Library**: Updated `libhologram_ffi.so` (1.1M release build)
+- **Status**: Bindings successfully generated
 
-### Memory Management
-- No memory leaks (verified with valgrind)
-- Proper allocation/deallocation in all paths
-- Working buffers pre-allocated with context
+## API Changes
 
-## Future Upgrade Paths (Documented in Code)
+### Before
 
-### 12-Qubit Extension
-- Extend from 8-qubit to full 12-qubit register
-- Update block size to 2^12 = 4,096
-- Modify generator set for larger Hilbert space
+```rust
+// Inline kernels were not marked unsafe
+pub fn softmax(a: *const f32, c: *mut f32, n: usize) {
+    unsafe { /* implementation */ }
+}
+```
 
-### Advanced Lift Forms
-- Composite lifts: L_xy = L_x ∘ L_z
-- Parameterized lift families
-- Non-homomorphic variants for error analysis
+### After
 
-### Co1 Gates Integration
-- Wire Co1 gate family from `atlas_bridge.h`
-- Context-aware Co1 application
-- Co1-invariant projector subspaces
+```rust
+// Inline kernels are now marked unsafe
+pub unsafe fn softmax(a: *const f32, c: *mut f32, n: usize) {
+    /* implementation directly in unsafe function */
+}
+```
 
-### Performance Optimizations
-- SIMD vectorization for Pauli operations
-- Sparse matrix representations
-- GPU acceleration hooks
+### Usage Changes
 
-## Compliance with Requirements
+**Before**:
 
-✅ **Homomorphic lift permutations via linear forms (Lx, Lz)**: Implemented
-✅ **In-block 8-qubit Pauli/Heisenberg action, block size 12,288**: Implemented
-✅ **E-twirl group action over 16 generators with idempotency**: Implemented
-✅ **Opaque context API with new/clone/free, config, diagnostics**: Implemented
-✅ **C header (atlas_bridge_ctx.h) and implementation (atlas_bridge_ctx.c)**: Created
-✅ **Self-tests (tests_ctx.c)**: Created with 10 tests
-✅ **Demo program (test_spinlift_demo.c)**: Created
-✅ **Python bindings (_native_ctx.py)**: Created
-✅ **CI workflow snippet**: Created
-✅ **Future upgrade comments**: Included throughout
-✅ **No legacy code modifications**: Verified (atlas_bridge.h/c untouched)
+```rust
+inline::softmax(input_ptr, output_ptr, n);
+```
 
-## Quality Assurance
+**After**:
 
-### Testing
-- ✅ All 10 self-tests pass
-- ✅ Demo runs successfully
-- ✅ Python bindings verified
+```rust
+unsafe {
+    inline::softmax(input_ptr, output_ptr, n);
+}
+```
 
-### Code Review
-- ✅ No review comments remaining
-- ✅ Heisenberg exchange implementation corrected
-- ✅ All redundant code removed
+## New Python API
 
-### Security
-- ✅ CodeQL scan: 0 alerts
-- ✅ No vulnerabilities detected
-- ✅ Memory safety verified (valgrind clean)
+The Python bindings now expose GEMM and MatVec operations:
 
-### Build
-- ✅ Compiles cleanly with gcc and clang
-- ✅ No warnings with -Wall -Wextra
-- ✅ Works on Linux and macOS
+```python
+import hologram_ffi as hg
 
-## Files Created/Modified
+# Create executor and allocate buffers
+exec_handle = hg.new_executor()
 
-### New Files (9)
-1. `atlas/include/atlas_bridge_ctx.h` - API header
-2. `atlas/src/atlas_bridge_ctx.c` - Implementation
-3. `tests/tests_ctx.c` - Self-test suite
-4. `tests/test_spinlift_demo.c` - Demo program
-5. `bindings/python/atlas_bridge/_native_ctx.py` - Python bindings
-6. `bindings/python/atlas_bridge/examples/context_api_example.py` - Python example
-7. `atlas/README_CONTEXT_API.md` - Documentation
-8. `.github/workflows/atlas-bridge-ctx-snippet.yml` - CI workflow
-9. `.gitignore` - Updated with test binaries
+# Allocate matrices A (m×k), B (k×n), C (m×n)
+m, n, k = 10, 20, 15
+a_handle = hg.executor_allocate_buffer(exec_handle, m * k)
+b_handle = hg.executor_allocate_buffer(exec_handle, k * n)
+c_handle = hg.executor_allocate_buffer(exec_handle, m * n)
 
-### Modified Files (1)
-1. `.gitignore` - Added test binary patterns
+# Perform GEMM: C = A * B
+hg.gemm_f32(exec_handle, a_handle, b_handle, c_handle, m, n, k)
+```
 
-### Legacy Files (Untouched)
-- `atlas/include/atlas_bridge.h` - Original header
-- `atlas/src/atlas_bridge.c` - Original implementation
-- All other atlas source files
+## Compilation Status
 
-## Performance Characteristics
+✅ **hologram-core**: Compiles successfully
+✅ **hologram-ffi**: Compiles successfully  
+✅ **Python bindings**: Regenerated successfully
+✅ **TypeScript bindings**: Regenerated successfully
+✅ **Release library**: Built and copied to Python package
 
-### Benchmarks (on reference system)
-- Lift Lx: ~0.5 ms/operation
-- Pauli X (all qubits): ~0.3 ms/operation
-- E-twirl (16 generators): ~8 ms/operation
+## Benefits
 
-### Memory Usage
-- Context structure: ~200 KB
-- Working buffers: 2 × 12,288 × 8 bytes = ~196 KB
-- Total per context: ~400 KB
+1. **Type Safety**: Raw pointer functions are now properly marked as `unsafe`
+2. **API Completeness**: GEMM and MatVec are now available through FFI
+3. **PyTorch Integration**: Linear algebra operations can now be used from Python
+4. **Performance**: Direct handle-based API with no intermediate allocations
 
-## Conclusion
+## Next Steps
 
-The Atlas Bridge Context API v0.2 is **complete and production-ready**. All requirements from the problem statement have been implemented, tested, and documented. The code is:
+To use these new functions in your PyTorch integration:
 
-- ✅ Fully functional
-- ✅ Well-tested (10/10 tests pass)
-- ✅ Well-documented
-- ✅ Secure (0 vulnerabilities)
-- ✅ Compatible with legacy code
-- ✅ Ready for integration
+1. Install the updated Python package:
 
-The implementation provides a solid foundation for the documented future extensions (12-qubit, advanced lifts, Co1 gates).
+```bash
+cd crates/hologram-ffi/interfaces/python
+pip install -e .
+```
+
+2. Import and use in your code:
+
+```python
+import hologram_ffi as hg
+
+# Example: Matrix multiplication for neural network layers
+hg.gemm_f32(exec_handle, weight_handle, input_handle, output_handle, m, n, k)
+```
