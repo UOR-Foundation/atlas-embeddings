@@ -1,0 +1,5 @@
+---
+source: crates/atlas-core/tests/serialize_stability.rs
+expression: binary.len().to_string()
+---
+158

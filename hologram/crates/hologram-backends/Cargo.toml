@@ -1,0 +1,60 @@
+[package]
+name = "hologram-backends"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Backend implementations for hologram kernels with Atlas ISA"
+readme = "README.md"
+keywords.workspace = true
+categories.workspace = true
+
+[dependencies]
+# Internal dependencies
+hologram-compiler = { path = "../hologram-compiler" }
+atlas-core = { path = "../atlas-core" }
+hologram-tracing = { path = "../hologram-tracing" }
+
+# External dependencies
+thiserror.workspace = true
+tracing.workspace = true
+bytemuck.workspace = true
+rayon.workspace = true
+parking_lot.workspace = true
+serde = { workspace = true, features = ["derive"] }
+serde_json = "1.0"
+bincode.workspace = true
+
+# CUDA backend (NVIDIA GPUs)
+# Optional dependency - only enabled with "cuda" feature
+cudarc = { version = "0.12", optional = true, features = ["nvrtc", "cuda-12000"] }
+
+# Metal backend (macOS/iOS only)
+[target.'cfg(target_vendor = "apple")'.dependencies]
+metal = "0.29"
+objc = "0.2"
+
+[features]
+default = []
+cuda = ["cudarc"]
+
+# Platform-specific memory locking for cache-resident boundary pools
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
+
+[target.'cfg(windows)'.dependencies]
+winapi = { version = "0.3", features = ["memoryapi", "winnt"] }
+
+[dev-dependencies]
+criterion.workspace = true
+proptest.workspace = true
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# TODO: Add benchmarks
+# [[bench]]
+# name = "instruction_throughput"
+# harness = false
+#
+# [[bench]]
+# name = "pool_operations"
+# harness = false

@@ -1,0 +1,36 @@
+[package]
+name = "atlas-core"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "Mathematical oracle and invariant enforcement for Atlas-12288"
+repository.workspace = true
+readme = "../../README.md"
+keywords.workspace = true
+categories.workspace = true
+
+[dependencies]
+atlas-embeddings = { workspace = true }
+thiserror = "1.0"
+num-rational.workspace = true
+num-traits.workspace = true
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true, features = [
+    "fmt",
+    "env-filter",
+    "chrono",
+] }
+tracing-appender = "0.2"
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = "0.4"
+
+[dev-dependencies]
+proptest = "1.5"
+criterion = { workspace = true }
+insta = { version = "1.41", features = ["json", "yaml"] }
+
+[[bench]]
+name = "serialize_bench"
+harness = false

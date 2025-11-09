@@ -1,0 +1,16 @@
+---
+source: crates/atlas-core/tests/serialize_stability.rs
+expression: "&validation.unity_flags"
+---
+- 18
+- 0
+- 0
+- 0
+- 0
+- 0
+- 0
+- 0
+- 0
+- 0
+- 0
+- 0

@@ -1,0 +1,6 @@
+---
+source: crates/atlas-core/tests/serialize_stability.rs
+expression: "&data.unity_classes"
+---
+- 1
+- 4

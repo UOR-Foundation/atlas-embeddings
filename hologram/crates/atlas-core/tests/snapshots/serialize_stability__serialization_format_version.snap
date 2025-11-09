@@ -1,0 +1,12 @@
+---
+source: crates/atlas-core/tests/serialize_stability.rs
+expression: version_marker
+---
+Format Version Marker:
+- Mirror pairs count: 48
+- Unity classes count: 2
+- Class masks count: 2
+- Phase windows count: 1
+- Has validation data: true
+- Binary size: 258 bytes
+- JSON size: 4004 bytes
