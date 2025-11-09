@@ -1,0 +1,24 @@
+[package]
+name = "hologram-benches"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "lib.rs"
+
+[[bench]]
+name = "kernel_performance"
+path = "kernel_performance.rs"
+harness = false
+
+[[bench]]
+name = "inline_performance"
+path = "inline_performance.rs"
+harness = false
+
+[dependencies]
+criterion = { workspace = true }
+hologram-codegen = { path = "../crates/hologram-codegen" }
+hologram-core = { path = "../crates/hologram-core" }
+libloading = "0.8"
+rayon = "1.10"
