@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MultiplicityProgramV0",
+  "description": "A complete Multiplicity program with words and obligations",
+  "type": "object",
+  "properties": {
+    "n": {
+      "type": "integer",
+      "description": "Index size (12,288 for Phase 0)",
+      "const": 12288
+    },
+    "words": {
+      "type": "array",
+      "items": {
+        "$ref": "multiplicity_word.schema.json"
+      },
+      "description": "Compiled Multiplicity words (Π-first order)"
+    },
+    "obligations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["policy", "admissibility", "semantics"],
+            "description": "Type of obligation"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the policy or semantic construct"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["UNPROVEN", "VIOLATION", "VERIFIED"],
+            "description": "Status of the obligation"
+          }
+        },
+        "required": ["type", "status"]
+      },
+      "description": "Tracked obligations for UNPROVEN policies and semantics"
+    }
+  },
+  "required": ["n", "words", "obligations"]
+}

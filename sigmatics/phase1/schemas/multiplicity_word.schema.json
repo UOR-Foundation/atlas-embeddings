@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MultiplicityWordV0",
+  "description": "A single word in the Multiplicity runtime instruction set",
+  "type": "object",
+  "properties": {
+    "op": {
+      "type": "string",
+      "enum": [
+        "projector",
+        "permute",
+        "rotate",
+        "copy",
+        "merge",
+        "split",
+        "modal_enter",
+        "modal_exit"
+      ],
+      "description": "Multiplicity operation code"
+    },
+    "p": {
+      "type": "integer",
+      "minimum": 2,
+      "description": "Prime for projector operations"
+    },
+    "r": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Level for projector operations"
+    },
+    "mode": {
+      "type": "string",
+      "enum": ["Δ", "A"],
+      "description": "Projector mode: Δ (delta) or A"
+    },
+    "pi": {
+      "type": "array",
+      "items": {
+        "type": "integer"
+      },
+      "description": "Permutation array for permute operations"
+    },
+    "k": {
+      "type": "integer",
+      "description": "Rotation count for rotate operations"
+    },
+    "arity": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Arity for merge operations"
+    },
+    "ellType": {
+      "type": "string",
+      "description": "Type annotation for split operations"
+    },
+    "note": {
+      "type": "string",
+      "description": "Optional note (e.g., UNPROVEN policy)"
+    }
+  },
+  "required": ["op"]
+}
