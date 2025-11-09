@@ -1,0 +1,50 @@
+[workspace]
+members = ["crates/*", "benches"]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+authors = ["UOR Foundation"]
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/UOR-Foundation/hologramapp"
+keywords = ["hologram", "compute", "canonicalization", "compiler", "ffi"]
+categories = ["science", "mathematics", "algorithms"]
+
+[workspace.dependencies]
+# Internal crates
+atlas-core = { path = "crates/atlas-core" }
+hologram-backends = { path = "crates/hologram-backends" }
+hologram-compiler = { path = "crates/hologram-compiler" }
+hologram-core = { path = "crates/hologram-core" }
+hologram-ffi = { path = "crates/hologram-ffi" }
+hologram-tracing = { path = "crates/hologram-tracing" }
+
+# External crate dependencies
+atlas-embeddings = "0.1.1"
+
+# Common external dependencies
+anyhow = "1.0"
+thiserror = "1.0"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = [
+    "env-filter",
+    "fmt",
+    "json",
+    "registry",
+] }
+rayon = "1.10"
+parking_lot = "0.12"
+bytemuck = { version = "1.14", features = ["derive"] }
+num-traits = "0.2"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+num-rational = "0.4"
+blake3 = "1.5"
+bincode = "1.3"
+prometheus = "0.13"
+lazy_static = "1.5"
+
+# Testing
+proptest = "1.4"
+criterion = { version = "0.5", features = ["html_reports"] }
