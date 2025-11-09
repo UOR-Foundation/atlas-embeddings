@@ -1,0 +1,20 @@
+# Audit bundle for canonical schedule
+
+[policy]
+# tolerance for fairness checks (absolute count difference)
+class_skew_tolerance = 1
+anchor_skew_tolerance = 1
+
+[intervals]
+# audit entry frequency in steps
+audit_every = 768
+
+[required_kinds]
+# per accepted step kinds we expect to see
+per_step = ["ace_step", "petc"]
+
+[indexing]
+classes = 96
+anchors = 6
+fold_rows = 48
+fold_cols = 256
