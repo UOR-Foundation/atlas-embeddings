@@ -4,7 +4,7 @@ on:
   push:
     branches: [ main, develop, copilot/** ]
     paths:
-      - 'atlas_core/**'
+      - 'atlas/**'
       - 'tests/**'
       - 'bindings/**'
       - 'tools/verify_bridge.sh'
@@ -15,7 +15,7 @@ on:
   pull_request:
     branches: [ main, develop ]
     paths:
-      - 'atlas_core/**'
+      - 'atlas/**'
       - 'tests/**'
       - 'bindings/**'
       - 'tools/verify_bridge.sh'
@@ -146,15 +146,15 @@ jobs:
         sudo apt-get install -y build-essential libopenblas-dev
         pip install numpy cffi
     
-    - name: Build atlas_core library
+    - name: Build atlas library
       run: |
-        cd atlas_core
+        cd atlas
         make clean
         make USE_BLAS=yes
     
     - name: Test Python bindings
       run: |
-        export LD_LIBRARY_PATH="${PWD}/atlas_core/lib:$LD_LIBRARY_PATH"
+        export LD_LIBRARY_PATH="${PWD}/atlas/lib:$LD_LIBRARY_PATH"
         
         # Test context API (should work)
         python3 -c "
@@ -221,7 +221,7 @@ except:
     - name: Check code formatting
       run: |
         echo "Checking C code formatting..."
-        find atlas_core/src atlas_core/include -name "*.c" -o -name "*.h" | while read f; do
+        find atlas/src atlas/include -name "*.c" -o -name "*.h" | while read f; do
           echo "  Checking $f"
         done
     
@@ -231,6 +231,6 @@ except:
         cppcheck --enable=warning,performance,portability \
           --suppress=missingIncludeSystem \
           --error-exitcode=0 \
-          atlas_core/src/ tests/*.c 2>&1 | tee cppcheck.log
+          atlas/src/ tests/*.c 2>&1 | tee cppcheck.log
         
         echo "Static analysis complete (warnings only)"

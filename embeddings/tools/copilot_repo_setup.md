@@ -191,18 +191,18 @@ log_success "Directory structure created"
 # Step 2: Move Atlas core files
 log_info "Moving Atlas core files..."
 
-# Move atlas_core contents to atlas/
-if [ -d "atlas_core" ]; then
-    if [ -d "atlas_core/src" ]; then
-        for file in atlas_core/src/*; do
+# Move atlas contents to atlas/
+if [ -d "atlas" ]; then
+    if [ -d "atlas/src" ]; then
+        for file in atlas/src/*; do
             if [ -f "$file" ]; then
                 safe_move "$file" "atlas/src/$(basename "$file")"
             fi
         done
     fi
     
-    if [ -d "atlas_core/include" ]; then
-        for file in atlas_core/include/*; do
+    if [ -d "atlas/include" ]; then
+        for file in atlas/include/*; do
             if [ -f "$file" ]; then
                 safe_move "$file" "atlas/include/$(basename "$file")"
             fi

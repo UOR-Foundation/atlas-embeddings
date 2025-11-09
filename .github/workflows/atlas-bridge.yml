@@ -4,14 +4,14 @@ on:
   push:
     branches: [ main, develop, copilot/** ]
     paths:
-      - 'atlas_core/**'
+      - 'atlas/**'
       - 'tests/test*.c'
       - 'bindings/python/atlas_bridge/**'
       - '.github/workflows/atlas-bridge.yml'
   pull_request:
     branches: [ main, develop ]
     paths:
-      - 'atlas_core/**'
+      - 'atlas/**'
       - 'tests/test*.c'
       - 'bindings/python/atlas_bridge/**'
 
@@ -40,8 +40,8 @@ jobs:
           brew install gcc
         fi
     
-    - name: Build atlas_core library (legacy)
-      working-directory: atlas_core
+    - name: Build atlas library (legacy)
+      working-directory: atlas
       env:
         CC: ${{ matrix.compiler }}
       run: |
@@ -67,7 +67,7 @@ jobs:
         rm *.o
     
     - name: Build atlas_bridge_ctx library (v0.4)
-      working-directory: atlas_core
+      working-directory: atlas
       env:
         CC: ${{ matrix.compiler }}
       run: |
@@ -96,34 +96,34 @@ jobs:
       run: |
         # Compile legacy test programs
         $CC -o test_explosion tests/test_explosion.c \
-          atlas_core/src/atlas_bridge.c \
-          atlas_core/src/linalg_util.c \
-          atlas_core/src/e_group.c \
-          atlas_core/src/twirl.c \
-          atlas_core/src/projectors.c \
-          atlas_core/src/co1_gates.c \
-          atlas_core/src/diagnostics.c \
-          -Iatlas_core/include -lm
+          atlas/src/atlas_bridge.c \
+          atlas/src/linalg_util.c \
+          atlas/src/e_group.c \
+          atlas/src/twirl.c \
+          atlas/src/projectors.c \
+          atlas/src/co1_gates.c \
+          atlas/src/diagnostics.c \
+          -Iatlas/include -lm
         
         $CC -o test_projectors tests/test_projectors.c \
-          atlas_core/src/atlas_bridge.c \
-          atlas_core/src/linalg_util.c \
-          atlas_core/src/e_group.c \
-          atlas_core/src/twirl.c \
-          atlas_core/src/projectors.c \
-          atlas_core/src/co1_gates.c \
-          atlas_core/src/diagnostics.c \
-          -Iatlas_core/include -lm
+          atlas/src/atlas_bridge.c \
+          atlas/src/linalg_util.c \
+          atlas/src/e_group.c \
+          atlas/src/twirl.c \
+          atlas/src/projectors.c \
+          atlas/src/co1_gates.c \
+          atlas/src/diagnostics.c \
+          -Iatlas/include -lm
         
         $CC -o test_commutant tests/test_commutant.c \
-          atlas_core/src/atlas_bridge.c \
-          atlas_core/src/linalg_util.c \
-          atlas_core/src/e_group.c \
-          atlas_core/src/twirl.c \
-          atlas_core/src/projectors.c \
-          atlas_core/src/co1_gates.c \
-          atlas_core/src/diagnostics.c \
-          -Iatlas_core/include -lm
+          atlas/src/atlas_bridge.c \
+          atlas/src/linalg_util.c \
+          atlas/src/e_group.c \
+          atlas/src/twirl.c \
+          atlas/src/projectors.c \
+          atlas/src/co1_gates.c \
+          atlas/src/diagnostics.c \
+          -Iatlas/include -lm
     
     - name: Build Context API tests (v0.4)
       env:
@@ -131,13 +131,13 @@ jobs:
       run: |
         # Build v0.2 compatibility tests
         $CC -o tests_ctx tests/tests_ctx.c \
-          atlas_core/src/atlas_bridge_ctx.c \
-          -Iatlas_core/include -lm
+          atlas/src/atlas_bridge_ctx.c \
+          -Iatlas/include -lm
         
         # Build v0.3 extended tests
         $CC -o tests_ctx_v03 tests/tests_ctx_v03.c \
-          atlas_core/src/atlas_bridge_ctx.c \
-          -Iatlas_core/include -lm
+          atlas/src/atlas_bridge_ctx.c \
+          -Iatlas/include -lm
         
         # Build v0.4 extended tests (with AVX2 on Linux)
         if [ "$RUNNER_OS" == "Linux" ]; then
@@ -146,13 +146,13 @@ jobs:
           CFLAGS=""
         fi
         $CC $CFLAGS -o tests_ctx_v04 tests/tests_ctx_v04.c \
-          atlas_core/src/atlas_bridge_ctx.c \
-          -Iatlas_core/include -lm
+          atlas/src/atlas_bridge_ctx.c \
+          -Iatlas/include -lm
         
         # Build spinlift demo
         $CC -o test_spinlift_demo tests/test_spinlift_demo.c \
-          atlas_core/src/atlas_bridge_ctx.c \
-          -Iatlas_core/include -lm
+          atlas/src/atlas_bridge_ctx.c \
+          -Iatlas/include -lm
     
     - name: Run legacy C tests
       run: |
@@ -189,7 +189,7 @@ jobs:
       run: |
         # Create test certificate using v0.4 API
         cat > /tmp/cert_generator.c << 'EOF'
-#include "atlas_core/include/atlas_bridge_ctx.h"
+#include "atlas/include/atlas_bridge_ctx.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -233,8 +233,8 @@ EOF
         fi
         
         ${{ matrix.compiler }} $CFLAGS -o cert_generator /tmp/cert_generator.c \
-          atlas_core/src/atlas_bridge_ctx.c \
-          -Iatlas_core/include -lm
+          atlas/src/atlas_bridge_ctx.c \
+          -Iatlas/include -lm
         
         ./cert_generator
         
@@ -267,9 +267,9 @@ EOF
       run: |
         # Make library discoverable
         if [ "$RUNNER_OS" == "Linux" ]; then
-          export LD_LIBRARY_PATH="${PWD}/atlas_core/lib:$LD_LIBRARY_PATH"
+          export LD_LIBRARY_PATH="${PWD}/atlas/lib:$LD_LIBRARY_PATH"
         elif [ "$RUNNER_OS" == "macOS" ]; then
-          export DYLD_LIBRARY_PATH="${PWD}/atlas_core/lib:$DYLD_LIBRARY_PATH"
+          export DYLD_LIBRARY_PATH="${PWD}/atlas/lib:$DYLD_LIBRARY_PATH"
         fi
         
         # Run Python examples (if they exist)
@@ -304,7 +304,7 @@ EOF
     - name: Check code formatting
       run: |
         # For now, just check that files exist
-        find atlas_core/src -name "*.c" -o -name "*.h" | while read f; do
+        find atlas/src -name "*.c" -o -name "*.h" | while read f; do
           echo "Checking $f"
         done
     
@@ -313,4 +313,4 @@ EOF
         sudo apt-get install -y cppcheck
         cppcheck --enable=all --error-exitcode=1 \
           --suppress=missingIncludeSystem \
-          atlas_core/src/ tests/*.c
+          atlas/src/ tests/*.c
