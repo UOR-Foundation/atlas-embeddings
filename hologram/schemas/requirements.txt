@@ -1,0 +1,7 @@
+# Python dependencies for kernel schema development
+# This is OPTIONAL - only needed for manual testing of the code generator
+#
+# The actual kernel compilation happens via cargo build which runs build.py automatically
+
+# No dependencies currently needed - build.py uses only stdlib
+
