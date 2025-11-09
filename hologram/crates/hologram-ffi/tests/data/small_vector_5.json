@@ -1,0 +1,21 @@
+{
+    "name": "small_vector_5",
+    "description": "5-element test vector for basic operations",
+    "data": [1.0, 2.0, 3.0, 4.0, 5.0],
+    "length": 5,
+    "expected_results": {
+        "sum": 15.0,
+        "mean": 3.0,
+        "max": 5.0,
+        "min": 1.0,
+        "product": 120.0
+    },
+    "test_cases": [
+        "buffer_fill",
+        "buffer_copy",
+        "vector_add",
+        "vector_sub",
+        "scalar_mul",
+        "scalar_add"
+    ]
+}

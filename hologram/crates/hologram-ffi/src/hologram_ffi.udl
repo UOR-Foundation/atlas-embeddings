@@ -1,0 +1,280 @@
+namespace hologram_ffi {
+    // ============================================================================
+    // Executor Management
+    // ============================================================================
+
+    /// Create a new executor with CPU backend (default)
+    u64 new_executor();
+
+    /// Create a new executor with specified backend ("cpu", "metal", or "cuda")
+    /// Returns 0 if backend is not available
+    u64 new_executor_with_backend(string backend);
+
+    /// Create a new executor with automatic backend detection
+    /// Selects best available: Metal > CUDA > CPU
+    u64 new_executor_auto();
+
+    /// Cleanup executor and free resources
+    void executor_cleanup(u64 executor_handle);
+
+    // ============================================================================
+    // Buffer Management
+    // ============================================================================
+
+    /// Allocate a buffer using an executor
+    u64 executor_allocate_buffer(u64 executor_handle, u32 len);
+
+    /// Allocate a boundary buffer (maps to specific class)
+    u64 executor_allocate_boundary_buffer(u64 executor_handle, u8 class, u32 width, u32 height);
+
+    /// Get buffer length
+    u32 buffer_length(u64 buffer_handle); 
+
+    /// Check if buffer is empty
+    u8 buffer_is_empty(u64 buffer_handle);
+
+    /// Check if buffer is in linear pool
+    u8 buffer_is_linear(u64 buffer_handle);
+
+    /// Check if buffer is in boundary pool
+    u8 buffer_is_boundary(u64 buffer_handle);
+
+    /// Get buffer pool type ("linear" or "boundary")
+    string buffer_pool(u64 buffer_handle);
+
+    /// Get buffer element size in bytes
+    u32 buffer_element_size(u64 buffer_handle);
+
+    /// Get buffer total size in bytes
+    u32 buffer_size_bytes(u64 buffer_handle);
+
+    /// Copy data from JSON-encoded slice to buffer
+    void buffer_copy_from_slice(u64 executor_handle, u64 buffer_handle, string data_json);
+
+    /// Get buffer data as JSON-encoded string
+    string buffer_to_vec(u64 executor_handle, u64 buffer_handle);
+
+    /// Fill buffer with a value
+    void buffer_fill(u64 executor_handle, u64 buffer_handle, f32 value, u32 len);
+
+    /// Copy from one buffer to another
+    void buffer_copy(u64 executor_handle, u64 src_handle, u64 dst_handle, u32 len);
+
+    /// Cleanup buffer and free resources
+    void buffer_cleanup(u64 buffer_handle);
+
+    /// Get buffer class index [0, 96)
+    u8 buffer_class_index(u64 buffer_handle);
+
+    /// Copy data from buffer to host slice (JSON-encoded)
+    string buffer_copy_to_slice(u64 executor_handle, u64 buffer_handle);
+
+    /// Copy data from JSON-encoded slice to buffer, canonicalizing all bytes (LSB=0)
+    void buffer_copy_from_canonical_slice(u64 executor_handle, u64 buffer_handle, string data_json);
+
+    /// Canonicalize all bytes in the buffer (clear all LSBs)
+    void buffer_canonicalize_all(u64 executor_handle, u64 buffer_handle);
+
+    /// Verify that all bytes in the buffer are in canonical form (LSB=0)
+    u8 buffer_verify_canonical(u64 executor_handle, u64 buffer_handle);
+
+    // ============================================================================
+    // Zero-Copy Buffer Operations (NEW)
+    // ============================================================================
+
+    /// Copy data from raw bytes to buffer (zero-copy, avoids JSON serialization)
+    /// Compatible with Python memoryview and NumPy arrays
+    void buffer_copy_from_bytes(u64 executor_handle, u64 buffer_handle, sequence<u8> data_bytes);
+
+    /// Get buffer data as raw bytes (zero-copy, avoids JSON serialization)
+    /// Can be efficiently converted to NumPy arrays
+    sequence<u8> buffer_to_bytes(u64 executor_handle, u64 buffer_handle);
+
+    /// Get raw pointer to buffer data (CPU backend only)
+    /// Returns memory address as u64, or 0 on error
+    /// SAFETY: Only for advanced users, requires careful lifetime management
+    u64 buffer_as_ptr(u64 executor_handle, u64 buffer_handle);
+
+    /// Get mutable raw pointer to buffer data (CPU backend only)
+    /// Returns memory address as u64, or 0 on error
+    /// SAFETY: Only for advanced users, requires careful lifetime management
+    u64 buffer_as_mut_ptr(u64 executor_handle, u64 buffer_handle);
+
+    // ============================================================================
+    // Math Operations (ops::math)
+    // ============================================================================
+
+    /// Element-wise addition: c = a + b
+    void vector_add_f32(u64 executor_handle, u64 a_handle, u64 b_handle, u64 c_handle, u32 len);
+
+    /// Element-wise subtraction: c = a - b
+    void vector_sub_f32(u64 executor_handle, u64 a_handle, u64 b_handle, u64 c_handle, u32 len);
+
+    /// Element-wise multiplication: c = a * b
+    void vector_mul_f32(u64 executor_handle, u64 a_handle, u64 b_handle, u64 c_handle, u32 len);
+
+    /// Element-wise division: c = a / b
+    void vector_div_f32(u64 executor_handle, u64 a_handle, u64 b_handle, u64 c_handle, u32 len);
+
+    /// Element-wise minimum: c = min(a, b)
+    void vector_min_f32(u64 executor_handle, u64 a_handle, u64 b_handle, u64 c_handle, u32 len);
+
+    /// Element-wise maximum: c = max(a, b)
+    void vector_max_f32(u64 executor_handle, u64 a_handle, u64 b_handle, u64 c_handle, u32 len);
+
+    /// Element-wise absolute value: c = |a|
+    void vector_abs_f32(u64 executor_handle, u64 a_handle, u64 c_handle, u32 len);
+
+    /// Element-wise negation: c = -a
+    void vector_neg_f32(u64 executor_handle, u64 a_handle, u64 c_handle, u32 len);
+
+    /// Element-wise ReLU: c = max(0, a)
+    void vector_relu_f32(u64 executor_handle, u64 a_handle, u64 c_handle, u32 len);
+
+    /// Clip values to range [min_val, max_val]: c = clip(a, min_val, max_val)
+    void vector_clip_f32(u64 executor_handle, u64 a_handle, u64 c_handle, u32 len, f32 min_val, f32 max_val);
+
+    /// Add scalar to vector: c = a + scalar
+    void scalar_add_f32(u64 executor_handle, u64 a_handle, u64 c_handle, u32 len, f32 scalar);
+
+    /// Multiply vector by scalar: c = a * scalar
+    void scalar_mul_f32(u64 executor_handle, u64 a_handle, u64 c_handle, u32 len, f32 scalar);
+
+    // ============================================================================
+    // Reduction Operations (ops::reduce)
+    // ============================================================================
+
+    /// Sum reduction: output[0] = sum(input)
+    /// Note: output buffer must have at least 3 elements for internal temporaries
+    f32 reduce_sum_f32(u64 executor_handle, u64 input_handle, u64 output_handle, u32 len);
+
+    /// Min reduction: output[0] = min(input)
+    /// Note: output buffer must have at least 3 elements for internal temporaries
+    f32 reduce_min_f32(u64 executor_handle, u64 input_handle, u64 output_handle, u32 len);
+
+    /// Max reduction: output[0] = max(input)
+    /// Note: output buffer must have at least 3 elements for internal temporaries
+    f32 reduce_max_f32(u64 executor_handle, u64 input_handle, u64 output_handle, u32 len);
+
+    // ============================================================================
+    // Activation Functions (ops::activation)
+    // ============================================================================
+
+    /// Sigmoid activation: output = 1 / (1 + exp(-input))
+    void sigmoid_f32(u64 executor_handle, u64 input_handle, u64 output_handle, u32 len);
+
+    /// Hyperbolic tangent activation: output = tanh(input)
+    void tanh_f32(u64 executor_handle, u64 input_handle, u64 output_handle, u32 len);
+
+    /// GELU activation: output = x * 0.5 * (1 + tanh(sqrt(2/π) * (x + 0.044715 * x³)))
+    void gelu_f32(u64 executor_handle, u64 input_handle, u64 output_handle, u32 len);
+
+    /// Softmax activation: output[i] = exp(input[i]) / sum(exp(input))
+    void softmax_f32(u64 executor_handle, u64 input_handle, u64 output_handle, u32 len);
+
+    // ============================================================================
+    // Loss Functions (ops::loss)
+    // ============================================================================
+
+    /// Mean Squared Error loss
+    /// Note: output buffer must have at least 3 elements for internal temporaries
+    f32 mse_loss_f32(u64 executor_handle, u64 pred_handle, u64 target_handle, u64 output_handle, u32 len);
+
+    /// Cross Entropy loss
+    /// Note: output buffer must have at least 3 elements for internal temporaries
+    f32 cross_entropy_loss_f32(u64 executor_handle, u64 pred_handle, u64 target_handle, u64 output_handle, u32 len);
+
+    /// Binary Cross Entropy loss
+    /// Note: output buffer must have at least 3 elements for internal temporaries
+    f32 binary_cross_entropy_loss_f32(u64 executor_handle, u64 pred_handle, u64 target_handle, u64 output_handle, u32 len);
+
+    // ============================================================================
+    // Tensor Operations
+    // ============================================================================
+
+    /// Create tensor from buffer with given shape (JSON-encoded array)
+    u64 tensor_from_buffer(u64 buffer_handle, string shape_json);
+
+    /// Get tensor shape as JSON-encoded array
+    string tensor_shape(u64 tensor_handle);
+
+    /// Get number of dimensions
+    u32 tensor_ndim(u64 tensor_handle);
+
+    /// Get total number of elements
+    u32 tensor_numel(u64 tensor_handle);
+
+    /// Cleanup tensor and free resources
+    void tensor_cleanup(u64 tensor_handle);
+
+    /// Create tensor from buffer with given shape and strides (JSON-encoded arrays)
+    u64 tensor_from_buffer_with_strides(u64 buffer_handle, string shape_json, string strides_json);
+
+    /// Get tensor strides as JSON-encoded array
+    string tensor_strides(u64 tensor_handle);
+
+    /// Get tensor offset
+    u32 tensor_offset(u64 tensor_handle);
+
+    /// Check if tensor is contiguous (row-major)
+    u8 tensor_is_contiguous(u64 tensor_handle);
+
+    /// Create a contiguous copy of the tensor
+    u64 tensor_contiguous(u64 executor_handle, u64 tensor_handle);
+
+    /// Transpose 2D tensor (swap dimensions 0 and 1)
+    u64 tensor_transpose(u64 tensor_handle);
+
+    /// Reshape tensor (must have same number of elements)
+    u64 tensor_reshape(u64 executor_handle, u64 tensor_handle, string new_shape_json);
+
+    /// Permute dimensions according to given order
+    u64 tensor_permute(u64 tensor_handle, string dims_json);
+
+    /// View tensor as 1D (flattened)
+    u64 tensor_view_1d(u64 tensor_handle);
+
+    /// Select a single index along a dimension (reduces dimensionality by 1)
+    u64 tensor_select(u64 tensor_handle, u32 dim, u32 index);
+
+    /// Narrow a dimension to a range [start, start+length)
+    u64 tensor_narrow(u64 tensor_handle, u32 dim, u32 start, u32 length);
+
+    /// Slice a dimension with start, end, and step
+    /// Pass -1 for None values
+    u64 tensor_slice(u64 tensor_handle, u32 dim, i32 start, i32 end, i32 step);
+
+    /// Matrix multiplication: C = A @ B (for 2D tensors)
+    u64 tensor_matmul(u64 executor_handle, u64 a_handle, u64 b_handle);
+
+    /// Check if two tensors are broadcast-compatible
+    u8 tensor_is_broadcast_compatible_with(u64 a_handle, u64 b_handle);
+
+    /// Compute broadcast result shape for two shapes (JSON-encoded arrays)
+    string tensor_broadcast_shapes(string shape_a_json, string shape_b_json);
+
+    /// Get underlying buffer handle from tensor
+    u64 tensor_buffer(u64 tensor_handle);
+
+    // ============================================================================
+    // Linear Algebra Operations
+    // ============================================================================
+
+    /// General Matrix Multiplication: C = A * B
+    /// A is m×k, B is k×n, C is m×n
+    void gemm_f32(u64 executor_handle, u64 a_handle, u64 b_handle, u64 c_handle, u32 m, u32 n, u32 k);
+
+    /// Matrix-Vector Multiplication: y = A * x
+    /// A is m×n matrix, x is n-element vector, y is m-element vector
+    void matvec_f32(u64 executor_handle, u64 a_handle, u64 x_handle, u64 y_handle, u32 m, u32 n);
+
+    // ============================================================================
+    // Utility Functions
+    // ============================================================================
+
+    /// Get FFI library version
+    string get_version();
+
+    /// Clear all registries (for testing/debugging)
+    void clear_all_registries();
+};

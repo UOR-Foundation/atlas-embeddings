@@ -1,0 +1,53 @@
+[package]
+name = "hologram-ffi"
+version = "0.1.0"
+edition = "2021"
+authors = ["Hologram Project"]
+description = "Cross-language FFI interface for Hologram using UniFFI"
+license = "MIT"
+keywords = ["ffi", "hologram", "uniffi", "cross-language", "compiler"]
+categories = ["api-bindings", "ffi"]
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+name = "hologram_ffi"
+
+[[bin]]
+name = "generate-bindings"
+path = "generate_bindings.rs"
+
+[dependencies]
+# Core hologram functionality
+hologram-core = { path = "../hologram-core" }
+hologram-compiler = { path = "../hologram-compiler" }
+
+# UniFFI for cross-language bindings
+uniffi = "0.27"
+
+# Error handling
+thiserror = "1.0"
+
+# Serialization for complex types
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Lazy static initialization
+lazy_static = "1.4"
+
+# Logging
+tracing = "0.1"
+
+# Path handling for generate-bindings binary
+camino = "1.1"
+
+# UniFFI binding generation
+uniffi_bindgen = "0.27"
+
+[build-dependencies]
+# UniFFI for build script
+uniffi = { version = "0.27", features = ["build"] }
+
+[dev-dependencies]
+# Testing
+criterion = { version = "0.5", features = ["html_reports"] }
+serial_test = "3.0"

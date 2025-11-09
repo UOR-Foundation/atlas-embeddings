@@ -1,0 +1,197 @@
+{
+  "basic_functionality": {
+    "tests": [
+      {
+        "test": "get_version",
+        "success": true,
+        "result": "0.1.0",
+        "error": null
+      },
+      {
+        "test": "atlas_phase",
+        "success": true,
+        "result": 0,
+        "error": null
+      },
+      {
+        "test": "atlas_resonance_at",
+        "success": true,
+        "result": 0.0,
+        "error": null
+      },
+      {
+        "test": "atlas_resonance_snapshot",
+        "success": true,
+        "result": 96,
+        "error": null
+      }
+    ],
+    "success_rate": 1.0,
+    "success_count": 4,
+    "total_count": 4,
+    "platform_info": {
+      "system": "Linux",
+      "release": "6.14.10-orbstack-00291-g1b252bd3edea",
+      "version": "#1 SMP Sat Jun  7 02:45:18 UTC 2025",
+      "machine": "aarch64",
+      "processor": "",
+      "python_version": "3.12.11",
+      "python_implementation": "CPython",
+      "architecture": "64bit",
+      "platform": "Linux-6.14.10-orbstack-00291-g1b252bd3edea-aarch64-with-glibc2.31"
+    }
+  },
+  "executor_compatibility": {
+    "tests": [
+      {
+        "test": "new_executor",
+        "success": true,
+        "result": 1,
+        "error": null
+      },
+      {
+        "test": "executor_phase",
+        "success": true,
+        "result": 0,
+        "error": null
+      },
+      {
+        "test": "executor_advance_phase",
+        "success": true,
+        "result": null,
+        "error": null
+      },
+      {
+        "test": "executor_resonance_at",
+        "success": true,
+        "result": 0.0,
+        "error": null
+      },
+      {
+        "test": "executor_resonance_snapshot",
+        "success": true,
+        "result": 96,
+        "error": null
+      },
+      {
+        "test": "executor_mirror",
+        "success": true,
+        "result": 3,
+        "error": null
+      },
+      {
+        "test": "executor_neighbors",
+        "success": true,
+        "result": 5,
+        "error": null
+      },
+      {
+        "test": "executor_cleanup",
+        "success": true,
+        "result": null,
+        "error": null
+      }
+    ],
+    "success_rate": 1.0,
+    "success_count": 8,
+    "total_count": 8,
+    "platform_info": {
+      "system": "Linux",
+      "release": "6.14.10-orbstack-00291-g1b252bd3edea",
+      "version": "#1 SMP Sat Jun  7 02:45:18 UTC 2025",
+      "machine": "aarch64",
+      "processor": "",
+      "python_version": "3.12.11",
+      "python_implementation": "CPython",
+      "architecture": "64bit",
+      "platform": "Linux-6.14.10-orbstack-00291-g1b252bd3edea-aarch64-with-glibc2.31"
+    }
+  },
+  "buffer_compatibility": {
+    "tests": [
+      {
+        "test": "executor_allocate_buffer",
+        "success": true,
+        "result": 3,
+        "error": null
+      },
+      {
+        "test": "buffer_length",
+        "success": true,
+        "result": 1000,
+        "error": null
+      },
+      {
+        "test": "buffer_is_empty",
+        "success": true,
+        "result": 0,
+        "error": null
+      },
+      {
+        "test": "buffer_is_linear",
+        "success": 1,
+        "result": 1,
+        "error": null
+      },
+      {
+        "test": "buffer_element_size",
+        "success": true,
+        "result": 4,
+        "error": null
+      },
+      {
+        "test": "buffer_size_bytes",
+        "success": true,
+        "result": 4000,
+        "error": null
+      },
+      {
+        "test": "buffer_fill",
+        "success": true,
+        "result": null,
+        "error": null
+      },
+      {
+        "test": "buffer_to_vec",
+        "success": true,
+        "result": 1000,
+        "error": null
+      },
+      {
+        "test": "buffer_cleanup",
+        "success": true,
+        "result": null,
+        "error": null
+      }
+    ],
+    "success_rate": 1.0,
+    "success_count": 9,
+    "total_count": 9,
+    "platform_info": {
+      "system": "Linux",
+      "release": "6.14.10-orbstack-00291-g1b252bd3edea",
+      "version": "#1 SMP Sat Jun  7 02:45:18 UTC 2025",
+      "machine": "aarch64",
+      "processor": "",
+      "python_version": "3.12.11",
+      "python_implementation": "CPython",
+      "architecture": "64bit",
+      "platform": "Linux-6.14.10-orbstack-00291-g1b252bd3edea-aarch64-with-glibc2.31"
+    }
+  },
+  "test_metadata": {
+    "total_duration_seconds": 0.002480745315551758,
+    "timestamp": 1761151180.8530788,
+    "platform_info": {
+      "system": "Linux",
+      "release": "6.14.10-orbstack-00291-g1b252bd3edea",
+      "version": "#1 SMP Sat Jun  7 02:45:18 UTC 2025",
+      "machine": "aarch64",
+      "processor": "",
+      "python_version": "3.12.11",
+      "python_implementation": "CPython",
+      "architecture": "64bit",
+      "platform": "Linux-6.14.10-orbstack-00291-g1b252bd3edea-aarch64-with-glibc2.31"
+    }
+  }
+}
