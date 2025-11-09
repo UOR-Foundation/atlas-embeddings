@@ -53,7 +53,7 @@ This checklist ensures all v0.5 components are properly integrated and functiona
 
 ### Verification Suite
 
-- [x] **tools/verify_bridge.sh** created
+- [x] **atlas/tools/verify_bridge.sh** created
   - [x] BLAS detection logic
   - [x] Library compilation
   - [x] Test executable building
@@ -206,7 +206,7 @@ ctest
 ### Verification Suite
 
 ```bash
-bash tools/verify_bridge.sh
+bash atlas/tools/verify_bridge.sh
 ```
 
 **Expected:**
@@ -318,7 +318,7 @@ make USE_BLAS=no
 Maintainers should monitor these files closely:
 - `atlas/src/atlas_bridge_ctx.c` - Core implementation
 - `atlas/include/atlas_bridge_ctx.h` - Public API
-- `tools/verify_bridge.sh` - Verification suite
+- `atlas/tools/verify_bridge.sh` - Verification suite
 - `.github/workflows/bridge.yml` - CI configuration
 
 ### BLAS Support

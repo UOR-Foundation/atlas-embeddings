@@ -91,10 +91,10 @@ atlas_ctx_load_co1_gates(ctx, "co1_gates.txt");
 
 ### 4. Verification Suite
 
-**tools/verify_bridge.sh**: Comprehensive verification with threshold enforcement
+**atlas/tools/verify_bridge.sh**: Comprehensive verification with threshold enforcement
 
 ```bash
-bash tools/verify_bridge.sh
+bash atlas/tools/verify_bridge.sh
 ```
 
 Performs:
@@ -203,7 +203,7 @@ atlas_ctx_free(ctx);
 - [ ] Optionally create `P_299_matrix.bin` and `co1_gates.txt`
 - [ ] Update code to use context-based API
 - [ ] Add deprecation warning handling for legacy API usage
-- [ ] Test with `tools/verify_bridge.sh`
+- [ ] Test with `atlas/tools/verify_bridge.sh`
 - [ ] Update CI to use `.github/workflows/bridge.yml`
 - [ ] Verify certificate generation and metrics
 
@@ -253,7 +253,7 @@ cd atlas
 make clean
 make
 cd ..
-bash tools/verify_bridge.sh
+bash atlas/tools/verify_bridge.sh
 ```
 
 ### Certificate Generation Fails
@@ -269,7 +269,7 @@ bash tools/verify_bridge.sh
 
 For issues or questions:
 1. Check `atlas/README_v04.md` for detailed API docs
-2. Run `tools/verify_bridge.sh` for diagnostics
+2. Run `atlas/tools/verify_bridge.sh` for diagnostics
 3. Review `.github/workflows/bridge.yml` for CI examples
 
 ## Version Timeline

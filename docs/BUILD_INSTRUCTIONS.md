@@ -7,7 +7,7 @@
 The easiest way to build, test, and verify Atlas Bridge:
 
 ```bash
-bash tools/verify_bridge.sh
+bash atlas/tools/verify_bridge.sh
 ```
 
 This script:
@@ -259,7 +259,7 @@ EOF
 ### Run All Tests
 
 ```bash
-bash tools/verify_bridge.sh
+bash atlas/tools/verify_bridge.sh
 ```
 
 ### Run Individual Test Suites
@@ -401,7 +401,7 @@ The repository includes `.github/workflows/bridge.yml` for automated builds and 
 Local simulation:
 ```bash
 # Run the same checks as CI
-bash tools/verify_bridge.sh
+bash atlas/tools/verify_bridge.sh
 
 # Check certificate
 cat bridge_cert.json
@@ -450,7 +450,7 @@ After building:
 1. Read `MIGRATION_v0.5.md` for usage guide
 2. Check `atlas/README_v04.md` for API documentation
 3. Review examples in `bindings/*/atlas_bridge/`
-4. Run `tools/verify_bridge.sh` to verify installation
+4. Run `atlas/tools/verify_bridge.sh` to verify installation
 
 ## Support
 
