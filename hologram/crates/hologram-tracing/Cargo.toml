@@ -1,0 +1,20 @@
+[package]
+name = "hologram-tracing"
+version = "0.1.0"
+edition = "2021"
+authors = ["UOR Foundation"]
+description = "Shared tracing configuration utilities for Hologram diagnostics"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/UOR-Foundation/hologramapp"
+readme = "README.md"
+keywords.workspace = true
+categories.workspace = true
+
+[features]
+default = []
+
+[dependencies]
+tracing = { workspace = true }
+tracing-appender = "0.2.3"
+tracing-subscriber = { workspace = true, features = ["fmt", "registry", "env-filter", "json"] }
+serde_json = { workspace = true }

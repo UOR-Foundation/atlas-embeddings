@@ -1,0 +1,10 @@
+[package]
+name = "hologram-kernel-runtime"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["rlib", "staticlib"]
+
+[dependencies]
+rayon = "1.10"
