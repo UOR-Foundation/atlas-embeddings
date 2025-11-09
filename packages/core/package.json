@@ -1,6 +1,6 @@
 {
   "name": "@uor-foundation/sigmatics",
-  "version": "0.2.0",
+  "version": "0.3.2",
   "description": "Sigmatics: the Atlas Sigil Algebra reference implementation from the UOR Foundation",
   "author": "UOR Foundation <info@uor.foundation> (https://uor.foundation)",
   "homepage": "https://github.com/UOR-Foundation/sigmatics#readme",
@@ -61,7 +61,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "test": "ts-node test/index.ts",
+    "test": "ts-node --project tsconfig.test.json test/index.ts",
     "watch": "tsc --watch"
   },
   "keywords": [

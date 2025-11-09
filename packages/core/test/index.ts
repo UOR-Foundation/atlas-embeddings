@@ -11,6 +11,10 @@ declare const module: any;
 import { Atlas } from '../src/api';
 import { tokenize } from '../src/lexer';
 import * as AtlasClass from '../src/class-system';
+import { runGroupAlgebraTests } from './sga/group-algebras.test';
+import { runSgaLawsTests } from './sga/laws.test';
+import { runBridgeTests } from './sga/bridge.test';
+import { runBugFixTests } from './sga/bug-fixes.test';
 
 // ============================================================================
 // Test Utilities
@@ -825,6 +829,252 @@ function runIntegrationTests(): void {
 }
 
 // ============================================================================
+// D-Transform Tests
+// ============================================================================
+
+function testDTransformBasics(): void {
+  console.log('Running D-Transform Basic Tests...\n');
+
+  runTest('D+1 rotates modality 0→1', () => {
+    // c0 (h₂=0, d=0, ℓ=0) → D+1 → c8 (h₂=0, d=1, ℓ=0)
+    const result = Atlas.applyDTransform(0, 1);
+    assertEqual(result.newClass, 8, 'c0 D+1 should be c8');
+    assertEqual(result.transformation.d_old, 0, 'd_old should be 0');
+    assertEqual(result.transformation.d_new, 1, 'd_new should be 1');
+  });
+
+  runTest('D+1 rotates modality 1→2', () => {
+    // c8 (h₂=0, d=1, ℓ=0) → D+1 → c16 (h₂=0, d=2, ℓ=0)
+    const result = Atlas.applyDTransform(8, 1);
+    assertEqual(result.newClass, 16, 'c8 D+1 should be c16');
+    assertEqual(result.transformation.d_new, 2, 'd_new should be 2');
+  });
+
+  runTest('D+1 rotates modality 2→0', () => {
+    // c16 (h₂=0, d=2, ℓ=0) → D+1 → c0 (h₂=0, d=0, ℓ=0)
+    const result = Atlas.applyDTransform(16, 1);
+    assertEqual(result.newClass, 0, 'c16 D+1 should be c0');
+    assertEqual(result.transformation.d_new, 0, 'd_new should be 0');
+  });
+
+  runTest('D+2 is same as D-1', () => {
+    const plus2 = Atlas.applyDTransform(8, 2);
+    const minus1 = Atlas.applyDTransform(8, -1);
+    assertEqual(plus2.newClass, minus1.newClass, 'D+2 should equal D-1');
+  });
+
+  runTest('D+3 is identity (period 3)', () => {
+    for (let c = 0; c < 96; c++) {
+      const result = Atlas.applyDTransform(c, 3);
+      assertEqual(result.newClass, c, `D+3 should be identity for c${c}`);
+    }
+  });
+
+  runTest('D+6 is identity (double period)', () => {
+    const result = Atlas.applyDTransform(21, 6);
+    assertEqual(result.newClass, 21, 'D+6 should be identity');
+  });
+
+  runTest('D-transform preserves h₂', () => {
+    for (let c = 0; c < 96; c++) {
+      const info = Atlas.classInfo(Atlas.canonicalByte(c));
+      const result = Atlas.applyDTransform(c, 1);
+      const newInfo = Atlas.classInfo(Atlas.canonicalByte(result.newClass));
+      assertEqual(newInfo.components.h2, info.components.h2, `h₂ should be preserved for c${c}`);
+    }
+  });
+
+  runTest('D-transform preserves ℓ', () => {
+    for (let c = 0; c < 96; c++) {
+      const info = Atlas.classInfo(Atlas.canonicalByte(c));
+      const result = Atlas.applyDTransform(c, 1);
+      const newInfo = Atlas.classInfo(Atlas.canonicalByte(result.newClass));
+      assertEqual(newInfo.components.l, info.components.l, `ℓ should be preserved for c${c}`);
+    }
+  });
+
+  console.log('\n✓ All D-transform basic tests passed!\n');
+}
+
+function testTrialityOrbits(): void {
+  console.log('Running Triality Orbit Tests...\n');
+
+  runTest('triality orbit contains 3 classes', () => {
+    const orbit = Atlas.getTrialityOrbit(0);
+    assertEqual(orbit.classes.length, 3, 'Orbit should have 3 classes');
+  });
+
+  runTest('triality orbit for c0 is [0, 8, 16]', () => {
+    const orbit = Atlas.getTrialityOrbit(0);
+    assertArrayEqual(orbit.classes, [0, 8, 16], 'c0 orbit should be [0, 8, 16]');
+  });
+
+  runTest('triality orbit for c21 is [5, 13, 21]', () => {
+    const orbit = Atlas.getTrialityOrbit(21);
+    assertArrayEqual(orbit.classes, [5, 13, 21], 'c21 orbit should be [5, 13, 21]');
+  });
+
+  runTest('orbit is same for all 3 members', () => {
+    const orbit1 = Atlas.getTrialityOrbit(0);
+    const orbit2 = Atlas.getTrialityOrbit(8);
+    const orbit3 = Atlas.getTrialityOrbit(16);
+    assertArrayEqual(orbit1.classes, orbit2.classes, 'Orbits should match');
+    assertArrayEqual(orbit2.classes, orbit3.classes, 'Orbits should match');
+  });
+
+  runTest('base coordinates match class h₂ and ℓ', () => {
+    const orbit = Atlas.getTrialityOrbit(21);
+    const info = Atlas.classInfo(Atlas.canonicalByte(21));
+    assertEqual(orbit.baseCoordinates.h2, info.components.h2, 'h₂ should match');
+    assertEqual(orbit.baseCoordinates.l, info.components.l, 'ℓ should match');
+  });
+
+  runTest('all 32 orbits generated', () => {
+    const orbits = Atlas.getAllTrialityOrbits();
+    assertEqual(orbits.length, 32, 'Should have 32 orbits');
+  });
+
+  runTest('all 96 classes covered by orbits', () => {
+    const orbits = Atlas.getAllTrialityOrbits();
+    const allClasses = new Set<number>();
+    for (const orbit of orbits) {
+      for (const c of orbit.classes) {
+        allClasses.add(c);
+      }
+    }
+    assertEqual(allClasses.size, 96, 'All 96 classes should be covered');
+  });
+
+  runTest('no class appears in multiple orbits', () => {
+    const orbits = Atlas.getAllTrialityOrbits();
+    const seen = new Set<number>();
+    for (const orbit of orbits) {
+      for (const c of orbit.classes) {
+        if (seen.has(c)) {
+          throw new Error(`Class ${c} appears in multiple orbits`);
+        }
+        seen.add(c);
+      }
+    }
+  });
+
+  console.log('\n✓ All triality orbit tests passed!\n');
+}
+
+function testDTransformParsing(): void {
+  console.log('Running D-Transform Parsing Tests...\n');
+
+  runTest('parse D+1 prefix transform', () => {
+    const ast = Atlas.parse('D+1@ mark@c0');
+    if (ast.kind !== 'Xform') {
+      throw new Error('Expected Xform node');
+    }
+    assertEqual(ast.transform.D, 1, 'D should be 1');
+  });
+
+  runTest('parse D-1 prefix transform', () => {
+    const ast = Atlas.parse('D-1@ mark@c0');
+    if (ast.kind !== 'Xform') {
+      throw new Error('Expected Xform node');
+    }
+    assertEqual(ast.transform.D, -1, 'D should be -1');
+  });
+
+  runTest('parse combined R+2 D+1 T+3', () => {
+    const ast = Atlas.parse('R+2 D+1 T+3@ mark@c0');
+    if (ast.kind !== 'Xform') {
+      throw new Error('Expected Xform node');
+    }
+    assertEqual(ast.transform.R, 2, 'R should be 2');
+    assertEqual(ast.transform.D, 1, 'D should be 1');
+    assertEqual(ast.transform.T, 3, 'T should be 3');
+  });
+
+  runTest('parse D+1 T+2 (no R)', () => {
+    const ast = Atlas.parse('D+1 T+2@ mark@c0');
+    if (ast.kind !== 'Xform') {
+      throw new Error('Expected Xform node');
+    }
+    assertEqual(ast.transform.D, 1, 'D should be 1');
+    assertEqual(ast.transform.T, 2, 'T should be 2');
+    assertEqual(ast.transform.R, undefined, 'R should be undefined');
+  });
+
+  runTest('parse D postfix syntax c21^D+1', () => {
+    const ast = Atlas.parse('mark@c21^D+1');
+    if (
+      ast.kind !== 'Par' ||
+      ast.branches[0].kind !== 'Seq' ||
+      ast.branches[0].items[0].kind !== 'Op'
+    ) {
+      throw new Error('Expected operation node');
+    }
+    const sigil = ast.branches[0].items[0].sigil;
+    assertEqual(sigil.triality, 1, 'triality should be 1');
+  });
+
+  console.log('\n✓ All D-transform parsing tests passed!\n');
+}
+
+function testDTransformEvaluation(): void {
+  console.log('Running D-Transform Evaluation Tests...\n');
+
+  runTest('evaluate D+1@ mark@c21 to bytes', () => {
+    // c21 (h₂=0, d=2, ℓ=5) → D+1 → c5 (h₂=0, d=0, ℓ=5)
+    const result = Atlas.evaluateBytes('D+1@ mark@c21');
+    const classIndex = Atlas.classIndex(result.bytes[0]);
+    assertEqual(classIndex, 5, 'Should transform to c5');
+  });
+
+  runTest('evaluate D+2@ mark@c21 to bytes', () => {
+    // c21 (h₂=0, d=2, ℓ=5) → D+2 → c13 (h₂=0, d=1, ℓ=5)
+    const result = Atlas.evaluateBytes('D+2@ mark@c21');
+    const classIndex = Atlas.classIndex(result.bytes[0]);
+    assertEqual(classIndex, 13, 'Should transform to c13');
+  });
+
+  runTest('evaluate D-1@ mark@c21 to bytes', () => {
+    // D-1 should equal D+2
+    const result = Atlas.evaluateBytes('D-1@ mark@c21');
+    const classIndex = Atlas.classIndex(result.bytes[0]);
+    assertEqual(classIndex, 13, 'D-1 should equal D+2');
+  });
+
+  runTest('evaluate R+1 D+1@ mark@c0 to bytes', () => {
+    // c0 (h₂=0, d=0, ℓ=0) → D+1 → c8 (h₂=0, d=1, ℓ=0) → R+1 → c32 (h₂=1, d=1, ℓ=0)
+    const result = Atlas.evaluateBytes('R+1 D+1@ mark@c0');
+    const classIndex = Atlas.classIndex(result.bytes[0]);
+    assertEqual(classIndex, 32, 'Combined R+1 D+1 should give c32');
+  });
+
+  runTest('evaluate D+1 T+1@ mark@c0 to bytes', () => {
+    // c0 (h₂=0, d=0, ℓ=0) → D+1 → c8 (h₂=0, d=1, ℓ=0) → T+1 → c9 (h₂=0, d=1, ℓ=1)
+    const result = Atlas.evaluateBytes('D+1 T+1@ mark@c0');
+    const classIndex = Atlas.classIndex(result.bytes[0]);
+    assertEqual(classIndex, 9, 'Combined D+1 T+1 should give c9');
+  });
+
+  runTest('evaluate combined R+2 D+1 T+3@ mark@c0', () => {
+    const result = Atlas.evaluateBytes('R+2 D+1 T+3@ mark@c0');
+    assertEqual(result.bytes.length, 1, 'Should have 1 byte');
+  });
+
+  runTest('operational words include D-transform markers', () => {
+    const result = Atlas.evaluateWords('D+1@ mark@c0');
+    const hasTrialityMarker = result.words.some((w) => w.includes('δ'));
+    assertEqual(hasTrialityMarker, true, 'Should have δ marker in operational words');
+  });
+
+  runTest('lexer recognizes D token', () => {
+    const tokens = tokenize('D+1');
+    assertEqual(tokens[0].type, 'TRIALITY', 'First token should be TRIALITY');
+    assertEqual(tokens[0].value, 'D', 'Token value should be D');
+  });
+
+  console.log('\n✓ All D-transform evaluation tests passed!\n');
+}
+
+// ============================================================================
 // Run All Tests
 // ============================================================================
 
@@ -842,9 +1092,25 @@ function runAllTests(): void {
     runEvaluatorTests();
     runBeltTests();
     runIntegrationTests();
+    testDTransformBasics();
+    testTrialityOrbits();
+    testDTransformParsing();
+    testDTransformEvaluation();
+
+    // v0.3.0: SGA Tests
+    console.log('\n');
+    console.log('='.repeat(60));
+    console.log('v0.3.0: SGA (Sigmatics Geometric Algebra) Tests');
+    console.log('='.repeat(60));
+    console.log();
+
+    runGroupAlgebraTests();
+    runSgaLawsTests();
+    runBridgeTests();
+    runBugFixTests();
 
     console.log('='.repeat(60));
-    console.log('✓ ALL TESTS PASSED');
+    console.log('✓ ALL TESTS PASSED (including v0.3.0 SGA tests and v0.3.1 bug fixes)');
     console.log('='.repeat(60));
   } catch (error: any) {
     console.log('\n' + '='.repeat(60));

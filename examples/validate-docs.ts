@@ -98,7 +98,12 @@ test('Class info structure', () => {
     throw new Error(`Wrong classIndex: ${info.classIndex}`);
   }
   // SigilComponents: h2 (0-3), d (0-2), l (0-7)
-  if (!info.components || typeof info.components.h2 !== 'number' || info.components.h2 < 0 || info.components.h2 > 3) {
+  if (
+    !info.components ||
+    typeof info.components.h2 !== 'number' ||
+    info.components.h2 < 0 ||
+    info.components.h2 > 3
+  ) {
     throw new Error('Missing or invalid components.h2 (must be 0-3)');
   }
   if (typeof info.components.d !== 'number' || info.components.d < 0 || info.components.d > 2) {

@@ -135,22 +135,24 @@ API surfaces in the core library may require keeping this UI in sync.
 **Main component:** `apps/playground-web/src/App.tsx`  
 **Entry point:** `apps/playground-web/src/main.tsx`
 
-
 ## Build & Distribution
 
 **Monorepo Workflow:**
+
 - Root `npm install` installs all workspace dependencies
 - `cd packages/core && npm run build` compiles TypeScript sources to `dist/`
 - `cd apps/playground-web && npm run build` runs Vite to bundle the playground
 - `cd packages/core && npm test` runs the test suite with ts-node
 
 **Package Publishing:**
+
 - The published npm package (`@uor-foundation/sigmatics`) exports from `packages/core/`
 - Main entry: `packages/core/src/index.ts` re-exports all modules
 - Sub-module exports available: `@uor-foundation/sigmatics/lexer`, `/parser`, etc.
 - Zero runtime dependencies (only dev dependencies: typescript, ts-node, @types/node)
 
 **GitHub Pages Deployment:**
+
 - Workflow: `.github/workflows/deploy-pages.yml`
 - Steps:
   1. Install with `npm ci` at root (installs all workspaces)
@@ -160,34 +162,31 @@ API surfaces in the core library may require keeping this UI in sync.
 
 ## Extending the System
 
-1. **New generators**: update `packages/core/src/evaluator/evaluator.ts` (`lowerOperation`) 
-   and extend the `GeneratorName` type in `packages/core/src/types/types.ts`. Tests should 
+1. **New generators**: update `packages/core/src/evaluator/evaluator.ts` (`lowerOperation`)
+   and extend the `GeneratorName` type in `packages/core/src/types/types.ts`. Tests should
    cover both literal and operational semantics.
-   
-2. **Transform logic**: adjust `packages/core/src/class-system/class.ts` (never duplicate 
-   logic in evaluators) and ensure spec wording remains in errors for compatibility with 
+2. **Transform logic**: adjust `packages/core/src/class-system/class.ts` (never duplicate
+   logic in evaluators) and ensure spec wording remains in errors for compatibility with
    existing tests.
-   
-3. **Parser updates**: modify grammar helpers in `packages/core/src/parser/parser.ts` and 
-   update tests to assert on ambiguous constructs. Lexer changes often require parser/test 
+3. **Parser updates**: modify grammar helpers in `packages/core/src/parser/parser.ts` and
+   update tests to assert on ambiguous constructs. Lexer changes often require parser/test
    adjustments in tandem.
-   
-4. **Public API**: mirror new helpers in `packages/core/src/api/index.ts` (the Atlas class) 
+4. **Public API**: mirror new helpers in `packages/core/src/api/index.ts` (the Atlas class)
    and ensure they're re-exported in `packages/core/src/index.ts` for package consumers.
-   
-5. **New modules**: Create new directory under `packages/core/src/`, add implementation files, 
+5. **New modules**: Create new directory under `packages/core/src/`, add implementation files,
    create `index.ts` barrel export, and update main `packages/core/src/index.ts` to re-export.
-
 
 ## Testing Workflow
 
 Run tests from the core package:
+
 ```bash
 cd packages/core
 npm test
 ```
 
 The test suite (`packages/core/test/index.ts`) covers:
+
 - Lexer: Token types, error recovery, position tracking
 - Parser: AST construction, transform precedence, validation
 - Class System: Byte encoding, transform application, equivalence classes

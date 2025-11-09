@@ -17,6 +17,7 @@ export type TokenType =
   | 'MINUS' // -
   | 'NUMBER' // integer literal
   | 'ROTATE' // R
+  | 'TRIALITY' // D
   | 'TWIST' // T
   | 'EOF'
   | 'ERROR';
@@ -135,9 +136,12 @@ export class Lexer {
       this.position++;
     }
 
-    // Check for R or T transform prefixes
+    // Check for R, D, or T transform prefixes
     if (value === 'R') {
       return this.makeToken('ROTATE', value, start);
+    }
+    if (value === 'D') {
+      return this.makeToken('TRIALITY', value, start);
     }
     if (value === 'T') {
       return this.makeToken('TWIST', value, start);

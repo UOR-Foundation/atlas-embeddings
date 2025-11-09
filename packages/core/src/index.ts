@@ -21,3 +21,10 @@ export * from './evaluator';
 
 // Class System
 export * from './class-system';
+
+// v0.3.0: SGA (Sigmatics Geometric Algebra)
+export * as SGA from './sga';
+export * as Bridge from './bridge';
+
+// Re-export key SGA types
+export type { SgaElement, Cl07Element, Z4Element, Z3Element, Rank1Basis } from './sga/types';

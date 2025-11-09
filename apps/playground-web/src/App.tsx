@@ -1,5 +1,4 @@
 import React, { useState, useCallback, FC, PropsWithChildren } from 'react';
-import { createRoot } from 'react-dom/client';
 import { Atlas } from '@uor-foundation/sigmatics';
 import type { Phrase, ClassInfo } from '@uor-foundation/sigmatics';
 
@@ -18,7 +17,7 @@ const QUICKSTART_CONTENT = `
 <term>       ::= <op> | "(" <par> ")"
 <op>         ::= <generator> "@" <sigil>
 <sigil>      ::= "c" <0..95> ["^" ("+"|"-") <k>] ["~"] ["@" <λ:0..47>]
-<transform>  ::= [ "R" ("+"|"-") <q> ] [ "T" ("+"|"-") <k> ] [ "~" ]
+<transform>  ::= [ "R" ("+"|"-") <q> ] [ "D" ("+"|"-") <k> ] [ "T" ("+"|"-") <k> ] [ "~" ]
 `;
 
 // --- UI Components ---

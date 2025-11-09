@@ -124,9 +124,15 @@ function evaluateSigil(
   let components = decodeClassIndex(sigil.classIndex);
 
   // Apply sigil's own transforms (postfix)
-  if (sigil.rotate !== undefined || sigil.twist !== undefined || sigil.mirror) {
+  if (
+    sigil.rotate !== undefined ||
+    sigil.triality !== undefined ||
+    sigil.twist !== undefined ||
+    sigil.mirror
+  ) {
     components = applyTransforms(components, {
       R: sigil.rotate,
+      D: sigil.triality,
       T: sigil.twist,
       M: sigil.mirror,
     });
@@ -159,6 +165,7 @@ function combineTransforms(outer?: Transform, inner?: Transform): Transform | un
 
   return {
     R: (outer.R || 0) + (inner.R || 0),
+    D: (outer.D || 0) + (inner.D || 0),
     T: (outer.T || 0) + (inner.T || 0),
     M: !!(outer.M !== inner.M), // XOR for mirror
   };
@@ -243,9 +250,15 @@ function lowerOperation(op: Operation, outerTransform?: Transform): string[] {
   // Compute effective components
   let components = decodeClassIndex(op.sigil.classIndex);
 
-  if (op.sigil.rotate !== undefined || op.sigil.twist !== undefined || op.sigil.mirror) {
+  if (
+    op.sigil.rotate !== undefined ||
+    op.sigil.triality !== undefined ||
+    op.sigil.twist !== undefined ||
+    op.sigil.mirror
+  ) {
     components = applyTransforms(components, {
       R: op.sigil.rotate,
+      D: op.sigil.triality,
       T: op.sigil.twist,
       M: op.sigil.mirror,
     });
@@ -300,6 +313,10 @@ function encodeTransform(transform: Transform, enter: boolean): string[] {
 
   if (transform.R !== undefined && transform.R !== 0) {
     words.push(`${prefix}ρ[${transform.R}]`);
+  }
+  if (transform.D !== undefined && transform.D !== 0) {
+    const normalized = ((transform.D % 3) + 3) % 3;
+    words.push(`${prefix}δ[${normalized}]`);
   }
   if (transform.T !== undefined && transform.T !== 0) {
     words.push(`${prefix}τ[${transform.T}]`);

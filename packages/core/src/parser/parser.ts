@@ -7,8 +7,8 @@
  *   <seq>        ::= <term> { "." <term> }
  *   <term>       ::= <op> | "(" <par> ")"
  *   <op>         ::= <generator> "@" <sigil>
- *   <sigil>      ::= "c" <int:0..95> ["^" ("+"|"-") <int>] ["~"] ["@" <λ:int 0..47>]
- *   <transform>  ::= [ "R" ("+"|"-") <int> ] [ "T" ("+"|"-") <int> ] [ "~" ]
+ *   <sigil>      ::= "c" <int:0..95> ["^" [("R"|"D"|"T")] ("+"|"-") <int>] ["~"] ["@" <λ:int 0..47>]
+ *   <transform>  ::= [ "R" ("+"|"-") <int> ] [ "D" ("+"|"-") <int> ] [ "T" ("+"|"-") <int> ] [ "~" ]
  */
 
 import { tokenize, type Token, type TokenType } from '../lexer';
@@ -39,7 +39,12 @@ export class Parser {
     const currentType = this.current().type;
 
     // Use lookahead to decide whether to parse a transform prefix
-    if (currentType === 'ROTATE' || currentType === 'TWIST' || currentType === 'TILDE') {
+    if (
+      currentType === 'ROTATE' ||
+      currentType === 'TRIALITY' ||
+      currentType === 'TWIST' ||
+      currentType === 'TILDE'
+    ) {
       const transform = this.parseTransform();
       this.expect('AT');
       const body = this.parseParallel();
@@ -97,7 +102,12 @@ export class Parser {
     const currentType = this.current().type;
 
     // Allow transform prefixes within sequences or groups
-    if (currentType === 'ROTATE' || currentType === 'TWIST' || currentType === 'TILDE') {
+    if (
+      currentType === 'ROTATE' ||
+      currentType === 'TRIALITY' ||
+      currentType === 'TWIST' ||
+      currentType === 'TILDE'
+    ) {
       const transform = this.parseTransform();
       this.expect('AT');
       const body = this.parseParallel();
@@ -160,12 +170,33 @@ export class Parser {
       classIndex,
     };
 
-    // Check for twist ^±k
+    // Check for postfix transforms ^[R|D|T]±k
     if (this.current().type === 'CARET') {
       this.advance(); // consume ^
-      const sign = this.parseSign();
-      const k = parseInt(this.expect('NUMBER').value, 10);
-      sigil.twist = sign * k;
+
+      // Check if there's a transform letter (R, D, or T)
+      const currentType = this.current().type;
+      if (currentType === 'ROTATE') {
+        this.advance(); // consume R
+        const sign = this.parseSign();
+        const k = parseInt(this.expect('NUMBER').value, 10);
+        sigil.rotate = sign * k;
+      } else if (currentType === 'TRIALITY') {
+        this.advance(); // consume D
+        const sign = this.parseSign();
+        const k = parseInt(this.expect('NUMBER').value, 10);
+        sigil.triality = sign * k;
+      } else if (currentType === 'TWIST') {
+        this.advance(); // consume T
+        const sign = this.parseSign();
+        const k = parseInt(this.expect('NUMBER').value, 10);
+        sigil.twist = sign * k;
+      } else {
+        // Backward compatibility: ^±k defaults to twist
+        const sign = this.parseSign();
+        const k = parseInt(this.expect('NUMBER').value, 10);
+        sigil.twist = sign * k;
+      }
     }
 
     // Check for mirror ~
@@ -193,7 +224,7 @@ export class Parser {
   }
 
   /**
-   * Parse a transform prefix: [R±q] [T±k] [~]
+   * Parse a transform prefix: [R±q] [D±k] [T±k] [~]
    */
   private parseTransform(): Transform {
     const transform: Transform = {};
@@ -206,6 +237,15 @@ export class Parser {
       const sign = this.parseSign();
       const q = parseInt(this.expect('NUMBER').value, 10);
       transform.R = sign * q;
+    }
+
+    // Check for D±k
+    if (this.current().type === 'TRIALITY') {
+      hasAny = true;
+      this.advance(); // consume D
+      const sign = this.parseSign();
+      const k = parseInt(this.expect('NUMBER').value, 10);
+      transform.D = sign * k;
     }
 
     // Check for T±k
@@ -227,7 +267,7 @@ export class Parser {
     if (!hasAny) {
       // This should not be reachable due to the lookahead in parsePhrase
       throw new Error(
-        `Expected a transform token (R, T, or ~) at position ${this.current().position}`,
+        `Expected a transform token (R, D, T, or ~) at position ${this.current().position}`,
       );
     }
 

@@ -68,11 +68,11 @@ const result = Atlas.evaluate('copy@c05');
 
 ```typescript
 // Get class information
-const info = Atlas.classInfo(0x2A);
+const info = Atlas.classInfo(0x2a);
 // → { classIndex: 21, components: {...}, canonicalByte: 0x2A }
 
 // Test equivalence
-Atlas.equivalent(0x2A, 0x2B); // → true (same class)
+Atlas.equivalent(0x2a, 0x2b); // → true (same class)
 
 // Get equivalence class
 Atlas.equivalenceClass(21); // → [0x2A, 0x2B]
@@ -82,7 +82,7 @@ Atlas.equivalenceClass(21); // → [0x2A, 0x2B]
 
 ```typescript
 // Compute belt address
-const addr = Atlas.beltAddress(17, 0x2A);
+const addr = Atlas.beltAddress(17, 0x2a);
 // → { page: 17, byte: 42, address: 4394 }
 
 // Decode address
@@ -90,11 +90,60 @@ Atlas.decodeBeltAddress(4394);
 // → { page: 17, byte: 42, address: 4394 }
 ```
 
+### D-Transform (Triality Rotation)
+
+The D-transform rotates the modality parameter `d` with period 3:
+
+```typescript
+// D+k: (h₂, d, ℓ) ↦ (h₂, (d+k) mod 3, ℓ)
+
+// Apply D-transform
+const result = Atlas.applyDTransform(21, 1);
+console.log(result.newClass); // 5
+console.log(result.transformation);
+// { h2: 0, d_old: 2, d_new: 0, l: 5 }
+
+// Get triality orbit
+const orbit = Atlas.getTrialityOrbit(21);
+console.log(orbit.classes); // [5, 13, 21]
+console.log(orbit.baseCoordinates); // { h2: 0, l: 5 }
+
+// Get all triality orbits
+const orbits = Atlas.getAllTrialityOrbits();
+console.log(orbits.length); // 32 orbits covering all 96 classes
+```
+
+**Properties:**
+
+- Period 3: `D+3 = identity`
+- Preserves `h₂` and `ℓ`
+- Commutes with R and T
+- 32 triality orbits (96 classes / 3)
+
+**Grammar:**
+
+```
+<transform> ::= [ R±q ] [ D±k ] [ T±m ] [ ~ ]
+```
+
+**Examples:**
+
+```typescript
+// Prefix transform
+Atlas.evaluateBytes('D+1@ mark@c21'); // → c5
+
+// Combined transforms
+Atlas.evaluateBytes('R+2 D+1 T+3@ mark@c0');
+
+// Postfix transform
+Atlas.evaluateBytes('mark@c21^D+1'); // → c5
+```
+
 ## Features
 
 - ✨ **Dual Semantics**: Both literal (byte) and operational (word) backends
 - 🎯 **96-Class System**: Authoritative ≡₉₆ equivalence structure
-- 🔄 **Transform Algebra**: Rotate (R), Twist (T), and Mirror (M) operations
+- 🔄 **Transform Algebra**: Rotate (R), Triality (D), Twist (T), and Mirror (M) operations
 - 📐 **Formal Grammar**: Complete parser for sigil expressions
 - 🌐 **Belt Addressing**: Content-addressable 12,288-slot belt
 - ✅ **Verified**: Includes all specification test vectors

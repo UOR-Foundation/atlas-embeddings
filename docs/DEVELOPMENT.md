@@ -7,11 +7,13 @@ here or in other docs so the repository remains self-explanatory.
 ## Project Setup
 
 **Initial Setup:**
+
 ```bash
 npm install     # install all workspace dependencies (run from root)
 ```
 
 **Core Package Development:**
+
 ```bash
 cd packages/core
 npm run build   # compile TypeScript sources to dist/
@@ -19,6 +21,7 @@ npm test        # run spec-aligned test suite (ts-node)
 ```
 
 **Playground Development:**
+
 ```bash
 cd apps/playground-web
 npm run dev     # start Vite dev server at http://localhost:3000
@@ -26,18 +29,21 @@ npm run build   # build production bundle
 ```
 
 **CLI Playground:**
+
 ```bash
 cd apps/playground-cli
 npm start       # run interactive demonstration
 ```
 
 **Examples:**
+
 ```bash
 cd examples
 npm start       # run cookbook-style demonstrations
 ```
 
 Optional tooling (when available):
+
 - `npm run lint` runs ESLint across the TypeScript sources
 - `npm run format` applies Prettier to code and Markdown
 
@@ -56,11 +62,11 @@ packages/
       index.ts      # Main entry point, re-exports all modules
     test/           # Spec-aligned test suite
     dist/           # Compiled output (after build)
-    
+
 apps/
   playground-web/   # React/Vite interactive playground
   playground-cli/   # Command-line demonstration tool
-  
+
 examples/           # Usage demonstrations
 tools/              # Development utilities (validation, etc.)
 docs/               # Specifications, guides, architecture notes
@@ -76,41 +82,34 @@ Sigmatics uses **npm workspaces** for package management:
 - Changes to core automatically visible to playground/examples during development
 
 **Adding a New Workspace:**
+
 1. Create directory under appropriate category (`packages/`, `apps/`, `tools/`)
 2. Add `package.json` with unique name
 3. Reference core package via workspace protocol if needed: `"@uor-foundation/sigmatics": "workspace:*"`
 4. Run `npm install` from root to link workspaces
 
-
 ## Coding Conventions
 
 - **Zero runtime dependencies**: keep the core library dependency-free. Utilities must live
-  in the existing modules under `packages/core/src/`; additional packages are only for 
+  in the existing modules under `packages/core/src/`; additional packages are only for
   tooling or UI builds.
-  
-- **Modular structure**: each module lives in its own directory with a barrel export 
-  (`index.ts`). Main entry (`packages/core/src/index.ts`) re-exports all modules for 
+- **Modular structure**: each module lives in its own directory with a barrel export
+  (`index.ts`). Main entry (`packages/core/src/index.ts`) re-exports all modules for
   external consumers.
-  
 - **Import patterns**:
   - Within core: use relative imports (`import { tokenize } from '../lexer'`)
   - External packages: use package imports (`import { Atlas } from '@uor-foundation/sigmatics'`)
   - Sub-module imports available: `@uor-foundation/sigmatics/lexer`, `/parser`, etc.
-  
 - **Transforms first-class**: centralize rotation/twist/mirror logic in
-  `packages/core/src/class-system/class.ts`. Evaluators should call into the helpers 
+  `packages/core/src/class-system/class.ts`. Evaluators should call into the helpers
   instead of reimplementing algebra.
-  
 - **Right-to-left sequencing**: sequential composition (`Sequential`) executes last item first.
   Tests assert on both literal and operational outputs—maintain this invariant when
   rewriting traversals.
-  
 - **Error messaging**: lexer/parser errors are asserted by substring in tests. Preserve
   wording when changing validation checks.
-  
 - **Documentation driven**: whenever behaviour changes, update the test suite and
   relevant Markdown (README, guides, this file) in the same commit.
-
 
 ## Testing Strategy
 
@@ -123,21 +122,23 @@ The test suite in `packages/core/test/index.ts` provides comprehensive coverage:
   existing pattern so human-readable output stays consistent
 
 **Running Tests:**
+
 ```bash
 cd packages/core
 npm test        # runs all tests with ts-node
 ```
 
 Supplemental testing ideas:
+
 - Extend `examples/basic-usage.ts` with real-world scenarios and verify outputs manually
-- Build the playground (`cd apps/playground-web && npm run build`) and inspect the UI 
+- Build the playground (`cd apps/playground-web && npm run build`) and inspect the UI
   when making API changes
 - Run CLI playground (`cd apps/playground-cli && npm start`) to verify interactive features
-
 
 ## Release Workflow
 
 **Pre-release Checks:**
+
 ```bash
 cd packages/core
 npm run build   # compile TypeScript to dist/
@@ -145,6 +146,7 @@ npm test        # ensure all tests pass
 ```
 
 **Publishing:**
+
 1. Update version in `packages/core/package.json`
 2. Update CHANGELOG (if maintained)
 3. Ensure `dist/` artifacts exist
@@ -153,6 +155,7 @@ npm test        # ensure all tests pass
 6. Push to `main`; GitHub Pages workflow publishes playground automatically
 
 **Package Structure:**
+
 - Published package: `@uor-foundation/sigmatics`
 - Main entry: `dist/index.js` (compiled from `src/index.ts`)
 - Sub-module exports: `/lexer`, `/parser`, `/evaluator`, `/class-system`, `/types`, `/api`
@@ -163,6 +166,7 @@ npm test        # ensure all tests pass
 The workflow at `.github/workflows/deploy-pages.yml`:
 
 **Build Steps:**
+
 1. Checkout code
 2. Run `npm ci` (installs all workspace dependencies)
 3. Build core package: `cd packages/core && npm run build`
@@ -170,6 +174,7 @@ The workflow at `.github/workflows/deploy-pages.yml`:
 5. Deploy `apps/playground-web/dist/` to GitHub Pages
 
 **Local Verification:**
+
 ```bash
 # From root
 npm install
@@ -180,7 +185,6 @@ cd ../apps/playground-web && npm run build
 
 The workflow automatically adjusts the base path for org/user repositories (`*.github.io`).
 Verify changes locally before pushing to avoid deployment surprises.
-
 
 ## Documentation Checklist
 
@@ -194,6 +198,7 @@ Before merging a feature or fix:
 5. Re-run `npm run format` (if available) to keep Markdown and code consistent
 
 **File Locations:**
+
 - Main README: `/README.md` (monorepo overview, quick start)
 - Core package README: `/packages/core/README.md` (API documentation)
 - Architecture guide: `/docs/ARCHITECTURE.md` (module structure, pipeline)
@@ -231,4 +236,3 @@ To add a new module to the core package:
 7. **Document:** Update `packages/core/README.md` and `docs/ARCHITECTURE.md`
 
 This pattern ensures consistency with existing modules and maintains the clean import structure.
-

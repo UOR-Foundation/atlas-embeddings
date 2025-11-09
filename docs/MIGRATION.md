@@ -17,18 +17,18 @@ If you're using the standard import (`import { Atlas } from '@uor-foundation/sig
 
 ### File Locations
 
-| Old Location (v0.1.x) | New Location (v0.2.0+) |
-|-----------------------|------------------------|
-| `atlas-types.ts` | `packages/core/src/types/types.ts` |
-| `atlas-lexer.ts` | `packages/core/src/lexer/lexer.ts` |
-| `atlas-parser.ts` | `packages/core/src/parser/parser.ts` |
-| `atlas-evaluator.ts` | `packages/core/src/evaluator/evaluator.ts` |
-| `atlas-class.ts` | `packages/core/src/class-system/class.ts` |
-| `atlas.ts` | `packages/core/src/api/index.ts` |
-| `atlas-test.ts` | `packages/core/test/index.ts` |
-| `index.tsx` | `apps/playground-web/src/App.tsx` |
-| `examples.ts` | `examples/basic-usage.ts` |
-| `playground.ts` | `apps/playground-cli/src/index.ts` |
+| Old Location (v0.1.x) | New Location (v0.2.0+)                     |
+| --------------------- | ------------------------------------------ |
+| `atlas-types.ts`      | `packages/core/src/types/types.ts`         |
+| `atlas-lexer.ts`      | `packages/core/src/lexer/lexer.ts`         |
+| `atlas-parser.ts`     | `packages/core/src/parser/parser.ts`       |
+| `atlas-evaluator.ts`  | `packages/core/src/evaluator/evaluator.ts` |
+| `atlas-class.ts`      | `packages/core/src/class-system/class.ts`  |
+| `atlas.ts`            | `packages/core/src/api/index.ts`           |
+| `atlas-test.ts`       | `packages/core/test/index.ts`              |
+| `index.tsx`           | `apps/playground-web/src/App.tsx`          |
+| `examples.ts`         | `examples/basic-usage.ts`                  |
+| `playground.ts`       | `apps/playground-cli/src/index.ts`         |
 
 ### Import Patterns
 
@@ -68,6 +68,7 @@ console.log(result);
 If you were importing specific functions from the old flat structure:
 
 **Before (v0.1.x):**
+
 ```typescript
 import { tokenize } from '@uor-foundation/sigmatics';
 import { Parser } from '@uor-foundation/sigmatics';
@@ -75,6 +76,7 @@ import { evaluateLiteral } from '@uor-foundation/sigmatics';
 ```
 
 **After (v0.2.0+):**
+
 ```typescript
 // Option 1: Continue using main entry (unchanged)
 import { tokenize, Parser, evaluateLiteral } from '@uor-foundation/sigmatics';
@@ -92,11 +94,13 @@ Both options work identically. Sub-module imports are recommended for better tre
 Type imports work the same way:
 
 **Before (v0.1.x):**
+
 ```typescript
 import type { Phrase, Token, LiteralResult } from '@uor-foundation/sigmatics';
 ```
 
 **After (v0.2.0+):**
+
 ```typescript
 // Option 1: Main entry (unchanged)
 import type { Phrase, Token, LiteralResult } from '@uor-foundation/sigmatics';
@@ -112,6 +116,7 @@ If you're contributing to Sigmatics or maintaining a fork:
 **Within the core package**, import patterns have changed:
 
 **Before:**
+
 ```typescript
 // In any atlas-*.ts file
 import { Token } from './atlas-types';
@@ -119,6 +124,7 @@ import { tokenize } from './atlas-lexer';
 ```
 
 **After:**
+
 ```typescript
 // In packages/core/src/parser/parser.ts
 import type { Token } from '../types';
@@ -126,6 +132,7 @@ import { tokenize } from '../lexer';
 ```
 
 Key points:
+
 - Use **relative imports** (`../module`) within the core package
 - Each module has a barrel export (`index.ts`)
 - The main entry (`packages/core/src/index.ts`) re-exports everything
@@ -147,20 +154,20 @@ import { Parser } from '@uor-foundation/sigmatics/parser';
 import { evaluateLiteral, evaluateOperational } from '@uor-foundation/sigmatics/evaluator';
 
 // Class system module
-import { 
-  encodeComponentsToByte, 
+import {
+  encodeComponentsToByte,
   decodeByteToComponents,
   applyTransforms,
-  computeBeltAddress 
+  computeBeltAddress,
 } from '@uor-foundation/sigmatics/class-system';
 
 // Types module
-import type { 
-  Phrase, 
-  Token, 
+import type {
+  Phrase,
+  Token,
   Sigil,
-  LiteralResult, 
-  OperationalResult 
+  LiteralResult,
+  OperationalResult,
 } from '@uor-foundation/sigmatics/types';
 
 // API module (Atlas class)
@@ -184,10 +191,10 @@ This enables better separation of concerns and makes it easier to add new packag
 
 ## Compatibility Matrix
 
-| Package Version | Node.js | TypeScript | Breaking Changes |
-|-----------------|---------|------------|------------------|
-| v0.1.x | ≥14 | ≥4.0 | N/A |
-| v0.2.0 | ≥14 | ≥5.0 | None (API compatible) |
+| Package Version | Node.js | TypeScript | Breaking Changes      |
+| --------------- | ------- | ---------- | --------------------- |
+| v0.1.x          | ≥14     | ≥4.0       | N/A                   |
+| v0.2.0          | ≥14     | ≥5.0       | None (API compatible) |
 
 ## Troubleshooting
 
@@ -196,6 +203,7 @@ This enables better separation of concerns and makes it easier to add new packag
 **Problem:** `Cannot find module '@uor-foundation/sigmatics/lexer'`
 
 **Solution:** Make sure you're using version 0.2.0 or later:
+
 ```bash
 npm install @uor-foundation/sigmatics@latest
 ```
@@ -205,6 +213,7 @@ npm install @uor-foundation/sigmatics@latest
 **Problem:** Types not resolving for sub-module imports
 
 **Solution:** Ensure your `tsconfig.json` has `moduleResolution` set to `node16` or `bundler`:
+
 ```json
 {
   "compilerOptions": {
@@ -218,6 +227,7 @@ npm install @uor-foundation/sigmatics@latest
 **Problem:** Building from source in a cloned repository fails
 
 **Solution:** Install workspace dependencies from the root:
+
 ```bash
 npm install
 cd packages/core

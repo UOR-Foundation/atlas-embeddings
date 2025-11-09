@@ -15,6 +15,7 @@ export interface ClassSigil {
   kind: 'Sigil';
   classIndex: number; // 0..95
   rotate?: number; // R±k transform
+  triality?: number; // D±k transform
   twist?: number; // T±k transform
   mirror?: boolean; // M transform
   page?: number; // λ ∈ {0..47} optional belt page
@@ -47,8 +48,9 @@ export interface Parallel {
 }
 
 export interface Transform {
-  R?: number; // rotate quadrants
-  T?: number; // twist context ring
+  R?: number; // rotate quadrants (mod 4)
+  D?: number; // triality rotation (mod 3)
+  T?: number; // twist context ring (mod 8)
   M?: boolean; // mirror modality
 }
 
@@ -137,4 +139,30 @@ export interface PageState {
   index: number; // 0..47
   bytes: Uint8Array; // 256 bytes
   classes: number[]; // 256 class indices
+}
+
+// ============================================================================
+// Triality (D-Transform)
+// ============================================================================
+
+/**
+ * Triality orbit containing 3 classes with same (h₂, ℓ) but different d
+ */
+export interface TrialityOrbit {
+  baseCoordinates: { h2: ScopeQuadrant; l: ContextSlot };
+  classes: [number, number, number]; // [d=0, d=1, d=2]
+}
+
+/**
+ * Result of applying D-transform
+ */
+export interface DTransformResult {
+  oldClass: number;
+  newClass: number;
+  transformation: {
+    h2: ScopeQuadrant;
+    d_old: Modality;
+    d_new: Modality;
+    l: ContextSlot;
+  };
 }

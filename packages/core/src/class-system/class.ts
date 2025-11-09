@@ -3,7 +3,13 @@
  * Implements the authoritative ≡₉₆ mapping
  */
 
-import type { SigilComponents, ClassInfo, BeltAddress } from '../types';
+import type {
+  SigilComponents,
+  ClassInfo,
+  BeltAddress,
+  DTransformResult,
+  TrialityOrbit,
+} from '../types';
 
 // ============================================================================
 // Authoritative Class Mapping (≡₉₆)
@@ -166,16 +172,40 @@ export function applyMirror(comp: SigilComponents): SigilComponents {
 }
 
 /**
+ * Apply triality transform D±k (mod 3 on d)
+ * D+k: (h₂, d, ℓ) ↦ (h₂, (d+k) mod 3, ℓ)
+ *
+ * Preserves h₂ and ℓ, rotates modality:
+ * - D+1: 0→1, 1→2, 2→0
+ * - D+2: 0→2, 2→1, 1→0 (same as D-1)
+ * - D+3: identity
+ */
+export function applyTriality(comp: SigilComponents, k: number): SigilComponents {
+  // Normalize k to [0, 2] range
+  const normalized = ((k % 3) + 3) % 3;
+
+  // Apply modality rotation
+  const d = ((comp.d + normalized) % 3) as 0 | 1 | 2;
+
+  return { ...comp, d };
+}
+
+/**
  * Apply all transforms in sequence
  */
 export function applyTransforms(
   comp: SigilComponents,
-  transforms: { R?: number; T?: number; M?: boolean },
+  transforms: { R?: number; D?: number; T?: number; M?: boolean },
 ): SigilComponents {
   let result = comp;
 
+  // Apply in order: R, D, T (commutative group), then M
+  // Order doesn't matter for R, D, T since they act on independent components
   if (transforms.R !== undefined) {
     result = applyRotation(result, transforms.R);
+  }
+  if (transforms.D !== undefined) {
+    result = applyTriality(result, transforms.D);
   }
   if (transforms.T !== undefined) {
     result = applyTwist(result, transforms.T);
@@ -278,4 +308,88 @@ export function formatModality(d: 0 | 1 | 2): string {
  */
 export function formatClassInfo(info: ClassInfo): string {
   return `c${info.classIndex.toString().padStart(2, '0')} ${formatComponents(info.components)} → 0x${info.canonicalByte.toString(16).toUpperCase().padStart(2, '0')}`;
+}
+
+// ============================================================================
+// Triality Orbits
+// ============================================================================
+
+/**
+ * Apply D-transform to a class index
+ * @param classIndex - Starting class (0-95)
+ * @param k - Rotation amount (will be normalized to 0-2)
+ * @returns New class index after D-transform
+ */
+export function applyDTransformToClass(classIndex: number, k: number): DTransformResult {
+  if (classIndex < 0 || classIndex >= 96) {
+    throw new Error(`Invalid class index: ${classIndex}`);
+  }
+
+  // Get components
+  const components = decodeClassIndex(classIndex);
+  const { h2, d, l } = components;
+
+  // Apply triality
+  const transformed = applyTriality(components, k);
+  const d_new = transformed.d;
+
+  // Calculate new class index
+  const newClass = componentsToClassIndex(transformed);
+
+  return {
+    oldClass: classIndex,
+    newClass,
+    transformation: {
+      h2,
+      d_old: d,
+      d_new,
+      l,
+    },
+  };
+}
+
+/**
+ * Get triality orbit containing a class
+ * Returns all 3 classes in the orbit with same (h₂, ℓ) but different d
+ *
+ * @param classIndex - Any class in the orbit
+ * @returns TrialityOrbit with all 3 classes
+ */
+export function getTrialityOrbit(classIndex: number): TrialityOrbit {
+  const components = decodeClassIndex(classIndex);
+  const { h2, l } = components;
+
+  // Generate all 3 classes in orbit
+  const classes: [number, number, number] = [
+    componentsToClassIndex({ h2, d: 0, l }),
+    componentsToClassIndex({ h2, d: 1, l }),
+    componentsToClassIndex({ h2, d: 2, l }),
+  ];
+
+  return {
+    baseCoordinates: { h2, l },
+    classes,
+  };
+}
+
+/**
+ * Generate all 32 triality orbits
+ * Each orbit contains 3 classes (96 classes / 3 = 32 orbits)
+ */
+export function getAllTrialityOrbits(): TrialityOrbit[] {
+  const orbits: TrialityOrbit[] = [];
+
+  for (let h2 = 0; h2 < 4; h2++) {
+    for (let l = 0; l < 8; l++) {
+      orbits.push({
+        baseCoordinates: {
+          h2: h2 as 0 | 1 | 2 | 3,
+          l: l as 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7,
+        },
+        classes: [24 * h2 + 8 * 0 + l, 24 * h2 + 8 * 1 + l, 24 * h2 + 8 * 2 + l],
+      });
+    }
+  }
+
+  return orbits;
 }
