@@ -79,6 +79,8 @@ jobs:
 
   benchmarks:
     name: Benchmarks
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
     steps:
