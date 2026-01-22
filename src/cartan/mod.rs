@@ -223,11 +223,11 @@ impl<const N: usize> CartanMatrix<N> {
                 continue;
             }
             let mut mj = 0;
-            for j in 0..4 {
+            for (j, entry) in self.entries[i].iter().take(4).enumerate() {
                 if j == skip_col {
                     continue;
                 }
-                minor[mi][mj] = self.entries[i][j];
+                minor[mi][mj] = *entry;
                 mj += 1;
             }
             mi += 1;
