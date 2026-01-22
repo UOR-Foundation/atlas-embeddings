@@ -88,9 +88,8 @@ fn test_e6_simply_laced_properties() {
     // Cartan matrix has only {0, -1} off-diagonal
     let cartan = e6.cartan_matrix();
     for i in 0..6 {
-        for j in 0..6 {
+        for (j, &entry) in cartan.entries()[i].iter().enumerate().take(6) {
             if i != j {
-                let entry = cartan.get(i, j);
                 assert!(entry == 0 || entry == -1, "Simply-laced: off-diagonal ∈ {{0, -1}}");
             }
         }
@@ -135,8 +134,8 @@ fn test_e6_simple_roots_extraction() {
 
     // Compute Cartan matrix: Cᵢⱼ = ⟨αᵢ, αⱼ⟩
     let mut cartan = vec![vec![0i64; 6]; 6];
-    for i in 0..6 {
-        for j in 0..6 {
+    for (i, row) in cartan.iter_mut().enumerate().take(6) {
+        for (j, entry) in row.iter_mut().enumerate().take(6) {
             let e8_i = embedding.map_vertex(simple_roots[i]);
             let e8_j = embedding.map_vertex(simple_roots[j]);
             let root_i = e8.get_root(e8_i);
@@ -148,27 +147,26 @@ fn test_e6_simple_roots_extraction() {
                 ip += root_i.get(k).to_rational() * root_j.get(k).to_rational();
             }
 
-            cartan[i][j] = *ip.numer() / *ip.denom();
+            *entry = *ip.numer() / *ip.denom();
         }
     }
 
     // Verify Cartan matrix properties
-    #[allow(clippy::needless_range_loop)]
-    for i in 0..6 {
-        assert_eq!(cartan[i][i], 2, "Diagonal must be 2");
-        for j in 0..6 {
+    for (i, row) in cartan.iter().enumerate().take(6) {
+        assert_eq!(row[i], 2, "Diagonal must be 2");
+        for (j, &entry) in row.iter().enumerate().take(6) {
             if i != j {
-                assert!(cartan[i][j] <= 0, "Off-diagonal must be ≤ 0");
-                assert!(cartan[i][j] == 0 || cartan[i][j] == -1, "Simply-laced: only 0 or -1");
+                assert!(entry <= 0, "Off-diagonal must be ≤ 0");
+                assert!(entry == 0 || entry == -1, "Simply-laced: only 0 or -1");
             }
         }
     }
 
     // Verify E₆ Dynkin shape: 1 branch node (deg 3), 3 endpoints (deg 1)
     let mut degrees = [0; 6];
-    for i in 0..6 {
-        for j in 0..6 {
-            if i != j && cartan[i][j] == -1 {
+    for (i, row) in cartan.iter().enumerate().take(6) {
+        for (j, &entry) in row.iter().enumerate().take(6) {
+            if i != j && entry == -1 {
                 degrees[i] += 1;
             }
         }
