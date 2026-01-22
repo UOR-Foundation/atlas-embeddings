@@ -204,10 +204,10 @@ impl<const N: usize> CartanMatrix<N> {
         let mut det = 0_i64;
 
         // Expansion by first row
-        for j in 0..4 {
+        for (j, entry) in m[0].iter().take(4).enumerate() {
             let sign = if j % 2 == 0 { 1 } else { -1 };
             let cofactor = self.minor_3x3(0, j);
-            det += sign * i64::from(m[0][j]) * cofactor;
+            det += sign * i64::from(*entry) * cofactor;
         }
 
         det
@@ -313,23 +313,23 @@ impl<const N: usize> CartanMatrix<N> {
 
         let mut det = 0_i64;
 
-        for j in 0..size {
+        for (j, entry) in matrix[0].iter().take(size).enumerate() {
             let sign = if j % 2 == 0 { 1 } else { -1 };
 
             // Build minor
             let mut minor = vec![vec![0_i8; size - 1]; size - 1];
             for i in 1..size {
                 let mut mj = 0;
-                for k in 0..size {
+                for (k, value) in matrix[i].iter().take(size).enumerate() {
                     if k == j {
                         continue;
                     }
-                    minor[i - 1][mj] = matrix[i][k];
+                    minor[i - 1][mj] = *value;
                     mj += 1;
                 }
             }
 
-            det += sign * i64::from(matrix[0][j]) * Self::determinant_recursive(&minor, size - 1);
+            det += sign * i64::from(*entry) * Self::determinant_recursive(&minor, size - 1);
         }
 
         det
