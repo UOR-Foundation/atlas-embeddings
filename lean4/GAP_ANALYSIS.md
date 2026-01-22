@@ -15,6 +15,34 @@
 
 ---
 
+## Structural Requirements for Legitimate (Non-Computational) Proofs
+
+The current Lean codebase is intentionally computational: it mirrors Rust enumeration and relies on `native_decide`/exhaustive checks. To move toward **mathematically canonical proofs**, the formalization needs new **structural layers** that the current implementation does not provide.
+
+### 1. Mathematical Foundations Layer
+- **Typeclass-aligned algebra:** Replace bespoke arithmetic (e.g., `HalfInteger`, `Vector8`) with mathlib structures (`ℤ`, `ℚ`, `ℝ`, `Module`, `InnerProductSpace`) so proofs can use standard lemmas and linear algebra tactics.
+- **Canonical lattice model:** Define the E₈ lattice as a `ℤ`-submodule of `ℚ`/`ℝ`⁸ with bilinear form, enabling proofs about norms, integrality, and parity without enumerating roots.
+- **Parity & integrality lemmas:** Formalize parity constraints (`even`, `odd`) and half-integer criteria once, then reuse them for all root arguments.
+
+### 2. Root System Infrastructure
+- **Root system definition:** Use mathlib’s `RootSystem`/`RootDatum` (or a compatible local structure) for E₈, so closure, reflection invariance, and norm properties follow from root system axioms rather than computation.
+- **Simple roots and Cartan matrix:** Define simple roots and prove Cartan relations using bilinear form properties, not lookup tables.
+- **Weyl group action:** Use `WeylGroup` structures for uniqueness proofs (embedding uniqueness up to Weyl action) rather than finite case splits.
+
+### 3. Graph & Category Theory Layer
+- **Graph structure:** Use `SimpleGraph` (mathlib) with explicit adjacency relation; prove symmetry/irreflexivity generically instead of by finite checks.
+- **Quotients and products:** Encode mirror symmetry as an equivalence relation and construct quotient graphs using `Quot`/`Quotient` with formal universal properties.
+- **Category theory:** Use `CategoryTheory` instances for `ResGraph`, then prove initiality via universal properties, not by checking all morphisms exhaustively.
+
+### 4. Proof Engineering Layer
+- **Lemma library:** Build a local library of lemmas for parity, lattice arithmetic, and graph morphisms to avoid repeating low-level algebra.
+- **Structure-preserving morphisms:** Define embedding morphisms as linear maps or lattice homomorphisms, with proofs of injectivity and adjacency preservation derived from algebraic properties.
+- **No enumeration dependence:** The proofs should avoid `decide`, `native_decide`, or `fin_cases` over large finite sets except where the argument is intrinsically finite.
+
+These structural layers are prerequisites for the non-computational proof plan in `PLAN.md`. Without them, the formalization cannot transition from a computational certificate to a mathematically canonical Lean development.
+
+---
+
 ## Module-by-Module Analysis
 
 ### ✅ Phase 1: Arithmetic (144 lines)
