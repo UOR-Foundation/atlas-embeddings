@@ -1,4 +1,6 @@
-# atlas-embeddings
+[![Mirror Symmetry](https://github.com/UOR-Foundation/Hologram-APEX/workflows/Mirror%20Symmetry%20Invariant/badge.svg)](https://github.com/UOR-Foundation/Hologram-APEX/actions/workflows/mirror_symmetry_check.yml)
+
+# Hologram APEX
 
 <p align="center">
   <img src=".github/images/golden_seed_fractal_depth1.svg" alt="Golden Seed Fractal - Depth 1" width="600">
