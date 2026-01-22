@@ -43,7 +43,7 @@
 //!
 //! Consider curves γ: \[0,1\] → ℝ² in the plane. The arc length functional is:
 //!
-//! $$ L[\gamma] = \int_{0}^{1} \lVert \gamma'(t) \rVert \, dt $$
+//! $$ L[\gamma] = \\int_{0}^{1} \\lVert \\gamma'(t) \\rVert \\, dt $$
 //!
 //! This assigns to each curve γ its total length. The curve minimizing L\[γ\]
 //! between two points is a straight line (the geodesic).
