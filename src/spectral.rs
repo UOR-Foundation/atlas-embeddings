@@ -1658,7 +1658,7 @@ mod tests {
         let spectral = SpectralAnalysis::from_atlas(&atlas);
         let output = format!("{spectral}");
         assert!(output.contains("Spectral gap"));
-        assert!(output.contains("1"));
+        assert!(output.contains('1'));
     }
 
     /// **Test: Block Matrix Accessor**

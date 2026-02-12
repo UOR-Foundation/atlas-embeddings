@@ -122,7 +122,7 @@ fn test_specific_multiplicities() {
 // Trace Identity Tests
 // ─────────────────────────────────────────────────────────────────────────────
 
-/// **Trace Identity: tr(L_H) = 2|E_H| = 256**
+/// **Trace Identity: `tr(L_H)` = `2|E_H`| = 256**
 ///
 /// The Laplacian trace equals twice the edge count. For the hemisphere
 /// with 128 edges, this gives trace = 256.
@@ -138,7 +138,7 @@ fn test_trace_equals_twice_edges() {
     );
 }
 
-/// **Trace² Identity: tr(L_H²) = 1632**
+/// **Trace² Identity: `tr(L_H²)` = 1632**
 ///
 /// Verified both from the spectrum (Σ λ²·mult) and from the degree
 /// formula (Σ deg(v)² + 2|E|).
@@ -195,10 +195,10 @@ fn test_all_eigenvalues_nonnegative() {
     }
 }
 
-/// **Gershgorin Upper Bound: λ_max ≤ 12**
+/// **Gershgorin Upper Bound: `λ_max` ≤ 12**
 ///
 /// By the Gershgorin circle theorem, all eigenvalues of a graph Laplacian
-/// lie in [0, 2·max_degree]. For the Atlas with max_degree = 6, this
+/// lie in [0, `2·max_degree`]. For the Atlas with `max_degree` = 6, this
 /// gives an upper bound of 12.
 #[test]
 fn test_gershgorin_upper_bound() {
@@ -231,7 +231,7 @@ fn test_max_eigenvalue_is_11() {
 
 /// **All Eigenvalues Are Integers**
 ///
-/// Since all M_ν eigenvalues {ν, ν+1, ν+3} are integers for integer ν,
+/// Since all `M_ν` eigenvalues {ν, ν+1, ν+3} are integers for integer ν,
 /// the entire spectrum consists of integers.
 #[test]
 fn test_all_eigenvalues_are_integers() {
@@ -284,9 +284,9 @@ fn test_block_m0_eigenvalues() {
 
 /// **Block Matrix Trace-Determinant Consistency**
 ///
-/// For each M_ν with eigenvalues {ν, ν+1, ν+3}:
-/// - tr(M_ν) = 3ν + 4 (sum of eigenvalues)
-/// - det(M_ν) = ν(ν+1)(ν+3) (product of eigenvalues)
+/// For each `M_ν` with eigenvalues {ν, ν+1, ν+3}:
+/// - `tr(M_ν)` = 3ν + 4 (sum of eigenvalues)
+/// - `det(M_ν)` = ν(ν+1)(ν+3) (product of eigenvalues)
 #[test]
 fn test_block_trace_det_consistency() {
     let spectral = SpectralAnalysis::from_atlas(&Atlas::new());
